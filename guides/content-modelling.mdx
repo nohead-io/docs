@@ -1,0 +1,78 @@
+---
+title: Content modelling
+description: Collections, fields and field types, and how to change them safely.
+---
+
+A **collection** is a data model: blog posts, products, team members. It has a name, a **slug** that identifies it in URLs and API calls (`blog-posts`), an optional description and a list of **fields**.
+
+A **field** has:
+
+- a **name** shown to editors ("Cover image");
+- an **API key**, the key its value has in a record's `data` (`cover_image`);
+- a **type**, such as text, number or relation;
+- **required**: whether every record must have a value;
+- **multiple**: whether the value is a list;
+- a type-specific **configuration**, such as a maximum length or enum options.
+
+## Naming rules
+
+| | Rule |
+| --- | --- |
+| Collection slug | Starts with a letter; lowercase letters, digits, `-` and `_`; at most 63 characters. Unique in the project. |
+| Field API key | Starts with a letter; lowercase letters, digits and `_` (snake_case); at most 63 characters. Unique in the collection. |
+
+These field API keys are reserved because records use them for their own attributes: `id`, `object`, `collection`, `data`, `status`, `published_at`, `created_at`, `updated_at`, `deleted_at`, `revision`, `schema_version`.
+
+## Field types
+
+| Type | Value in `data` | Configuration |
+| --- | --- | --- |
+| `text` | A string, up to 10,000 characters | `min_length`, `max_length` |
+| `long_text` | A string, up to 100,000 characters | `min_length`, `max_length` |
+| `rich_text` | A rich text document: `{"type": "doc", "content": [...]}`, compatible with ProseMirror and Tiptap | |
+| `integer` | A whole number within ±9,007,199,254,740,991, which every JSON client represents exactly | `min`, `max` |
+| `decimal` | A number | `min`, `max` |
+| `boolean` | `true` or `false` | |
+| `datetime` | An ISO 8601 date-time with a time zone, stored in UTC: `2026-09-27T12:00:00Z` | |
+| `enum` | One of the configured options, as a string | `options` (required): up to 500 unique strings |
+| `asset` | An asset ID (`ast_...`) from the project's media library | |
+| `relation` | A record ID (`rec_...`) in the target collection | `target_collection_id` (required) |
+| `json` | Any JSON value, up to 1 MB | |
+
+Every type also accepts a `description` (up to 500 characters) shown to editors.
+
+Values are never converted between types: `"5"` is not an integer and `1` is not a boolean. With **multiple** on, the value is a list of values of the field's type, such as a list of tags or photos.
+
+<Note>
+  Links and image sources inside rich text must be `http`, `https`, `mailto`, `tel` or relative URLs. Your site renders this content, so the API rejects `javascript:` and `data:` URLs.
+</Note>
+
+## Relations and assets
+
+A relation field points at records in another collection of the same project, set by `target_collection_id`. An asset field points at an uploaded file.
+
+Records store only the IDs. To get the related records or assets in the same response, pass `expand` with up to five relation or asset field API keys:
+
+```bash
+curl "$NOHEAD_API_URL/v1/collections/blog-posts/records?expand=author,cover_image" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY"
+```
+
+Each record then has an `expanded` object keyed by field API key. A related record or asset that no longer exists is `null` for a single-value field and left out of the list for a multiple one. With a published-only key, related drafts are left out too.
+
+## Filtering and search
+
+Record lists filter on field values with `filter[<api_key>]=value`, for `text`, `long_text`, `integer`, `decimal`, `boolean`, `datetime`, `enum`, `asset` and `relation` fields. The match is exact; for a multiple field, it matches records whose list contains the value.
+
+For full-text search, turn on search for the collection. The `searchable`, `filterable` and `sortable` options then choose how each field takes part in search.
+
+## Changing a collection
+
+You can change a collection's name and description at any time. Adding fields, renaming them and changing their options is safe: record data is stored by field ID, so it never moves.
+
+- **Renaming a field's API key** keeps its values. Records come back under the new key, and requests that use the old key keep working for six months, so your code has time to switch.
+- **Changing a field's type or making it multiple** rewrites stored values, so it runs as a **field migration**. You can preview how many records convert cleanly before you start, and the collection is read-only while the migration runs.
+- **Tightening a field** (making it required, lowering a maximum, removing enum options) is refused while existing records would break the new rule. Fix those records first, or run a field migration that fills in a value for them.
+- **Deleting a field or collection** is a soft delete, and can be undone.
+
+Each schema change bumps the collection's schema version, and each record carries the `schema_version` it was last written with.

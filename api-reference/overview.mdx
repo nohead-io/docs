@@ -1,0 +1,43 @@
+---
+title: Overview
+description: How every endpoint authenticates, pages, fails and retries.
+---
+
+Every endpoint in this reference is generated from the API's OpenAPI 3.1 contract, the same document the API is tested against. Download it from the API at `/openapi.json`; coding agents can start from `/llms.txt`, a plain-text map of every endpoint.
+
+## Authentication
+
+Send `Authorization: Bearer <token>`. Servers, CI and agents use a project API key (`sk_live_...`, created in the web app under **API keys**) with scopes such as `records:read`. Managing organizations, projects, members and API keys needs a signed-in user and is not available to API keys.
+
+## IDs
+
+Every object has an opaque, prefixed `id` (`col_`, `fld_`, `rec_`, `ast_`, ...) and an `object` type. With an API key, collections can also be addressed by slug: `/v1/collections/blog-posts/records` works like `/v1/collections/col_…/records`, since the key belongs to one project. Signed-in sessions span projects, so they use IDs. Timestamps are ISO 8601 in UTC.
+
+## Lists
+
+Lists return `{ "data": [...], "meta": { "next_cursor", "has_more" } }`. Pass `limit` (1 to 100) and `cursor` to page, and `sort` (prefix `-` for descending).
+
+## Errors
+
+Errors share one envelope:
+
+```json
+{
+  "error": {
+    "type": "validation_error",
+    "message": "Record validation failed",
+    "request_id": "req_...",
+    "details": [{ "field": "title", "code": "required", "message": "is required" }]
+  }
+}
+```
+
+Include the `request_id` when asking for support.
+
+## Safe retries and concurrent edits
+
+Send `Idempotency-Key` on any `POST`, `PATCH` or `DELETE` to make retrying it safe: the first result is stored for 24 hours and returned again for the same request. Record responses carry the record's revision as an `ETag`; send it back as `If-Match` to update only if nobody changed the record in the meantime (`412` otherwise).
+
+## Rate limits
+
+Every authenticated response carries `RateLimit-Limit`, `RateLimit-Remaining` and `RateLimit-Reset`. An API key's limit depends on its organization's plan. Over it, the API answers `429` with `Retry-After`, and the request is neither performed nor counted, so retrying it is safe.

@@ -1,0 +1,94 @@
+---
+title: Get started
+description: Create a project, publish a record and fetch it from your code.
+---
+
+<Steps>
+  <Step title="Create an organization and a project">
+    Sign in to the web app. The first time, it asks you to create an organization and a project. A project holds one site's or app's content.
+  </Step>
+  <Step title="Create a collection">
+    Under **Collections**, choose **New collection**. Start from a template (blog posts, pages, products, team members or FAQ) or from a blank collection, and adjust the fields to your needs. [Content modelling](/guides/content-modelling) explains the field types.
+  </Step>
+  <Step title="Add and publish a record">
+    Open the collection, create a record, fill in its fields and choose **Publish**. Records start as drafts; only published records are visible to published-only keys.
+  </Step>
+  <Step title="Create an API key">
+    Under **API keys**, create a key with the **Read records** scope (`records:read`). Turn on **Published records only** for a key your live site uses, so drafts never reach it.
+
+    The key is shown once. Store it somewhere safe, for example as `NOHEAD_API_KEY` in your app's environment.
+  </Step>
+  <Step title="Fetch your content">
+    List the collection's published records. With an API key, you can use the collection's slug instead of its ID.
+
+    <CodeGroup>
+
+    ```bash curl
+    curl "$NOHEAD_API_URL/v1/collections/blog-posts/records?filter[status]=published" \
+      -H "Authorization: Bearer $NOHEAD_API_KEY"
+    ```
+
+    ```ts TypeScript
+    import { Nohead } from "@nohead/sdk"
+
+    const nohead = new Nohead() // NOHEAD_API_KEY
+    const page = await nohead.records.list("blog-posts", { filter: { status: "published" } })
+    ```
+
+    ```python Python
+    from nohead import Nohead
+
+    nohead = Nohead()  # NOHEAD_API_KEY
+    page = nohead.records.list("blog-posts", filter={"status": "published"})
+    ```
+
+    ```ruby Ruby
+    require "nohead"
+
+    nohead = Nohead::Client.new # NOHEAD_API_KEY
+    page = nohead.records.list("blog-posts", filter: { status: "published" })
+    ```
+
+    </CodeGroup>
+
+    The [SDKs](/guides/sdks) also page through results, retry safely and verify webhooks.
+  </Step>
+</Steps>
+
+## The response
+
+Lists return the records under `data`, with a cursor for the next page under `meta`. Each record's values are under its own `data`, keyed by field API key:
+
+```json
+{
+  "data": [
+    {
+      "id": "rec_01J9ZQ3F8X5W2K7M4N6P0R1S2T",
+      "object": "record",
+      "collection_id": "col_01J9ZQ3F8X5W2K7M4N6P0AUTHR",
+      "collection": "blog-posts",
+      "status": "published",
+      "published_at": "2026-09-27T12:00:00Z",
+      "schedule": { "publish_at": null, "unpublish_at": null, "last_error": null },
+      "revision": 2,
+      "schema_version": 1,
+      "deleted": false,
+      "history_pruned_through": null,
+      "data": {
+        "title": "Hello, world",
+        "summary": "Our first post."
+      },
+      "created_at": "2026-09-27T11:58:10Z",
+      "updated_at": "2026-09-27T12:00:00Z"
+    }
+  ],
+  "meta": { "next_cursor": null, "has_more": false }
+}
+```
+
+## Next steps
+
+- Pass `limit` (1 to 100) and `cursor` to page through long lists, and `sort` (for example `-published_at`) to order them.
+- Filter on a field with `filter[<api_key>]=value`, for example `filter[category]=news`.
+- Embed related records or assets with `expand=author,cover_image`.
+- Fetch one record with `GET /v1/records/{record_id}`.

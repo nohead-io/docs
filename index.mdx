@@ -1,0 +1,26 @@
+---
+title: Introduction
+description: Model your content, write and publish it, and read it from any site or app over a JSON API.
+---
+
+Nohead stores structured content for your sites and apps. You describe your content as **collections** of typed **fields**, editors write **records** in the web app, and your code reads them over a REST API with an API key.
+
+Every change is kept: records have a full revision history you can diff and revert, and schema changes are versioned too.
+
+<CardGroup cols={2}>
+  <Card title="Get started" icon="rocket" href="/quickstart">
+    Create a project, add content and fetch it with curl in a few minutes.
+  </Card>
+  <Card title="Model your content" icon="shapes" href="/guides/content-modelling">
+    Collections, fields and the eleven field types.
+  </Card>
+</CardGroup>
+
+## How it fits together
+
+- **Organizations** hold your team and billing. **Projects** hold content: usually one project per site or app.
+- **Collections** are your data models, such as blog posts, products or team members. Each has typed **fields**.
+- **Records** are the content itself. They start as drafts and go live when published.
+- **API keys** belong to a project and carry scopes such as `records:read`. A published-only key never sees drafts, which makes it the right key for a live site.
+
+The API reference in the next tab lists every endpoint. It is generated from the same OpenAPI document the API is tested against.

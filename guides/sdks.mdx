@@ -1,0 +1,326 @@
+---
+title: SDKs
+description: Use the API from TypeScript, Python or Ruby, with pagination, safe retries, uploads and webhook verification.
+---
+
+The SDKs cover every operation an API key can call, and every endpoint in the [API reference](/api-reference/overview) shows how to call it from each. They follow the API's conventions, so what you read about the API holds for them too.
+
+| Language | Package | Source |
+|---|---|---|
+| TypeScript and JavaScript | `@nohead/sdk` | [nohead-io/nohead-typescript](https://github.com/nohead-io/nohead-typescript) |
+| Python (sync and async) | `nohead` | [nohead-io/nohead-python](https://github.com/nohead-io/nohead-python) |
+| Ruby | `nohead` | [nohead-io/nohead-ruby](https://github.com/nohead-io/nohead-ruby) |
+
+PHP is next. Anything else can call the API over HTTP, or generate a client from [`/openapi.json`](/api-reference/overview).
+
+<Note>
+  The SDKs are not published to npm, PyPI and RubyGems yet. Until they are, install them from GitHub: `npm install github:nohead-io/nohead-typescript`, `pip install git+https://github.com/nohead-io/nohead-python`, or `gem "nohead", github: "nohead-io/nohead-ruby"` in a Gemfile.
+</Note>
+
+## Install and connect
+
+<CodeGroup>
+
+```bash TypeScript
+npm install @nohead/sdk
+```
+
+```bash Python
+pip install nohead
+```
+
+```ruby Ruby
+gem "nohead" # in your Gemfile
+```
+
+</CodeGroup>
+
+Create a client with a project API key. Both read `NOHEAD_API_KEY` from the environment when you don't pass one. API keys belong to a project, so you never pass a project ID, and you can name collections by slug.
+
+<CodeGroup>
+
+```ts TypeScript
+import { Nohead } from "@nohead/sdk"
+
+const nohead = new Nohead() // or new Nohead({ apiKey })
+```
+
+```python Python
+from nohead import Nohead
+
+nohead = Nohead()  # or Nohead(api_key=...)
+```
+
+```ruby Ruby
+require "nohead"
+
+nohead = Nohead::Client.new # or Nohead::Client.new(api_key: ...)
+```
+
+</CodeGroup>
+
+API keys are secrets: use the SDKs on servers, never in a browser.
+
+| | Version | Runs on |
+|---|---|---|
+| TypeScript | Node 22 or newer | Node, Bun, Deno, Cloudflare Workers, anything with `fetch` |
+| Python | 3.11 or newer | Sync and async clients (`Nohead`, `AsyncNohead`) |
+| Ruby | 3.3 or newer | No dependencies beyond Ruby's standard library |
+
+## Read content
+
+List methods give you a page, which you can also loop over: the SDK fetches the following pages as you go. Filters are the API's equality filters.
+
+<CodeGroup>
+
+```ts TypeScript
+for await (const post of nohead.records.list("posts", {
+  filter: { status: "published" },
+  sort: "-published_at",
+  expand: ["author"],
+})) {
+  console.log(post.data.title, post.expanded?.author)
+}
+
+// One page at a time
+const page = await nohead.records.list("posts", { limit: 100 })
+page.data // the records
+page.meta.next_cursor
+```
+
+```python Python
+for post in nohead.records.list(
+    "posts",
+    filter={"status": "published"},
+    sort="-published_at",
+    expand=["author"],
+):
+    print(post.data["title"])
+
+# One page at a time
+page = nohead.records.list("posts", limit=100)
+page.data  # the records
+page.meta.next_cursor
+```
+
+```ruby Ruby
+nohead.records.list("posts", filter: { status: "published" },
+                             sort: "-published_at", expand: ["author"]).each do |post|
+  puts post.data["title"]
+end
+
+# One page at a time
+page = nohead.records.list("posts", limit: 100)
+page.data # the records
+page.meta.next_cursor
+```
+
+</CodeGroup>
+
+In TypeScript, describe a collection's fields and its records are typed: `nohead.records.get<Post>(id)` makes `post.data.title` a string. In Python, results are Pydantic models, and a record's values are in its `data` dict. In Ruby, read fields as methods or with `[]` (`post.data["title"]`); timestamps are Times.
+
+## Write content
+
+<CodeGroup>
+
+```ts TypeScript
+const draft = await nohead.records.create("posts", {
+  data: { title: "Hello", author: "rec_01J9ZQ3F8X" },
+})
+await nohead.records.update(draft.id, { data: { title: "Hello again" } })
+await nohead.records.publish(draft.id)
+```
+
+```python Python
+draft = nohead.records.create("posts", data={"title": "Hello", "author": "rec_01J9ZQ3F8X"})
+nohead.records.update(draft.id, data={"title": "Hello again"})
+nohead.records.publish(draft.id)
+```
+
+```ruby Ruby
+draft = nohead.records.create("posts", data: { title: "Hello", author: "rec_01J9ZQ3F8X" })
+nohead.records.update(draft.id, data: { title: "Hello again" })
+nohead.records.publish(draft.id)
+```
+
+</CodeGroup>
+
+Every write is versioned and attributed to the key. Add a note to history with `changeNote` (TypeScript) or `change_note` (Python, Ruby).
+
+## Retries and idempotency
+
+Failed requests are retried twice by default:
+- connection errors and timeouts
+- `429 rate_limited`, honoring `Retry-After` up to a minute
+- `500`, `502`, `503` and `504`
+
+Every write carries an `Idempotency-Key` that stays the same across its retries, so a retry after a lost response never writes twice.
+
+To make a write safe across retries of your own (a job that may run twice), pass the key yourself:
+
+<CodeGroup>
+
+```ts TypeScript
+await nohead.records.create("posts", { data }, { idempotencyKey: `import-${row.id}` })
+```
+
+```python Python
+nohead.records.create("posts", data=data, idempotency_key=f"import-{row.id}")
+```
+
+```ruby Ruby
+nohead.records.create("posts", data: data, idempotency_key: "import-#{row.id}")
+```
+
+</CodeGroup>
+
+## Concurrent edits
+
+Pass the record you read as `ifMatch` (`if_match`). If someone changed it since, the API refuses the write with `412` and nothing is written.
+
+<CodeGroup>
+
+```ts TypeScript
+import { PreconditionFailedError } from "@nohead/sdk"
+
+const post = await nohead.records.get(id)
+try {
+  await nohead.records.update(id, { data: { title } }, { ifMatch: post })
+} catch (error) {
+  if (error instanceof PreconditionFailedError) {
+    // changed since (now at error.currentRevision): reload, and merge or ask
+  } else throw error
+}
+```
+
+```python Python
+from nohead import PreconditionFailedError
+
+post = nohead.records.get(record_id)
+try:
+    nohead.records.update(record_id, data={"title": title}, if_match=post)
+except PreconditionFailedError as error:
+    ...  # changed since (now at error.current_revision): reload, and merge or ask
+```
+
+```ruby Ruby
+post = nohead.records.get(id)
+begin
+  nohead.records.update(id, data: { title: title }, if_match: post)
+rescue Nohead::PreconditionFailedError => e
+  # changed since (now at e.current_revision): reload, and merge or ask
+end
+```
+
+</CodeGroup>
+
+## Errors
+
+Each error `type` of the API is an error class: `ValidationError` (422), `NotFoundError` (404), `RateLimitError` (429) and so on, all subclasses of `APIError`. They carry the `status`, `type`, `message`, the request ID and the field-level `details`.
+
+<CodeGroup>
+
+```ts TypeScript
+import { ValidationError } from "@nohead/sdk"
+
+try {
+  await nohead.records.create("posts", { data: {} })
+} catch (error) {
+  if (error instanceof ValidationError) console.log(error.details)
+  else throw error
+}
+```
+
+```python Python
+from nohead import ValidationError
+
+try:
+    nohead.records.create("posts", data={})
+except ValidationError as error:
+    for detail in error.details:
+        print(detail.field, detail.code, detail.message)
+```
+
+```ruby Ruby
+begin
+  nohead.records.create("posts", data: {})
+rescue Nohead::ValidationError => e
+  e.details.each { |detail| puts "#{detail.field}: #{detail.message}" }
+end
+```
+
+</CodeGroup>
+
+## Upload files
+
+Files go straight to storage, never through the API. `assets.upload` does the whole flow in one call: it creates the upload, sends the bytes to storage, completes the upload (which checks the file) and returns the `ready` asset. Reference the asset from an asset field.
+
+<CodeGroup>
+
+```ts TypeScript
+import { openAsBlob } from "node:fs"
+
+const asset = await nohead.assets.upload(await openAsBlob("cover.jpg"), {
+  filename: "cover.jpg",
+})
+await nohead.records.update(id, { data: { cover: asset.id } })
+const { url } = await nohead.assets.imageUrl(asset.id, { width: 1200, format: "webp" })
+```
+
+```python Python
+asset = nohead.assets.upload("cover.jpg")  # a path, bytes or a binary file
+nohead.records.update(record_id, data={"cover": asset.id})
+url = nohead.assets.image_url(asset.id, width=1200, format="webp").url
+```
+
+```ruby Ruby
+asset = nohead.assets.upload("cover.jpg") # a path or an IO
+nohead.records.update(id, data: { cover: asset.id })
+url = nohead.assets.image_url(asset.id, width: 1200, format: "webp").url
+```
+
+</CodeGroup>
+
+## Verify webhooks
+
+Webhook requests are signed. `unwrap` checks the signature and the timestamp and returns the event; it raises (or throws) when either is off. Pass the raw body, before any JSON parsing.
+
+<CodeGroup>
+
+```ts TypeScript
+import { unwrapWebhook } from "@nohead/sdk/webhooks"
+
+export async function POST(request: Request) {
+  const event = await unwrapWebhook(await request.text(), request.headers, {
+    secret: process.env.NOHEAD_WEBHOOK_SECRET!,
+  })
+  if (event.type === "record.published") {
+    // e.g. revalidate the record's pages
+  }
+  return new Response(null, { status: 204 })
+}
+```
+
+```python Python
+from nohead.webhooks import unwrap
+
+event = unwrap(request.get_data(), request.headers, secret=os.environ["NOHEAD_WEBHOOK_SECRET"])
+if event.type == "record.published" and event.record:
+    ...  # e.g. rebuild the record's pages
+```
+
+```ruby Ruby
+event = Nohead::Webhooks.unwrap(request.raw_post, request.headers,
+                                secret: ENV.fetch("NOHEAD_WEBHOOK_SECRET"))
+if event.type == "record.published"
+  # e.g. rebuild the record's pages
+end
+```
+
+</CodeGroup>
+
+The same event can arrive twice: deduplicate by the `webhook-id` header.
+
+## Versions
+
+The SDKs have their own version numbers, separate from the API's `/v1`. The API only changes additively within `/v1`, so an older SDK keeps working. Anything an SDK depends on is deprecated at least 12 months before it is removed, and the SDKs warn when they call something deprecated. Each SDK's README covers the rest: async in Python, typed record data in TypeScript, and the full list of methods.

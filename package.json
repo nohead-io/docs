@@ -1,0 +1,12 @@
+{
+  "name": "nohead-docs",
+  "private": true,
+  "description": "Nohead's guides and API reference, hosted by Mintlify (docs.json, MDX pages; the reference is built from openapi.json)",
+  "type": "module",
+  "scripts": {
+    "dev": "npx --yes mint@4.2.949 dev --port 3333 --telemetry=false",
+    "check": "npx --yes mint@4.2.949 validate --telemetry=false && npx --yes mint@4.2.949 broken-links --telemetry=false",
+    "generate": "node scripts/code-samples.mjs",
+    "samples": "node scripts/sdk-samples.mjs && node scripts/code-samples.mjs"
+  }
+}
