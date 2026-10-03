@@ -64,7 +64,7 @@ Each record then has an `expanded` object keyed by field API key. A related reco
 
 Record lists filter on field values with `filter[<api_key>]=value`, for `text`, `long_text`, `integer`, `decimal`, `boolean`, `datetime`, `enum`, `asset` and `relation` fields. The match is exact; for a multiple field, it matches records whose list contains the value.
 
-For full-text search, turn on search for the collection. The `searchable`, `filterable` and `sortable` options then choose how each field takes part in search.
+Every collection is indexed for full-text search, so members can search any collection in the web app. To let API keys search a collection, turn on search for it (`search_enabled`). The `searchable`, `filterable` and `sortable` options then choose how each field takes part in API searches. Search words match `searchable` fields only, so a field kept out of search can't be probed through it.
 
 ## Changing a collection
 
