@@ -2895,7 +2895,7 @@
       "get": {
         "operationId": "assets_list",
         "summary": "List assets",
-        "description": "The project's assets, newest first. `deleted=true` lists deleted ones instead.\n",
+        "description": "The project's assets, newest first. `deleted=true` lists deleted ones instead.\n`content_type` lists only assets of those types, for example the ones an\nasset field accepts (its `accepted_types`).\n",
         "tags": [
           "assets"
         ],
@@ -2908,6 +2908,15 @@
           },
           {
             "$ref": "#/components/parameters/Deleted"
+          },
+          {
+            "name": "content_type",
+            "in": "query",
+            "description": "Comma-separated MIME types or `type/*` wildcards.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "image/*,application/pdf"
           }
         ],
         "responses": {
@@ -7690,14 +7699,15 @@
             "type": "boolean"
           },
           "multiple": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "A list of distinct values (a repeated value is refused with `duplicate_value`). Not available for boolean, rich_text and json fields."
           },
           "position": {
             "type": "integer"
           },
           "configuration": {
             "type": "object",
-            "description": "Type-specific options, e.g. `max_length`, `options`, `target_collection_id`, plus\nthe options for searches with API keys: `searchable` (the search words match the\nfield; default true for text, long_text, rich_text and enum), `filterable` and\n`sortable` (default false).\n"
+            "description": "Type-specific options, e.g. `max_length`, `options`, `target_collection_id`,\n`accepted_types` (asset fields: MIME types or `type/*` wildcards that newly\nwritten values must have; any file when absent), plus\nthe options for searches with API keys: `searchable` (the search words match the\nfield; default true for text, long_text, rich_text and enum), `filterable` and\n`sortable` (default false).\n"
           },
           "deleted": {
             "type": "boolean"
@@ -7771,7 +7781,8 @@
             "type": "boolean"
           },
           "multiple": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "A list of distinct values (a repeated value is refused with `duplicate_value`). Not available for boolean, rich_text and json fields."
           },
           "position": {
             "type": "integer"
@@ -7797,7 +7808,8 @@
             "type": "boolean"
           },
           "multiple": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "A list of distinct values (a repeated value is refused with `duplicate_value`). Not available for boolean, rich_text and json fields."
           },
           "position": {
             "type": "integer"
@@ -8264,7 +8276,8 @@
             "type": "object"
           },
           "multiple": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "A list of distinct values (a repeated value is refused with `duplicate_value`). Not available for boolean, rich_text and json fields."
           },
           "required": {
             "type": "boolean"
@@ -8284,7 +8297,8 @@
             "description": "The complete new configuration. When the type changes and this is omitted, only `description` carries over."
           },
           "multiple": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "A list of distinct values (a repeated value is refused with `duplicate_value`). Not available for boolean, rich_text and json fields."
           },
           "required": {
             "type": "boolean"
