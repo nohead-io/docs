@@ -50,5 +50,11 @@
     "examples": {
       "languages": ["curl", "typescript", "python", "ruby"]
     }
+  },
+  "footer": {
+    "socials": {
+      "x": "https://x.com/nohead_io",
+      "github": "https://github.com/nohead-io"
+    }
   }
 }
