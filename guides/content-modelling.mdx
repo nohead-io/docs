@@ -11,7 +11,7 @@ A **field** has:
 - an **API key**, the key its value has in a record's `data` (`cover_image`);
 - a **type**, such as text, number or relation;
 - **required**: whether every record must have a value;
-- **multiple**: whether the value is a list;
+- **multiple**: whether the value is a list (not available for `boolean`, `rich_text` and `json`);
 - a type-specific **configuration**, such as a maximum length or enum options.
 
 ## Naming rules
@@ -35,13 +35,13 @@ These field API keys are reserved because records use them for their own attribu
 | `boolean` | `true` or `false` | |
 | `datetime` | An ISO 8601 date-time with a time zone, stored in UTC: `2026-09-27T12:00:00Z` | |
 | `enum` | One of the configured options, as a string | `options` (required): up to 500 unique strings |
-| `asset` | An asset ID (`ast_...`) from the project's media library | |
+| `asset` | An asset ID (`ast_...`) from the project's assets | `accepted_types`: the kinds of file it takes |
 | `relation` | A record ID (`rec_...`) in the target collection | `target_collection_id` (required) |
 | `json` | Any JSON value, up to 1 MB | |
 
 Every type also accepts a `description` (up to 500 characters) shown to editors.
 
-Values are never converted between types: `"5"` is not an integer and `1` is not a boolean. With **multiple** on, the value is a list of values of the field's type, such as a list of tags or photos.
+Values are never converted between types: `"5"` is not an integer and `1` is not a boolean. With **multiple** on, the value is a list of distinct values of the field's type, such as a list of tags or photos; a repeated value is refused (`duplicate_value`).
 
 <Note>
   Links and image sources inside rich text must be `http`, `https`, `mailto`, `tel` or relative URLs. Your site renders this content, so the API rejects `javascript:` and `data:` URLs.
@@ -50,6 +50,8 @@ Values are never converted between types: `"5"` is not an integer and `1` is not
 ## Relations and assets
 
 A relation field points at records in another collection of the same project, set by `target_collection_id`. An asset field points at an uploaded file.
+
+An asset field takes any file unless you limit it with `accepted_types`: MIME types or `type/*` wildcards, such as `["image/*", "application/pdf"]`. In the web app, these are the field's **Allowed files** (images, videos, audio, PDFs). The limit applies to newly written values: files already in records are kept, and a new file of another type is refused (`type_not_accepted`). To list only the assets a field takes, pass its types as `content_type` to `GET /v1/assets`.
 
 Records store only the IDs. To get the related records or assets in the same response, pass `expand` with up to five relation or asset field API keys:
 

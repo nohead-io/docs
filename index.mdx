@@ -5,7 +5,7 @@ description: Model your content, write and publish it, and read it from any site
 
 Nohead stores structured content for your sites and apps. You describe your content as **collections** of typed **fields**, editors write **records** in the web app, and your code reads them over a REST API with an API key.
 
-Every change is kept: records have a full revision history you can diff and revert, and schema changes are versioned too.
+Every change is a revision, attributed to the person or API key that made it: you can diff and revert record revisions, and schema changes are versioned too. How long revisions are kept depends on the plan; every record always keeps its first revision and its last 10.
 
 <CardGroup cols={2}>
   <Card title="Get started" icon="rocket" href="/quickstart">
@@ -21,6 +21,7 @@ Every change is kept: records have a full revision history you can diff and reve
 - **Organizations** hold your team and billing. **Projects** hold content: usually one project per site or app.
 - **Collections** are your data models, such as blog posts, products or team members. Each has typed **fields**.
 - **Records** are the content itself. They start as drafts and go live when published.
+- **Assets** are the project's uploaded files, such as images and PDFs. Asset fields point at them.
 - **API keys** belong to a project and carry scopes such as `records:read`. A published-only key never sees drafts, which makes it the right key for a live site.
 
 The API reference in the next tab lists every endpoint. It is generated from the same OpenAPI document the API is tested against.

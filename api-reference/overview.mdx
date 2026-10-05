@@ -38,6 +38,16 @@ Include the `request_id` when asking for support.
 
 Send `Idempotency-Key` on any `POST`, `PATCH` or `DELETE` to make retrying it safe: the first result is stored for 24 hours and returned again for the same request. Record responses carry the record's revision as an `ETag`; send it back as `If-Match` to update only if nobody changed the record in the meantime (`412` otherwise).
 
+## History
+
+Every change to a record is a revision, attributed to the person or API key that made it; record revisions can be listed, diffed and reverted, and collections keep a schema history. Send `Nohead-Change-Note` to record why a change was made. Changes that rewrite existing values, such as a field's type, are explicit, previewable field migrations.
+
+How long revisions are kept depends on the organization's plan. Older ones are removed, but every record keeps its first revision and its last 10. A record's `history_pruned_through` is the revision up to which history was removed (`null` while nothing was).
+
 ## Rate limits
 
 Every authenticated response carries `RateLimit-Limit`, `RateLimit-Remaining` and `RateLimit-Reset`. An API key's limit depends on its organization's plan. Over it, the API answers `429` with `Retry-After`, and the request is neither performed nor counted, so retrying it is safe.
+
+## Plan limits
+
+A request that would go over a hard limit of the organization's plan, such as its number of records or collections (or file storage, on Free), is refused with `402 plan_limit_exceeded`. The error's detail names the limit in `field`, with the current `usage` and the `limit`. Over a soft limit, such as monthly API requests, requests still succeed and carry a `Nohead-Usage-Warning` header: `api_requests=100234/100000`.
