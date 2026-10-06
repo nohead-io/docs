@@ -4,9 +4,9 @@
 #
 # Two jobs, so the site check (npx mint, with dependencies that have no
 # lockfile here) never runs where the token can push: `update` regenerates and
-# checks with read access only, and hands its change over as a patch with its
-# checksum; `pull-request` applies it, if it touches only the samples, and
-# opens the pull request.
+# checks with read access only, and outputs the change's hash; `pull-request`
+# regenerates it again (the scripts use only Node itself), checks it is the
+# same change, and opens the pull request.
 name: Code samples
 
 on:
@@ -26,8 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     outputs:
-      changed: ${{ steps.patch.outputs.changed }}
-      sha: ${{ steps.patch.outputs.sha }}
+      change: ${{ steps.change.outputs.hash }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -37,29 +36,21 @@ jobs:
           node-version: 26
           package-manager-cache: false
       - run: npm run samples
-      - name: Patch
-        id: patch
+      # Empty when nothing changed.
+      - id: change
         run: |
-          mkdir -p "$RUNNER_TEMP/update"
-          git diff --binary --no-renames > "$RUNNER_TEMP/update/samples.patch"
-          if [ -s "$RUNNER_TEMP/update/samples.patch" ]; then
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-            echo "sha=$(sha256sum "$RUNNER_TEMP/update/samples.patch" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+          git add -A
+          if ! git diff --cached --quiet; then
+            echo "hash=$(git diff --cached --binary | sha256sum | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
           fi
       # A pull request opened with the workflow's token starts no CI, so the
       # check runs here.
-      - if: steps.patch.outputs.changed == 'true'
+      - if: steps.change.outputs.hash != ''
         run: npm run check
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        if: steps.patch.outputs.changed == 'true'
-        with:
-          name: samples-update
-          path: ${{ runner.temp }}/update
-          retention-days: 1
 
   pull-request:
     needs: update
-    if: needs.update.outputs.changed == 'true'
+    if: needs.update.outputs.change != ''
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -68,32 +59,29 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          # The update is pushed with the workflow's own token, and nothing else runs here. # zizmor: ignore[artipacked]
+          # The update is pushed with the workflow's own token; nothing but the
+          # repository's own scripts runs here. # zizmor: ignore[artipacked]
           persist-credentials: true
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          name: samples-update
-          path: ${{ runner.temp }}/update
+          node-version: 26
+          package-manager-cache: false
+      - run: npm run samples
       - name: Open or update the pull request
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
-          SHA: ${{ needs.update.outputs.sha }}
+          CHANGE: ${{ needs.update.outputs.change }}
         run: |
           set -euo pipefail
-          patch="$RUNNER_TEMP/update/samples.patch"
-          echo "$SHA  $patch" | sha256sum --check --quiet
-          # Only the generated files: the SDKs' samples and the reference.
-          git apply --numstat -z "$patch" | while IFS=$'\t' read -r -d '' _added _deleted path; do
-            case "$path" in
-              sdk-samples/* | openapi.json) ;;
-              *) echo "::error::The update changes $path"; exit 1 ;;
-            esac
-          done
-          git apply "$patch"
+          git add -A
+          # The change the site check passed, not one that came in since.
+          if [ "$(git diff --cached --binary | sha256sum | cut -d' ' -f1)" != "$CHANGE" ]; then
+            echo "::error::The samples changed since the check; the next run picks them up"; exit 1
+          fi
           git switch -C samples/update
           git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-            commit -q -am "Update the SDK code samples"
+            commit -q -m "Update the SDK code samples"
           git push --force origin samples/update
           if [ -z "$(gh pr list -R "$REPO" --head samples/update --state open --json number --jq '.[0].number')" ]; then
             gh pr create -R "$REPO" --base main --head samples/update --title "Update the SDK code samples" \
