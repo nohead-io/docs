@@ -10,7 +10,7 @@ A **field** has:
 - a **name** shown to editors ("Cover image");
 - an **API key**, the key its value has in a record's `data` (`cover_image`);
 - a **type**, such as text, number or relation;
-- **required**: whether every record must have a value;
+- **required**: whether every record must have a value (not for `boolean` fields: a boolean is true or false, and no value reads as false);
 - **multiple**: whether the value is a list (not available for `boolean`, `rich_text` and `json`);
 - a type-specific **configuration**, such as a maximum length or enum options.
 
@@ -32,7 +32,7 @@ These field API keys are reserved because records use them for their own attribu
 | `rich_text` | A rich text document: `{"type": "doc", "content": [...]}`, compatible with ProseMirror and Tiptap, which can show [images](#images-in-rich-text) of the project's assets | |
 | `integer` | A whole number within ±9,007,199,254,740,991, which every JSON client represents exactly | `min`, `max`, `unique` |
 | `decimal` | A number | `min`, `max` |
-| `boolean` | `true` or `false` | |
+| `boolean` | `true` or `false`; no value reads as `false`, so it can't be required | |
 | `date` | A calendar date, `2026-10-09`, returned exactly as written. With `include_time`, a moment: ISO 8601 with an offset, stored in UTC | `include_time`, `time_zone` (see [Dates](#dates)) |
 | `enum` | One of the configured options, as a string | `options` (required): up to 500 unique strings |
 | `asset` | An asset ID (`ast_...`) from the project's assets | `accepted_types`: the kinds of file it takes |
