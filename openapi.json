@@ -3452,6 +3452,65 @@
         ]
       }
     },
+    "/v1/assets/{asset_id}/usage": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/AssetId"
+        }
+      ],
+      "get": {
+        "operationId": "assets_usage",
+        "summary": "See where an asset is used",
+        "description": "The undeleted records that use the asset, through an asset field or\nas an image in a rich text field: how many, how many of them are\npublished, and the 10 most recently updated with the fields they use\nit in. Record history does not count. Needs `records:read` too, as\nit shows records; published-only API keys get `403`.\n",
+        "tags": [
+          "assets"
+        ],
+        "responses": {
+          "200": {
+            "description": "Where the asset is used.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetUsage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.assets.usage(\"ast_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.assets.usage(\"ast_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.assets.usage(\"ast_01J9ZQ3F8X\")\n"
+          }
+        ]
+      }
+    },
     "/v1/assets/{asset_id}/restore": {
       "parameters": [
         {
@@ -3577,7 +3636,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.assets.purge(\"ast_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.assets.purge(\"ast_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.assets.purge(\"ast_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/collections/{collection_id}/search": {
@@ -10813,6 +10889,61 @@
               "integer",
               "null"
             ]
+          }
+        }
+      },
+      "AssetUsage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "object",
+          "asset_id",
+          "records",
+          "published",
+          "uses"
+        ],
+        "properties": {
+          "object": {
+            "const": "asset_usage"
+          },
+          "asset_id": {
+            "type": "string"
+          },
+          "records": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Undeleted records that use the asset."
+          },
+          "published": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Of those, the published ones (what sites show)."
+          },
+          "uses": {
+            "type": "array",
+            "maxItems": 10,
+            "description": "The most recently updated records that use the asset.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "record",
+                "fields"
+              ],
+              "properties": {
+                "record": {
+                  "$ref": "#/components/schemas/Record"
+                },
+                "fields": {
+                  "type": "array",
+                  "minItems": 1,
+                  "description": "API keys of the record's fields that use the asset.",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
           }
         }
       },
