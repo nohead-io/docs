@@ -117,9 +117,21 @@ Each record then has an `expanded` object keyed by field API key. A related reco
 
 ## Filtering and search
 
-Record lists filter on field values with `filter[<api_key>]=value`, for `text`, `long_text`, `integer`, `decimal`, `boolean`, `date`, `enum`, `asset` and `relation` fields. The match is exact; for a multiple field, it matches records whose list contains the value. A date with a time matches the same moment written with any offset.
+Record lists filter on field values with `filter[<api_key>]=value` (equal), or with an operator, `filter[<api_key>][<operator>]=value`, for `text`, `long_text`, `integer`, `decimal`, `boolean`, `date`, `enum`, `asset` and `relation` fields. Filters combine with AND:
 
-Every collection is indexed for full-text search, so members can search any collection in the web app. To let API keys search a collection, turn on search for it (`search_enabled`). The `searchable`, `filterable` and `sortable` options then choose how each field takes part in API searches. Search words match `searchable` fields only, so a field kept out of search can't be probed through it.
+| Operator | Matches | Example |
+| --- | --- | --- |
+| `eq` (or none) | equal; for a multiple field, lists that contain the value | `filter[category]=shoes` |
+| `ne` | not equal, including records with no value | `filter[status][ne]=archived` |
+| `gt`, `gte`, `lt`, `lte` | greater or less than, for integer, decimal and date fields with one value | `filter[price][lt]=50` |
+| `in` | any of up to 100 comma-separated values (`\,` for a comma inside one) | `filter[category][in]=shoes,bags` |
+| `exists` | `true`: has a value, `false`: has none | `filter[cover][exists]=false` |
+
+Values are read as the field's type, so `"5"` is not the integer 5. Dates take `today`, and dates with a time also `now`: `filter[starts_on][gte]=today` lists upcoming events. A plain date's `today` is the day in UTC. A day given for a date with a time covers that day in the field's time zone (UTC without one), so `filter[starts][eq]=2026-10-09` is everything on 9 October there. A date with a time matches the same moment written with any offset. Record lists also filter on `created_at`, `updated_at` and `published_at`, for example `filter[updated_at][gt]=2026-10-01T00:00:00Z` for an incremental sync.
+
+Record lists sort by `created_at` (the default, newest first), `updated_at`, `published_at` or a field: `sort=price`, or `sort=-published_on` for descending. Records with no value come last either way, and text sorts by character code.
+
+Every collection is indexed for full-text search, so members can search any collection in the web app. To let API keys search a collection, turn on search for it (`search_enabled`). The `searchable`, `filterable` and `sortable` options then choose how each field takes part in API searches. Search takes the same filter operators, on `status` and `filterable` fields. Search words match `searchable` fields only, so a field kept out of search can't be probed through it.
 
 ## Changing a collection
 
