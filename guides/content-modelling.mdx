@@ -27,10 +27,10 @@ These field API keys are reserved because records use them for their own attribu
 
 | Type | Value in `data` | Configuration |
 | --- | --- | --- |
-| `text` | A string, up to 10,000 characters | `min_length`, `max_length` |
+| `text` | A string, up to 10,000 characters | `min_length`, `max_length`, `format`, `unique` (see [Formats and unique values](#formats-and-unique-values)) |
 | `long_text` | A string, up to 100,000 characters | `min_length`, `max_length` |
 | `rich_text` | A rich text document: `{"type": "doc", "content": [...]}`, compatible with ProseMirror and Tiptap, which can show [images](#images-in-rich-text) of the project's assets | |
-| `integer` | A whole number within ±9,007,199,254,740,991, which every JSON client represents exactly | `min`, `max` |
+| `integer` | A whole number within ±9,007,199,254,740,991, which every JSON client represents exactly | `min`, `max`, `unique` |
 | `decimal` | A number | `min`, `max` |
 | `boolean` | `true` or `false` | |
 | `date` | A calendar date, `2026-10-09`, returned exactly as written. With `include_time`, a moment: ISO 8601 with an offset, stored in UTC | `include_time`, `time_zone` (see [Dates](#dates)) |
@@ -46,6 +46,20 @@ Values are never converted between types: `"5"` is not an integer and `1` is not
 <Note>
   Links and image sources inside rich text must be `http`, `https`, `mailto`, `tel` or relative URLs. Your site renders this content, so the API rejects `javascript:` and `data:` URLs.
 </Note>
+
+## Formats and unique values
+
+A `text` field can have a `format`, and values that don't match it are refused with `invalid_format`:
+
+| Format | Takes |
+| --- | --- |
+| `email` | An email address, kept as entered |
+| `url` | An `http` or `https` address. With `relative: true`, also paths within the site, like `/about` |
+| `slug` | Lowercase letters, digits and single hyphens, like `hello-world` (no slashes, at most 200 characters) |
+
+`text` and `integer` fields with one value can be `unique`: no two records of the collection have the same value. Emails compare ignoring capitals, records without a value don't count, and a deleted record frees its values. A value another record has is refused with `taken`, and the error names that record's `record_id`. Turning `unique` on is refused while records share a value; fix them first.
+
+A slug for your URLs is a text field with `format: slug` and `unique: true`, and in the editor it is the **Slug** field type. The editor fills a draft's slug from its title as you type (or from the field named in `source_field`) until you edit the slug yourself. Look a record up by slug with `filter[slug]=hello-world`.
 
 ## Dates
 
