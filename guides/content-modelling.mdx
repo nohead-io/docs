@@ -33,7 +33,7 @@ These field API keys are reserved because records use them for their own attribu
 | `integer` | A whole number within ±9,007,199,254,740,991, which every JSON client represents exactly | `min`, `max` |
 | `decimal` | A number | `min`, `max` |
 | `boolean` | `true` or `false` | |
-| `datetime` | An ISO 8601 date-time with a time zone, stored in UTC: `2026-09-27T12:00:00Z` | |
+| `date` | A calendar date, `2026-10-09`, returned exactly as written. With `include_time`, a moment: ISO 8601 with an offset, stored in UTC | `include_time`, `time_zone` (see [Dates](#dates)) |
 | `enum` | One of the configured options, as a string | `options` (required): up to 500 unique strings |
 | `asset` | An asset ID (`ast_...`) from the project's assets | `accepted_types`: the kinds of file it takes |
 | `relation` | A record ID (`rec_...`) in the target collection | `target_collection_id` (required) |
@@ -46,6 +46,17 @@ Values are never converted between types: `"5"` is not an integer and `1` is not
 <Note>
   Links and image sources inside rich text must be `http`, `https`, `mailto`, `tel` or relative URLs. Your site renders this content, so the API rejects `javascript:` and `data:` URLs.
 </Note>
+
+## Dates
+
+A plain `date` field holds a day, `YYYY-MM-DD`, with no time and no time zone. It is the same day for everyone, so a publish date or a birthday never shows as the day before. Print it as it is: in JavaScript, `new Date("2026-10-09")` is midnight UTC, which is still 8 October in the Americas.
+
+With `include_time: true` the field holds a moment, such as an event's start. Send it with any offset (`2026-10-09T19:00:00+02:00` or `2026-10-09T17:00:00Z`); it is stored in UTC. Responses write it:
+
+- in UTC (`2026-10-09T17:00:00Z`), by default;
+- with the offset of the field's `time_zone` (an IANA name such as `Europe/Copenhagen`), daylight saving included, when the field has one: `2026-10-09T19:00:00+02:00`, and `2026-12-01T19:00:00+01:00` in winter. Your site prints the local time without knowing the zone, and the editor shows and takes times in that zone, whoever is editing.
+
+Changing `time_zone` never rewrites values: the moments stay, and only how they are written changes. Turning `include_time` on or off does rewrite them, so it runs as a [field migration](#changing-a-collection). Removing the time takes a `time_zone` whose day each moment falls on (by default the field's own, else UTC), and adding it makes each date midnight in the field's zone.
 
 ## Images in rich text
 
@@ -106,7 +117,7 @@ Each record then has an `expanded` object keyed by field API key. A related reco
 
 ## Filtering and search
 
-Record lists filter on field values with `filter[<api_key>]=value`, for `text`, `long_text`, `integer`, `decimal`, `boolean`, `datetime`, `enum`, `asset` and `relation` fields. The match is exact; for a multiple field, it matches records whose list contains the value.
+Record lists filter on field values with `filter[<api_key>]=value`, for `text`, `long_text`, `integer`, `decimal`, `boolean`, `date`, `enum`, `asset` and `relation` fields. The match is exact; for a multiple field, it matches records whose list contains the value. A date with a time matches the same moment written with any offset.
 
 Every collection is indexed for full-text search, so members can search any collection in the web app. To let API keys search a collection, turn on search for it (`search_enabled`). The `searchable`, `filterable` and `sortable` options then choose how each field takes part in API searches. Search words match `searchable` fields only, so a field kept out of search can't be probed through it.
 
@@ -115,7 +126,7 @@ Every collection is indexed for full-text search, so members can search any coll
 You can change a collection's name and description at any time. Adding fields, renaming them and changing their options is safe: record data is stored by field ID, so it never moves.
 
 - **Renaming a field's API key** keeps its values. Records come back under the new key, and requests that use the old key keep working for six months, so your code has time to switch.
-- **Changing a field's type or making it multiple** rewrites stored values, so it runs as a **field migration**. You can preview how many records convert cleanly before you start, and the collection is read-only while the migration runs.
+- **Changing a field's type, making it multiple, or adding or removing a date's time** rewrites stored values, so it runs as a **field migration**. You can preview how many records convert cleanly before you start, and the collection is read-only while the migration runs.
 - **Tightening a field** (making it required, lowering a maximum, removing enum options) is refused while existing records would break the new rule. Fix those records first, or run a field migration that fills in a value for them.
 - **Deleting a field or collection** is a soft delete, and can be undone.
 
