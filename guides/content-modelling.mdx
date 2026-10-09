@@ -55,11 +55,11 @@ A `text` field can have a `format`, and values that don't match it are refused w
 | --- | --- |
 | `email` | An email address, kept as entered |
 | `url` | An absolute `http` or `https` address |
-| `slug` | Lowercase letters, digits and single hyphens, like `hello-world` (no slashes, at most 200 characters). One value per record, never a list |
+| `slug` | Lowercase letters, digits and single hyphens, like `hello-world` (no slashes, at most 200 characters). One value per record, never a list, and always unique |
 
 `text` and `integer` fields with one value can be `unique`: no two records of the collection have the same value. Emails compare ignoring capitals, records without a value don't count, and a deleted record frees its values. A value another record has is refused with `taken`, and the error names that record's `record_id`. Turning `unique` on is refused while records share a value; fix them first.
 
-A slug for your URLs is a text field with `format: slug` and `unique: true`, and in the editor it is the **Slug** field type. The editor fills a draft's slug from its title (the first text field) as you type, until you edit the slug yourself. Look a record up by slug with `filter[slug]=hello-world`.
+A slug for your URLs is a text field with `format: slug`, and in the editor it is the **Slug** field type. It is always unique (the field has `unique: true`), and editors type it themselves. Look a record up by slug with `filter[slug]=hello-world`. For slugs that only need to be unique within a section, like `intro` under several versions, use plain text.
 
 ## Dates
 
