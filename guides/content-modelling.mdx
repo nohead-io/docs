@@ -29,7 +29,7 @@ These field API keys are reserved because records use them for their own attribu
 | --- | --- | --- |
 | `text` | A string, up to 10,000 characters | `min_length`, `max_length` |
 | `long_text` | A string, up to 100,000 characters | `min_length`, `max_length` |
-| `rich_text` | A rich text document: `{"type": "doc", "content": [...]}`, compatible with ProseMirror and Tiptap | |
+| `rich_text` | A rich text document: `{"type": "doc", "content": [...]}`, compatible with ProseMirror and Tiptap, which can show [images](#images-in-rich-text) of the project's assets | |
 | `integer` | A whole number within ±9,007,199,254,740,991, which every JSON client represents exactly | `min`, `max` |
 | `decimal` | A number | `min`, `max` |
 | `boolean` | `true` or `false` | |
@@ -47,13 +47,55 @@ Values are never converted between types: `"5"` is not an integer and `1` is not
   Links and image sources inside rich text must be `http`, `https`, `mailto`, `tel` or relative URLs. Your site renders this content, so the API rejects `javascript:` and `data:` URLs.
 </Note>
 
+## Images in rich text
+
+An image in a rich text document is one of the project's assets, by ID, with its alt text:
+
+```json
+{
+  "type": "doc",
+  "content": [
+    {
+      "type": "paragraph",
+      "content": [{ "type": "text", "text": "The view from the pier." }]
+    },
+    {
+      "type": "image",
+      "attrs": {
+        "asset_id": "ast_01J9ZQ3F8X5W2K7M4N6P0R1S2T",
+        "alt": "A red sky over the sea"
+      }
+    }
+  ]
+}
+```
+
+- Images go between the document's blocks, not inside a list or a quote.
+- A newly added image must be an uploaded JPEG, PNG, GIF, WebP or AVIF of the project; anything else is refused (`invalid_reference`, `type_not_accepted`). SVG files can't be images in rich text, because they can carry scripts. An image already in a document stays when its asset is deleted later.
+- A document holds at most 100 images (`too_many_images`). For more, an asset field with **multiple** on suits a gallery better.
+- `alt` is up to 1,000 characters, and search matches it.
+
+In the web app, the editor's **Image** button chooses an asset or uploads one, and images can be pasted or dropped in.
+
+To render a document, expand the field: `expanded` then lists the assets its images show, in order, with their dimensions. Then ask for each image's URL at the size your page needs:
+
+```bash
+curl "$NOHEAD_API_URL/v1/collections/blog-posts/records?expand=body" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY"
+
+curl "$NOHEAD_API_URL/v1/assets/ast_01J9ZQ3F8X5W2K7M4N6P0R1S2T/image-url?width=1200&format=webp" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY"
+```
+
+A published-only key can read the images that published records show, and nothing of drafts. Alt text is plain text: escape it when you render it, as you would any value.
+
 ## Relations and assets
 
 A relation field points at records in another collection of the same project, set by `target_collection_id`. An asset field points at an uploaded file.
 
 An asset field takes any file unless you limit it with `accepted_types`: MIME types or `type/*` wildcards, such as `["image/*", "application/pdf"]`. In the web app, these are the field's **Allowed files** (images, videos, audio, PDFs). The limit applies to newly written values: files already in records are kept, and a new file of another type is refused (`type_not_accepted`). To list only the assets a field takes, pass its types as `content_type` to `GET /v1/assets`.
 
-Records store only the IDs. To get the related records or assets in the same response, pass `expand` with up to five relation or asset field API keys:
+Records store only the IDs. To get the related records or assets in the same response, pass `expand` with up to five relation, asset or rich text field API keys (for rich text, the assets its images show):
 
 ```bash
 curl "$NOHEAD_API_URL/v1/collections/blog-posts/records?expand=author,cover_image" \
