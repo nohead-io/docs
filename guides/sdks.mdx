@@ -298,6 +298,8 @@ export async function POST(request: Request) {
 ```
 
 ```python Python
+import os
+
 from nohead.webhooks import unwrap
 
 event = unwrap(request.get_data(), request.headers, secret=os.environ["NOHEAD_WEBHOOK_SECRET"])

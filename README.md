@@ -8,8 +8,9 @@ The guides and API reference at [docs.nohead.io](https://docs.nohead.io), hosted
 - `sdk-samples/`: each SDK's `samples.json`, one sample per operation.
 
 ```bash
-npm run dev     # preview at http://localhost:3333
-npm run check   # mint validate + broken-links, as CI runs it
+npm run dev          # preview at http://localhost:3333
+npm run check        # mint validate + broken-links, as CI runs it
+npm run check:code   # the guides' code blocks against the published SDKs (needs Python 3.11+ and Ruby)
 ```
 
 The Mintlify CLI is pinned in `package.json` and run with `npx`, with telemetry off. Dependabot doesn't see it, so bump the version by hand now and then.

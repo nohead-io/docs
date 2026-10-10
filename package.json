@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "npx --yes mint@4.2.949 dev --port 3333 --no-open --telemetry=false",
     "check": "npx --yes mint@4.2.949 validate --telemetry=false && npx --yes mint@4.2.949 broken-links --telemetry=false",
+    "check:code": "node scripts/check-code.mjs",
     "generate": "node scripts/code-samples.mjs",
     "samples": "node scripts/sdk-samples.mjs && node scripts/code-samples.mjs"
   }
