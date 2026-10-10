@@ -32,8 +32,8 @@ These field API keys are reserved because records use them for their own attribu
 | `rich_text` | A rich text document: `{"type": "doc", "content": [...]}`, compatible with ProseMirror and Tiptap, which can show [images](#images-in-rich-text) of the project's assets | |
 | `integer` | A whole number within ±9,007,199,254,740,991, which every JSON client represents exactly | `min`, `max`, `unique` |
 | `decimal` | A number | `min`, `max` |
-| `boolean` | `true` or `false`; no value reads as `false`, so it can't be required | |
 | `date` | A calendar date, `2026-10-09`, returned exactly as written. With `include_time`, a moment: ISO 8601 with an offset, stored in UTC | `include_time`, `time_zone` (see [Dates](#dates)) |
+| `boolean` | `true` or `false`; no value reads as `false`, so it can't be required | |
 | `enum` | One of the configured options, as a string | `options` (required): up to 500 unique strings |
 | `asset` | An asset ID (`ast_...`) from the project's assets | `accepted_types`: the kinds of file it takes |
 | `relation` | A record ID (`rec_...`) in the target collection | `target_collection_id` (required) |
@@ -53,9 +53,9 @@ A `text` field can have a `format`, and values that don't match it are refused w
 
 | Format | Takes |
 | --- | --- |
-| `email` | An email address, kept as entered |
-| `url` | An absolute `http` or `https` address |
 | `slug` | Lowercase letters, digits and single hyphens, like `hello-world` (no slashes, at most 200 characters). One value per record, never a list, and always unique |
+| `url` | An absolute `http` or `https` address |
+| `email` | An email address, kept as entered |
 
 `text` and `integer` fields with one value can be `unique`: no two records of the collection have the same value. Emails compare ignoring capitals, records without a value don't count, and a deleted record frees its values. A value another record has is refused with `taken`, and the error names that record's `record_id`. Turning `unique` on, in place or with a field migration (such as turning a text field into a slug), is refused while records would share a value (`duplicate_values`, naming them); fix them first.
 
@@ -143,7 +143,7 @@ Record lists filter on field values with `filter[<api_key>]=value` (equal), or w
 
 Values are read as the field's type, so `"5"` is not the integer 5. Dates take `today`, and dates with a time also `now`: `filter[starts_on][gte]=today` lists upcoming events. A plain date's `today` is the day in UTC. A day given for a date with a time covers that day in the field's time zone (UTC without one), so `filter[starts][eq]=2026-10-09` is everything on 9 October there. A date with a time matches the same moment written with any offset. Record lists also filter on `created_at`, `updated_at` and `published_at`, for example `filter[updated_at][gt]=2026-10-01T00:00:00Z` for an incremental sync.
 
-Record lists sort by `created_at` (the default, newest first), `updated_at`, `published_at` (unpublished records first), `id`, or a text, number, boolean, date or enum field with one value: `sort=price`, or `sort=-published_on` for descending. Records with no value for the field come last either way, and text sorts by character code.
+Record lists sort by `created_at` (the default, newest first), `updated_at`, `published_at` (unpublished records first), `id`, or a text, number, date, boolean or enum field with one value: `sort=price`, or `sort=-published_on` for descending. Records with no value for the field come last either way, and text sorts by character code.
 
 Every collection is indexed for full-text search, so members can search any collection in the web app. To let API keys search a collection, turn on search for it (`search_enabled`). The `searchable`, `filterable` and `sortable` options then choose how each field takes part in API searches. Search takes the same filter operators, on `status` and `filterable` fields. Search words match `searchable` fields only, so a field kept out of search can't be probed through it.
 
