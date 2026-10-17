@@ -65,13 +65,13 @@ API keys are secrets: use the SDKs on servers, never in a browser.
 
 ## Read content
 
-List methods give you a page, which you can also loop over: the SDK fetches the following pages as you go. Filters are the API's equality filters.
+List methods give you a page, which you can also loop over: the SDK fetches the following pages as you go. Filters are the API's: a value to equal, or operators such as `{ exists: true }`.
 
 <CodeGroup>
 
 ```ts TypeScript
 for await (const post of nohead.records.list("posts", {
-  filter: { status: "published" },
+  filter: { published_at: { exists: true } },
   sort: "-published_at",
   expand: ["author"],
 })) {
@@ -87,7 +87,7 @@ page.meta.next_cursor
 ```python Python
 for post in nohead.records.list(
     "posts",
-    filter={"status": "published"},
+    filter={"published_at": {"exists": True}},
     sort="-published_at",
     expand=["author"],
 ):
@@ -100,7 +100,7 @@ page.meta.next_cursor
 ```
 
 ```ruby Ruby
-nohead.records.list("posts", filter: { status: "published" },
+nohead.records.list("posts", filter: { published_at: { exists: true } },
                              sort: "-published_at", expand: ["author"]).each do |post|
   puts post.data["title"]
 end
@@ -120,23 +120,23 @@ In TypeScript, describe a collection's fields and its records are typed: `nohead
 <CodeGroup>
 
 ```ts TypeScript
-const draft = await nohead.records.create("posts", {
+const post = await nohead.records.create("posts", {
   data: { title: "Hello", author: "rec_01J9ZQ3F8X" },
 })
-await nohead.records.update(draft.id, { data: { title: "Hello again" } })
-await nohead.records.publish(draft.id)
+await nohead.records.update(post.id, { data: { title: "Hello again" } })
+await nohead.records.publish(post.id)
 ```
 
 ```python Python
-draft = nohead.records.create("posts", data={"title": "Hello", "author": "rec_01J9ZQ3F8X"})
-nohead.records.update(draft.id, data={"title": "Hello again"})
-nohead.records.publish(draft.id)
+post = nohead.records.create("posts", data={"title": "Hello", "author": "rec_01J9ZQ3F8X"})
+nohead.records.update(post.id, data={"title": "Hello again"})
+nohead.records.publish(post.id)
 ```
 
 ```ruby Ruby
-draft = nohead.records.create("posts", data: { title: "Hello", author: "rec_01J9ZQ3F8X" })
-nohead.records.update(draft.id, data: { title: "Hello again" })
-nohead.records.publish(draft.id)
+post = nohead.records.create("posts", data: { title: "Hello", author: "rec_01J9ZQ3F8X" })
+nohead.records.update(post.id, data: { title: "Hello again" })
+nohead.records.publish(post.id)
 ```
 
 </CodeGroup>
@@ -316,6 +316,8 @@ end
 ```
 
 </CodeGroup>
+
+Event types are the activity log's actions, such as `record.published`, `record.restored` or `field.updated`, and a webhook subscribes to types or wildcards (`record.*`, `*`). Each event says who made the change (`actor`) and through which client (`via`). Rotating a webhook's secret keeps the old one signing for 24 hours, so you can switch the receiver to the new one without rejecting deliveries.
 
 The same event can arrive twice: deduplicate by the `webhook-id` header.
 

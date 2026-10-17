@@ -11,10 +11,10 @@ description: Create a project, publish a record and fetch it from your code.
     Under **Collections**, choose **New collection**. Start from a template (blog posts, pages, products, team members or FAQ) or from a blank collection, and adjust the fields to your needs. [Content modelling](/guides/content-modelling) explains the field types.
   </Step>
   <Step title="Add and publish a record">
-    Open the collection, create a record, fill in its fields and choose **Publish**. Records start as drafts; only published records are visible to published-only keys.
+    Open the collection, create a record, fill in its fields and choose **Publish**. Records start unpublished; only published records are visible to published-only keys.
   </Step>
   <Step title="Create an API key">
-    Under **API keys**, create a key with the **Read records** scope (`records:read`). Turn on **Published records only** for a key your live site uses, so drafts never reach it.
+    Under **API keys**, create a key with the **Read records** scope (`records:read`). Turn on **Published records only** for a key your live site uses, so unpublished records never reach it.
 
     The key is shown once. Store it somewhere safe, for example as `NOHEAD_API_KEY` in your app's environment.
   </Step>
@@ -24,7 +24,7 @@ description: Create a project, publish a record and fetch it from your code.
     <CodeGroup>
 
     ```bash curl
-    curl "$NOHEAD_API_URL/v1/collections/blog-posts/records?filter[status]=published" \
+    curl "$NOHEAD_API_URL/v1/collections/blog-posts/records?filter[published_at][exists]=true" \
       -H "Authorization: Bearer $NOHEAD_API_KEY"
     ```
 
@@ -32,21 +32,21 @@ description: Create a project, publish a record and fetch it from your code.
     import { Nohead } from "@nohead/sdk"
 
     const nohead = new Nohead() // NOHEAD_API_KEY
-    const page = await nohead.records.list("blog-posts", { filter: { status: "published" } })
+    const page = await nohead.records.list("blog-posts", { filter: { published_at: { exists: true } } })
     ```
 
     ```python Python
     from nohead import Nohead
 
     nohead = Nohead()  # NOHEAD_API_KEY
-    page = nohead.records.list("blog-posts", filter={"status": "published"})
+    page = nohead.records.list("blog-posts", filter={"published_at": {"exists": True}})
     ```
 
     ```ruby Ruby
     require "nohead"
 
     nohead = Nohead::Client.new # NOHEAD_API_KEY
-    page = nohead.records.list("blog-posts", filter: { status: "published" })
+    page = nohead.records.list("blog-posts", filter: { published_at: { exists: true } })
     ```
 
     </CodeGroup>
@@ -57,7 +57,7 @@ description: Create a project, publish a record and fetch it from your code.
 
 ## The response
 
-Lists return the records under `data`, with a cursor for the next page under `meta`. Each record's values are under its own `data`, keyed by field API key:
+Lists return the records under `data`, with a cursor for the next page under `meta`. Each record's values are under its own `data`, keyed by field API key. A record is published when it has a `published_at`:
 
 ```json
 {
@@ -67,13 +67,12 @@ Lists return the records under `data`, with a cursor for the next page under `me
       "object": "record",
       "collection_id": "col_01J9ZQ3F8X5W2K7M4N6P0AUTHR",
       "collection": "blog-posts",
-      "status": "published",
       "published_at": "2026-09-27T12:00:00Z",
-      "schedule": { "publish_at": null, "unpublish_at": null, "last_error": null },
       "revision": 2,
       "schema_version": 1,
-      "deleted": false,
       "history_pruned_through": null,
+      "deleted_at": null,
+      "purge_after": null,
       "data": {
         "title": "Hello, world",
         "summary": "Our first post."
