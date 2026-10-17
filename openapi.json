@@ -178,17 +178,17 @@
           {
             "lang": "typescript",
             "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const record of nohead.records.list(\"posts\", {\n  filter: { status: \"published\" },\n  sort: \"-created_at\",\n  expand: [\"author\"],\n  limit: 5,\n})) {\n  console.log(record)\n}\n"
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const record of nohead.records.list(\"posts\", {\n  filter: { published_at: { exists: true } },\n  sort: \"-created_at\",\n  expand: [\"author\"],\n  limit: 5,\n})) {\n  console.log(record)\n}\n"
           },
           {
             "lang": "python",
             "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor record in nohead.records.list(\n    \"posts\",\n    filter={\"status\": \"published\"},\n    sort=\"-created_at\",\n    expand=[\"author\"],\n    limit=5,\n):\n    print(record)\n"
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor record in nohead.records.list(\n    \"posts\",\n    filter={\"published_at\": {\"exists\": True}},\n    sort=\"-created_at\",\n    expand=[\"author\"],\n    limit=5,\n):\n    print(record)\n"
           },
           {
             "lang": "ruby",
             "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.records.list(\"posts\", filter: { status: \"published\" }, sort: \"-created_at\", expand: [\"author\"], limit: 5).each do |record|\n  puts record\nend\n"
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.records.list(\"posts\", filter: { published_at: { exists: true } }, sort: \"-created_at\", expand: [\"author\"], limit: 5).each do |record|\n  puts record\nend\n"
           }
         ]
       },
@@ -310,17 +310,17 @@
           {
             "lang": "typescript",
             "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.get(\"rec_01J9ZQ3F8X\", {\n  expand: [\"author\"],\n  include_deleted: true,\n})\n"
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.get(\"rec_01J9ZQ3F8X\", {\n  expand: [\"author\"],\n})\n"
           },
           {
             "lang": "python",
             "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.get(\"rec_01J9ZQ3F8X\", expand=[\"author\"], include_deleted=True)\n"
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.get(\"rec_01J9ZQ3F8X\", expand=[\"author\"])\n"
           },
           {
             "lang": "ruby",
             "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.get(\"rec_01J9ZQ3F8X\", expand: [\"author\"], include_deleted: true)\n"
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.get(\"rec_01J9ZQ3F8X\", expand: [\"author\"])\n"
           }
         ]
       },
@@ -507,7 +507,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.publication(\"rec_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.publication(\"rec_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.publication(\"rec_01J9ZQ3F8X\")\n"
+          }
+        ]
       },
       "post": {
         "operationId": "records_publish",
@@ -672,7 +689,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.getSchedule(\"rec_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.get_schedule(\"rec_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.get_schedule(\"rec_01J9ZQ3F8X\")\n"
+          }
+        ]
       },
       "put": {
         "operationId": "records_schedule",
@@ -1338,17 +1372,17 @@
           {
             "lang": "typescript",
             "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.count(\"posts\", {\n  filter: { status: \"draft\" },\n})\n"
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.count(\"posts\", {\n  filter: { published_at: { exists: false } },\n})\n"
           },
           {
             "lang": "python",
             "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.count(\"posts\", filter={\"status\": \"draft\"})\n"
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.count(\"posts\", filter={\"published_at\": {\"exists\": False}})\n"
           },
           {
             "lang": "ruby",
             "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.count(\"posts\", filter: { status: \"draft\" })\n"
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.count(\"posts\", filter: { published_at: { exists: false } })\n"
           }
         ]
       }
@@ -1498,7 +1532,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const change of nohead.records.scheduledChanges(\"posts\", {\n  sort: \"-at\",\n})) {\n  console.log(change)\n}\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor change in nohead.records.scheduled_changes(\"posts\", sort=\"-at\"):\n    print(change)\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.records.scheduled_changes(\"posts\", sort: \"-at\").each do |change|\n  puts change\nend\n"
+          }
+        ]
       }
     },
     "/v1/projects/{project_id}/collections": {
@@ -2626,7 +2677,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.fields.order(\"posts\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.fields.order(\"posts\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.fields.order(\"posts\")\n"
+          }
+        ]
       },
       "put": {
         "operationId": "fields_reorder",
@@ -3840,17 +3908,17 @@
           {
             "lang": "typescript",
             "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const record of nohead.records.search(\"posts\", \"hello\", {\n  filter: { status: \"published\" },\n  sort: \"-published_at\",\n  expand: [\"author\"],\n})) {\n  console.log(record)\n}\n"
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const record of nohead.records.search(\"posts\", \"hello\", {\n  filter: { published_at: { exists: true } },\n  sort: \"-published_at\",\n  expand: [\"author\"],\n})) {\n  console.log(record)\n}\n"
           },
           {
             "lang": "python",
             "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor record in nohead.records.search(\n    \"posts\",\n    \"hello\",\n    filter={\"status\": \"published\"},\n    sort=\"-published_at\",\n    expand=[\"author\"],\n):\n    print(record)\n"
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor record in nohead.records.search(\n    \"posts\",\n    \"hello\",\n    filter={\"published_at\": {\"exists\": True}},\n    sort=\"-published_at\",\n    expand=[\"author\"],\n):\n    print(record)\n"
           },
           {
             "lang": "ruby",
             "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.records.search(\"posts\", \"hello\", filter: { status: \"published\" }, sort: \"-published_at\", expand: [\"author\"]).each do |record|\n  puts record\nend\n"
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.records.search(\"posts\", \"hello\", filter: { published_at: { exists: true } }, sort: \"-published_at\", expand: [\"author\"]).each do |record|\n  puts record\nend\n"
           }
         ]
       }
@@ -4111,17 +4179,17 @@
           {
             "lang": "typescript",
             "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const record of nohead.search(\"hello\", {\n  collections: [\"posts\"],\n  filter: { status: \"published\" },\n})) {\n  console.log(record)\n}\n"
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const record of nohead.search(\"hello\", {\n  collections: [\"posts\"],\n  filter: { published_at: { exists: true } },\n})) {\n  console.log(record)\n}\n"
           },
           {
             "lang": "python",
             "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor record in nohead.search(\"hello\", collections=[\"posts\"], status=\"published\"):\n    print(record)\n"
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor record in nohead.search(\"hello\", collections=[\"posts\"], published=True):\n    print(record)\n"
           },
           {
             "lang": "ruby",
             "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.search(\"hello\", collections: [\"posts\"], status: \"published\").each do |record|\n  puts record\nend\n"
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.search(\"hello\", collections: [\"posts\"], published: true).each do |record|\n  puts record\nend\n"
           }
         ]
       }
@@ -4181,17 +4249,17 @@
           {
             "lang": "typescript",
             "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const webhook of nohead.webhooks.list()) {\n  console.log(webhook)\n}\n"
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const webhook of nohead.webhooks.list({ deleted: true })) {\n  console.log(webhook)\n}\n"
           },
           {
             "lang": "python",
             "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor webhook in nohead.webhooks.list():\n    print(webhook)\n"
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor webhook in nohead.webhooks.list(deleted=True):\n    print(webhook)\n"
           },
           {
             "lang": "ruby",
             "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.webhooks.list.each do |webhook|\n  puts webhook\nend\n"
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.webhooks.list(deleted: true).each do |webhook|\n  puts webhook\nend\n"
           }
         ]
       },
@@ -4538,7 +4606,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.webhooks.restore(\"wh_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.webhooks.restore(\"wh_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.webhooks.restore(\"wh_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/webhooks/{webhook_id}/secrets": {
@@ -4588,7 +4673,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const secret of nohead.webhooks.secrets.list(\"wh_01J9ZQ3F8X\")) {\n  console.log(secret)\n}\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor secret in nohead.webhooks.secrets.list(\"wh_01J9ZQ3F8X\"):\n    print(secret)\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.webhooks.secrets.list(\"wh_01J9ZQ3F8X\").each do |secret|\n  puts secret\nend\n"
+          }
+        ]
       },
       "post": {
         "operationId": "webhooks_rotate_secret",
@@ -4710,7 +4812,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.webhooks.secrets.retire(\"whs_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.webhooks.secrets.retire(\"whs_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.webhooks.secrets.retire(\"whs_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/webhooks/{webhook_id}/test": {
