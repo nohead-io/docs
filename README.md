@@ -8,6 +8,7 @@ The guides and API reference at [docs.nohead.io](https://docs.nohead.io), hosted
 - `sdk-samples/`: each SDK's `samples.json`, one sample per operation.
 
 ```bash
+lefthook install     # a pre-commit secret scan (brew install lefthook gitleaks)
 npm run dev          # preview at http://localhost:3333
 npm run check        # mint validate + broken-links, as CI runs it
 npm run check:code   # the guides' code blocks against the published SDKs (needs Python 3.11+ and Ruby)
