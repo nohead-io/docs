@@ -143,6 +143,32 @@ nohead.records.publish(post.id)
 
 Every write is versioned and attributed to the key. Add a note to history with `changeNote` (TypeScript) or `change_note` (Python, Ruby).
 
+## Review changes before they go live
+
+A draft holds changes to a record until they are merged into it, now or at a set time, while the record keeps its current content. A record has one draft at most, and a merge changes content only: a live record stays live. Agents can propose changes this way for a person to publish.
+
+<CodeGroup>
+
+```ts TypeScript
+const draft = await nohead.drafts.create(id, { data: { title: "Hello, revised" } })
+const preview = await nohead.drafts.get(draft.id) // data as the record would read
+await nohead.drafts.merge(draft.id) // or drafts.schedule(draft.id, { merge_at })
+```
+
+```python Python
+draft = nohead.drafts.create(record_id, data={"title": "Hello, revised"})
+preview = nohead.drafts.get(draft.id)  # data as the record would read
+nohead.drafts.merge(draft.id)  # or drafts.schedule(draft.id, merge_at=...)
+```
+
+```ruby Ruby
+draft = nohead.drafts.create(id, data: { title: "Hello, revised" })
+preview = nohead.drafts.get(draft.id) # data as the record would read
+nohead.drafts.merge(draft.id) # or drafts.schedule(draft.id, merge_at: ...)
+```
+
+</CodeGroup>
+
 ## Retries and idempotency
 
 Failed requests are retried twice by default:
