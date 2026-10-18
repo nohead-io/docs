@@ -14,7 +14,7 @@ description: Create a project, publish a record and fetch it from your code.
     Open the collection, create a record, fill in its fields and choose **Publish**. Records start unpublished; only published records are visible to published-only keys.
   </Step>
   <Step title="Create an API key">
-    Under **API keys**, create a key with the **Read records** scope (`records:read`). Turn on **Published records only** for a key your live site uses, so unpublished records never reach it.
+    Under **API keys**, create a key with the **Read records** scope (`records:read`). Leave **Published records only** on (the default) for a key your live site uses, so unpublished records never reach it; turn it off for a key that writes.
 
     The key is shown once. Store it somewhere safe, for example as `NOHEAD_API_KEY` in your app's environment.
   </Step>
