@@ -118,7 +118,7 @@ A published-only key can read the images that published records show, and nothin
 
 A relation field points at records in another collection of the same project, set by `target_collection_id`. An asset field points at an uploaded file.
 
-An asset field takes any file unless you limit it with `accepted_types`: MIME types or `type/*` wildcards, such as `["image/*", "application/pdf"]`. In the web app, these are the field's **Allowed files** (images, videos, audio, PDFs). The limit applies to newly written values: files already in records are kept, and a new file of another type is refused (`type_not_accepted`). To list only the assets a field takes, pass its types as `filter[content_type]` to `GET /v1/projects/{project_id}/assets` (`assets.list({ content_type })` in the SDKs).
+An asset field takes any file unless you limit it with `accepted_types`: MIME types or `type/*` wildcards, such as `["image/*", "application/pdf"]`. In the web app, these are the field's **Allowed files** (images, videos, audio, PDFs). The limit applies to newly written values: files already in records are kept, and a new file of another type is refused (`type_not_accepted`). To list only the assets a field takes, pass its types to `GET /v1/projects/{project_id}/assets`: one as `filter[content_type]`, several as `filter[content_type][in]` (comma-separated). In the SDKs, pass them as a list: `assets.list({ content_type })`.
 
 Records store only the IDs. To get the related records or assets in the same response, pass `expand` with up to five relation, asset or rich text field keys (for rich text, the assets its images show):
 
