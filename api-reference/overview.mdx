@@ -11,7 +11,7 @@ Send `Authorization: Bearer <token>`. Servers, CI and agents use a project API k
 
 ## IDs
 
-Every object has an opaque, prefixed `id` (`col_`, `fld_`, `rec_`, `ast_`, ...) and an `object` type. With an API key, collections can also be addressed by slug: `/v1/collections/blog-posts/records` works like `/v1/collections/col_…/records`, since the key belongs to one project. Signed-in sessions span projects, so they use IDs. Timestamps are ISO 8601 in UTC.
+Every object has an `object` type, and every resource with an identity of its own an opaque, prefixed `id` (`col_`, `fld_`, `rec_`, `ast_`, ...). With an API key, collections can also be addressed by slug: `/v1/collections/blog-posts/records` works like `/v1/collections/col_…/records`, since the key belongs to one project. Timestamps are ISO 8601 in UTC.
 
 ## Lists
 
@@ -36,7 +36,7 @@ Include the `request_id` when asking for support.
 
 ## Safe retries and concurrent edits
 
-Send `Idempotency-Key` on any `POST`, `PATCH` or `DELETE` to make retrying it safe: the first result is stored for 24 hours and returned again for the same request. Record responses carry the record's revision as an `ETag`; send it back as `If-Match` to update only if nobody changed the record in the meantime (`412` otherwise).
+Send `Idempotency-Key` on any `POST`, `PUT`, `PATCH` or `DELETE` to make retrying it safe: the first result is stored for 24 hours and returned again for the same request. Record responses carry the record's revision as an `ETag`; send it back as `If-Match` to update only if nobody changed the record in the meantime (`412` otherwise).
 
 ## History
 

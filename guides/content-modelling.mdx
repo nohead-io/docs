@@ -11,7 +11,7 @@ A **field** has:
 - an **API key**, the key its value has in a record's `data` (`cover_image`);
 - a **type**, such as text, number or relation;
 - **required**: whether every record must have a value (not for `boolean` fields: a boolean is true or false, and no value reads as false);
-- **multiple**: whether the value is a list (not available for `boolean`, `rich_text` and `json`);
+- **multiple**: whether the value is a list (not available for `boolean`, `long_text`, `rich_text` and `json`);
 - a type-specific **configuration**, such as a maximum length or enum options.
 
 ## Naming rules
@@ -21,7 +21,7 @@ A **field** has:
 | Collection slug | Starts with a letter; lowercase letters, digits, `-` and `_`; at most 63 characters. Unique in the project. |
 | Field API key | Starts with a letter; lowercase letters, digits and `_` (snake_case); at most 63 characters. Unique in the collection. |
 
-These field API keys are reserved because records use them for their own attributes: `id`, `object`, `collection`, `data`, `status`, `published_at`, `created_at`, `updated_at`, `deleted_at`, `revision`, `schema_version`.
+These field API keys are reserved, for records' own attributes and a few kept for later: `id`, `object`, `collection`, `data`, `status`, `published_at`, `created_at`, `updated_at`, `deleted`, `deleted_at`, `purge_after`, `revision`, `schema_version`.
 
 ## Field types
 
@@ -112,13 +112,13 @@ curl "$NOHEAD_API_URL/v1/assets/ast_01J9ZQ3F8X5W2K7M4N6P0R1S2T/image-url?width=1
   -H "Authorization: Bearer $NOHEAD_API_KEY"
 ```
 
-A published-only key can read the images that published records show, and nothing of drafts. Alt text is plain text: escape it when you render it, as you would any value.
+A published-only key can read the images that published records show, and nothing of unpublished ones. Alt text is plain text: escape it when you render it, as you would any value.
 
 ## Relations and assets
 
 A relation field points at records in another collection of the same project, set by `target_collection_id`. An asset field points at an uploaded file.
 
-An asset field takes any file unless you limit it with `accepted_types`: MIME types or `type/*` wildcards, such as `["image/*", "application/pdf"]`. In the web app, these are the field's **Allowed files** (images, videos, audio, PDFs). The limit applies to newly written values: files already in records are kept, and a new file of another type is refused (`type_not_accepted`). To list only the assets a field takes, pass its types as `content_type` to `GET /v1/assets`.
+An asset field takes any file unless you limit it with `accepted_types`: MIME types or `type/*` wildcards, such as `["image/*", "application/pdf"]`. In the web app, these are the field's **Allowed files** (images, videos, audio, PDFs). The limit applies to newly written values: files already in records are kept, and a new file of another type is refused (`type_not_accepted`). To list only the assets a field takes, pass its types as `filter[content_type]` to `GET /v1/projects/{project_id}/assets` (`assets.list({ content_type })` in the SDKs).
 
 Records store only the IDs. To get the related records or assets in the same response, pass `expand` with up to five relation, asset or rich text field API keys (for rich text, the assets its images show):
 
@@ -127,7 +127,7 @@ curl "$NOHEAD_API_URL/v1/collections/blog-posts/records?expand=author,cover_imag
   -H "Authorization: Bearer $NOHEAD_API_KEY"
 ```
 
-Each record then has an `expanded` object keyed by field API key. A related record or asset that no longer exists is `null` for a single-value field and left out of the list for a multiple one. With a published-only key, related drafts are left out too.
+Each record then has an `expanded` object keyed by field API key. A related record or asset that no longer exists is `null` for a single-value field and left out of the list for a multiple one. With a published-only key, related unpublished records are left out too.
 
 ## Filtering and search
 
@@ -145,7 +145,7 @@ Values are read as the field's type, so `"5"` is not the integer 5. Dates take `
 
 Record lists sort by `created_at` (the default, newest first), `updated_at`, `published_at` (unpublished records first), `id`, or a text, number, date, boolean or enum field with one value: `sort=price`, or `sort=-published_on` for descending. Records with no value for the field come last either way, and text sorts by character code.
 
-Every collection is indexed for full-text search, so members can search any collection in the web app. To let API keys search a collection, turn on search for it (`search_enabled`). The `searchable`, `filterable` and `sortable` options then choose how each field takes part in API searches. Search takes the same filter operators, on `status` and `filterable` fields. Search words match `searchable` fields only, so a field kept out of search can't be probed through it.
+Every collection is indexed for full-text search, so members can search any collection in the web app. To let API keys search a collection, turn on search for it (`search_enabled`). The `searchable`, `filterable` and `sortable` options then choose how each field takes part in API searches. Search takes the same filter operators on `filterable` fields, and `filter[published_at][exists]` (`true` for published records, `false` for unpublished ones). Search words match `searchable` fields only, so a field kept out of search can't be probed through it.
 
 ## Changing a collection
 
