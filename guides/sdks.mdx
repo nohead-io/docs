@@ -145,7 +145,7 @@ Every write is versioned and attributed to the key. Add a note to history with `
 
 ## Review changes before they go live
 
-A draft holds changes to a record until they are merged into it, now or at a set time, while the record keeps its current content. A record has one draft at most, and a merge changes content only: a live record stays live. Agents can propose changes this way for a person to publish.
+A draft holds changes to a record until they are merged into it, now or at a set time, while the record keeps its current content. A record has one draft at most, and a merge changes content only: a live record stays live. Agents can propose changes this way for a person to review and merge.
 
 <CodeGroup>
 
@@ -343,7 +343,7 @@ end
 
 </CodeGroup>
 
-Event types are the activity log's actions, such as `record.published`, `record.restored` or `field.updated`, and a webhook subscribes to types or wildcards (`record.*`, `*`). Each event says who made the change (`actor`) and through which client (`via`). Rotating a webhook's secret keeps the old one signing for 24 hours, so you can switch the receiver to the new one without rejecting deliveries.
+Event types are the same as the activity log's, such as `record.published`, `record.restored` or `field.updated`, and a webhook subscribes to types or wildcards (`record.*`, `*`). Each event says who made the change (`actor`) and through which client (`via`). Rotating a webhook's secret keeps the old one signing for 24 hours, so you can switch the receiver to the new one without rejecting deliveries.
 
 The same event can arrive twice: deduplicate by the `webhook-id` header.
 
