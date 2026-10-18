@@ -9,7 +9,7 @@
       "email": "hello@nohead.io",
       "url": "https://nohead.io"
     },
-    "description": "The Nohead API manages projects, collections (your data models), their\nfields, and records (your content), with full version history.\n\n## Authentication\n\nSend `Authorization: Bearer <token>`. Servers, CI and agents use a\nproject API key (`sk_live_...`, created in the web app under API keys)\nwith scopes such as `records:read` or `schema:write`. Organization,\nproject, member and API key management need a person signed in to the\nweb app and are not available to API keys.\n\n## Resources and IDs\n\nEvery object has an opaque, prefixed `id` (`col_`, `fld_`, `rec_`, ...)\nand an `object` type. Record values live under `data`, keyed by each\nfield's `api_key`. Timestamps are ISO 8601 in UTC. Deletes are soft and\ncan be undone.\n\n## Lists\n\nLists return `{ \"data\": [...], \"meta\": { \"next_cursor\", \"has_more\" } }`.\nPass `limit` (1-100) and `cursor` to page, and `sort` (prefix `-` for\ndescending). Records also take `filter[<api_key>]=value`,\n`filter[published_at][exists]=true` and `expand=<relation, asset or\nrich text fields>`.\n\n## Errors\n\nErrors share one envelope: `{ \"error\": { \"type\", \"message\",\n\"request_id\", \"details\" } }`. `details` lists field-level problems as\n`{ \"field\", \"code\", \"message\" }`. Include the `request_id` when asking\nfor support.\n\n## Safe retries and concurrent edits\n\nSend `Idempotency-Key` on any `POST`, `PATCH` or `DELETE` to make retrying\nit safe: the first result is stored for 24 hours and returned again for\nthe same request. Record responses carry the record's revision as an\n`ETag`; send it back as `If-Match` to update only if nobody changed the\nrecord in the meantime (`412` otherwise).\n\n## History\n\nEvery change to a record is a revision, attributed to the person or API\nkey that made it: record revisions can be listed, diffed and reverted,\nand collections keep a schema history. Send `Nohead-Change-Note` to\nrecord why a change was made. Changes that rewrite existing values\n(such as a field's type) are explicit, previewable field migrations.\n\nHow long revisions are kept depends on the organization's plan. Older\nones are removed, but every record keeps its first revision and its\nlast 10; `history_pruned_through` says how far history was removed.\n",
+    "description": "The Nohead API manages projects, collections (your data models), their\nfields, and records (your content), with full version history.\n\n## Authentication\n\nSend `Authorization: Bearer <token>`. Servers, CI and agents use a\nproject API key (`sk_live_...`, created in the web app under API keys)\nwith scopes such as `records:read` or `schema:write`. Organization,\nproject, member and API key management need a person signed in to the\nweb app and are not available to API keys.\n\n## Resources and IDs\n\nEvery object has an `object` type, and every resource with an identity of\nits own an opaque, prefixed `id` (`col_`, `fld_`, `rec_`, ...). Record values live under `data`, keyed by each\nfield's `key`. Timestamps are ISO 8601 in UTC. Deleting a record,\ncollection, field, asset or webhook is soft: it can be restored until its\n`purge_after`.\n\n## Lists\n\nLists return `{ \"data\": [...], \"meta\": { \"next_cursor\", \"has_more\" } }`.\nPass `limit` (1-100) and `cursor` to page, and `sort` (prefix `-` for\ndescending). Records also take `filter[<key>]=value`,\n`filter[published_at][exists]=true` and `expand=<relation, asset or\nrich text fields>`.\n\n## Errors\n\nErrors share one envelope: `{ \"error\": { \"type\", \"message\",\n\"request_id\", \"details\" } }`. `details` lists field-level problems as\n`{ \"field\", \"code\", \"message\" }`. Include the `request_id` when asking\nfor support.\n\n## Safe retries and concurrent edits\n\nSend `Idempotency-Key` on any `POST`, `PUT`, `PATCH` or `DELETE` to make retrying\nit safe: the first result is stored for 24 hours and returned again for\nthe same request. Record responses carry the record's revision as an\n`ETag`; send it back as `If-Match` to update only if nobody changed the\nrecord in the meantime (`412` otherwise).\n\n## History\n\nEvery change to a record is a revision, attributed to the person or API\nkey that made it: record revisions can be listed, diffed and reverted,\nand collections keep a schema history. Send `Nohead-Change-Note` to\nrecord why a change was made. Changes that rewrite existing values\n(such as a field's type) are explicit, previewable field migrations.\n\nHow long revisions are kept depends on the organization's plan. Older\nones are removed, but every record keeps its first revision and its\nlast 10; `history_pruned_through` says how far history was removed.\n",
     "license": {
       "name": "Proprietary",
       "identifier": "LicenseRef-Proprietary"
@@ -28,9 +28,6 @@
   "security": [
     {
       "apiKey": []
-    },
-    {
-      "session": []
     }
   ],
   "tags": [
@@ -125,7 +122,7 @@
           {
             "name": "sort",
             "in": "query",
-            "description": "`id`, `created_at`, `updated_at`, `published_at` (unpublished\nrecords first), or the API key of a text, number, boolean, date or\nenum field with one value (records without a value last, in both\ndirections; text by code point). `-` for descending.\n",
+            "description": "`id`, `created_at`, `updated_at`, `published_at` (unpublished\nrecords first), or the key of a text, number, boolean, date or\nenum field with one value (records without a value last, in both\ndirections; text by code point). `-` for descending.\n",
             "schema": {
               "type": "string",
               "pattern": "^-?[a-z][a-z0-9_]*$",
@@ -173,24 +170,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const record of nohead.records.list(\"posts\", {\n  filter: { published_at: { exists: true } },\n  sort: \"-created_at\",\n  expand: [\"author\"],\n  limit: 5,\n})) {\n  console.log(record)\n}\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor record in nohead.records.list(\n    \"posts\",\n    filter={\"published_at\": {\"exists\": True}},\n    sort=\"-created_at\",\n    expand=[\"author\"],\n    limit=5,\n):\n    print(record)\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.records.list(\"posts\", filter: { published_at: { exists: true } }, sort: \"-created_at\", expand: [\"author\"], limit: 5).each do |record|\n  puts record\nend\n"
-          }
-        ]
+        }
       },
       "post": {
         "operationId": "records_create",
@@ -248,24 +228,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.create(\"posts\", { data: { title: \"Hi\" } })\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.create(\"posts\", data={\"title\": \"Hi\"})\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.create(\"posts\", data: { title: \"Hi\" })\n"
-          }
-        ]
+        }
       }
     },
     "/v1/records/{record_id}": {
@@ -305,29 +268,12 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.get(\"rec_01J9ZQ3F8X\", {\n  expand: [\"author\"],\n})\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.get(\"rec_01J9ZQ3F8X\", expand=[\"author\"])\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.get(\"rec_01J9ZQ3F8X\", expand: [\"author\"])\n"
-          }
-        ]
+        }
       },
       "patch": {
         "operationId": "records_update",
         "summary": "Update a record",
-        "description": "Partial update. Keys present in `data` replace their values; `null`\nclears one. `409` with detail code `deleted` while the record is\nsoft-deleted: restore it first.\n",
+        "description": "Partial update. Keys present in `data` replace their values; `null`\nclears one. `409` with detail code `deleted` while the record is\nsoft-deleted: restore it first. With a pending draft the update still\napplies, and merging the draft later replaces the fields the draft\nchanges.\n",
         "tags": [
           "records"
         ],
@@ -383,29 +329,12 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.update(\n  \"rec_01J9ZQ3F8X\",\n  { data: { title: \"Hey\" } },\n  { ifMatch: 1 }\n)\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.update(\"rec_01J9ZQ3F8X\", data={\"title\": \"Hey\"}, if_match=1)\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.update(\"rec_01J9ZQ3F8X\", data: { title: \"Hey\" }, if_match: 1)\n"
-          }
-        ]
+        }
       },
       "delete": {
         "operationId": "records_delete",
         "summary": "Delete a record",
-        "description": "Soft-deletes the record: values and history are kept, and it can be\nrestored until `purge_after`. Its schedule is cancelled. Deleting a\ndeleted record changes nothing.\n",
+        "description": "Soft-deletes the record: values and history are kept, and it can be\nrestored until `purge_after`. Its schedule is cleared with it: the\ndelete is the change, so there is no `record.unscheduled` event, and\nrestoring the record doesn't bring the schedule back. Its draft's\nmerge waits for a restore. Deleting a deleted record changes nothing.\n",
         "tags": [
           "records"
         ],
@@ -448,24 +377,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.delete(\"rec_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.delete(\"rec_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.delete(\"rec_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/collections/{collection_id}/records/count": {
@@ -512,24 +424,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.count(\"posts\", {\n  filter: { published_at: { exists: false } },\n})\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.count(\"posts\", filter={\"published_at\": {\"exists\": False}})\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.count(\"posts\", filter: { published_at: { exists: false } })\n"
-          }
-        ]
+        }
       }
     },
     "/v1/collections/{collection_id}/record-batches": {
@@ -541,7 +436,7 @@
       "post": {
         "operationId": "records_bulk",
         "summary": "Change many records",
-        "description": "Publishes, unpublishes, deletes, restores or updates\n(`update` with `data`, applied to each) up to 100 records. Each record\nis changed as if by its own request: one revision per effective\nchange, with its own audit event, webhook and search update. Records\nthat fail (not found, invalid, over a plan limit, a live record with\na pending draft for `publish`) are reported without stopping the\nothers. Publishing needs `records:publish`; the rest `records:write`.\n",
+        "description": "Publishes, unpublishes, deletes, restores or updates\n(`update` with `data`, applied to each) up to 100 records. Each record\nis changed as if by its own request: one revision per effective\nchange, with its own audit event, webhook and search update. Records\nthat fail (not found, invalid, over a plan limit, a live record with\na pending draft for `publish`) are reported without stopping the\nothers. Publishing needs `records:publish` (an API key's `records:write`); the rest `records:write`.\n",
         "tags": [
           "records"
         ],
@@ -598,24 +493,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.bulk(\"posts\", {\n  action: \"publish\",\n  record_ids: [\"rec_01J9ZQ3F8X\"],\n})\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.bulk(\"posts\", action=\"publish\", record_ids=[\"rec_01J9ZQ3F8X\"])\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.bulk(\"posts\", action: \"publish\", record_ids: [\"rec_01J9ZQ3F8X\"])\n"
-          }
-        ]
+        }
       }
     },
     "/v1/records/{record_id}/restore": {
@@ -673,24 +551,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.restore(\"rec_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.restore(\"rec_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.restore(\"rec_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/records/{record_id}/publication": {
@@ -732,29 +593,12 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.publication(\"rec_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.publication(\"rec_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.publication(\"rec_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       },
       "post": {
         "operationId": "records_publish",
         "summary": "Publish a record",
-        "description": "Makes the record's current content live (`records:publish`), as a\n`publish` revision. Publishing a published record changes nothing,\nbut a live record with a pending draft is `409` with detail code\n`draft_pending` and its `draft_id`: publishing never merges a draft\n(`POST /v1/drafts/{id}/merge` does). An unpublished record goes live\nwith its current content and keeps its draft.\n",
+        "description": "Makes the record's current content live (`records:publish`; an API key's `records:write`), as a\n`publish` revision. Publishing a published record changes nothing,\nbut a live record with a pending draft is `409` with detail code\n`draft_pending` and its `draft_id`: publishing never merges a draft\n(`POST /v1/drafts/{id}/merge` does). An unpublished record goes live\nwith its current content and keeps its draft.\n",
         "tags": [
           "publishing"
         ],
@@ -797,29 +641,12 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.publish(\"rec_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.publish(\"rec_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.publish(\"rec_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       },
       "delete": {
         "operationId": "records_unpublish",
         "summary": "Unpublish a record",
-        "description": "Takes the record offline (`records:publish`), as an `unpublish`\nrevision; its content is kept. Unpublishing an unpublished record\nchanges nothing.\n",
+        "description": "Takes the record offline (`records:publish`; an API key's `records:write`), as an `unpublish`\nrevision; its content is kept. Unpublishing an unpublished record\nchanges nothing.\n",
         "tags": [
           "publishing"
         ],
@@ -862,24 +689,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.unpublish(\"rec_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.unpublish(\"rec_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.unpublish(\"rec_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/records/{record_id}/schedule": {
@@ -914,29 +724,12 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.getSchedule(\"rec_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.get_schedule(\"rec_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.get_schedule(\"rec_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       },
       "put": {
         "operationId": "records_schedule",
         "summary": "Schedule publishing or unpublishing",
-        "description": "Publishes (`publish_at`) or unpublishes (`unpublish_at`) the record at\na future time (`records:publish`). The change is made within a minute of\nthe time, like a manual publish from the scheduler: it has its own\nrevision (`via: scheduler`), webhooks and audit event. `publish_at`\nneeds an unpublished record; `unpublish_at` needs a published record or a\n`publish_at` before it. Setting or cancelling a schedule is audited but\nmakes no revision. `409` with detail code `deleted` while the record is\nsoft-deleted.\n",
+        "description": "Publishes (`publish_at`) or unpublishes (`unpublish_at`) the record at\na future time (`records:publish`; an API key's `records:write`). The change is made within a minute of\nthe time, like a manual publish from the scheduler: it has its own\nrevision (`via: scheduler`), webhooks and audit event. `publish_at`\nneeds an unpublished record; `unpublish_at` needs a published record or a\n`publish_at` before it. Setting or cancelling a schedule is audited but\nmakes no revision. `409` with detail code `deleted` while the record is\nsoft-deleted.\n\nReplaces the whole schedule: a time left out, or null, is none, so\nboth left out cancel it as `DELETE` does. Setting the schedule the\nrecord already has changes nothing and records no event. Publishing\nthe record by hand clears `publish_at`, and unpublishing it clears\n`unpublish_at`.\n\nA scheduled change that can't be made when it is due (the record is\nlive with a pending draft, say) is dropped: its time is cleared, the\nschedule's `last_error` says why, and `record.schedule_failed` is\nrecorded. One due while a field migration runs on the collection is\nmade once the migration finishes.\n",
         "tags": [
           "publishing"
         ],
@@ -983,28 +776,12 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.schedule(\"rec_01J9ZQ3F8X\", {\n  publish_at: \"2027-01-01T00:00:00Z\",\n})\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.schedule(\"rec_01J9ZQ3F8X\", publish_at=\"2027-01-01T00:00:00Z\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.schedule(\"rec_01J9ZQ3F8X\", publish_at: Time.utc(2027, 1, 1))\n"
-          }
-        ]
+        }
       },
       "delete": {
         "operationId": "records_unschedule",
         "summary": "Cancel a record's schedule",
+        "description": "Clears `publish_at`, `unpublish_at` and `last_error`. Cancelling when\nthere is nothing to clear changes nothing and records no event.\n",
         "tags": [
           "publishing"
         ],
@@ -1038,24 +815,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.unschedule(\"rec_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.unschedule(\"rec_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.unschedule(\"rec_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/collections/{collection_id}/scheduled-changes": {
@@ -1117,24 +877,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const change of nohead.records.scheduledChanges(\"posts\", {\n  sort: \"-at\",\n})) {\n  console.log(change)\n}\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor change in nohead.records.scheduled_changes(\"posts\", sort=\"-at\"):\n    print(change)\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.records.scheduled_changes(\"posts\", sort: \"-at\").each do |change|\n  puts change\nend\n"
-          }
-        ]
+        }
       }
     },
     "/v1/records/{record_id}/revisions": {
@@ -1187,24 +930,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const revision of nohead.records.revisions.list(\"rec_01J9ZQ3F8X\", {\n  filter: { operation: \"update\" },\n})) {\n  console.log(revision)\n}\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor revision in nohead.records.revisions.list(\n    \"rec_01J9ZQ3F8X\", filter={\"operation\": \"update\"}\n):\n    print(revision)\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.records.revisions.list(\"rec_01J9ZQ3F8X\", filter: { operation: \"update\" }).each do |revision|\n  puts revision\nend\n"
-          }
-        ]
+        }
       }
     },
     "/v1/records/{record_id}/revisions/{revision}": {
@@ -1248,24 +974,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.revisions.get(\"rec_01J9ZQ3F8X\", 1)\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.revisions.get(\"rec_01J9ZQ3F8X\", 1)\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.revisions.get(\"rec_01J9ZQ3F8X\", 1)\n"
-          }
-        ]
+        }
       }
     },
     "/v1/records/{record_id}/revisions/{revision}/revert": {
@@ -1353,24 +1062,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.revisions.revert(\"rec_01J9ZQ3F8X\", 1, {\n  dry_run: true,\n})\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.revisions.revert(\"rec_01J9ZQ3F8X\", 1, dry_run=True)\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.revisions.revert(\"rec_01J9ZQ3F8X\", 1, dry_run: true)\n"
-          }
-        ]
+        }
       }
     },
     "/v1/records/{record_id}/diff": {
@@ -1431,32 +1123,8 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.diff(\"rec_01J9ZQ3F8X\", { from: 1, to: 2 })\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.diff(\"rec_01J9ZQ3F8X\", 1, 2)\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.diff(\"rec_01J9ZQ3F8X\", 1, 2)\n"
-          }
-        ]
-      }
-    },
-    "/v1/records/{record_id}/redact": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/RecordId"
         }
-      ]
+      }
     },
     "/v1/records/{record_id}/drafts": {
       "parameters": [
@@ -1498,29 +1166,12 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const draft of nohead.records.drafts(\"rec_01J9ZQ3F8X\")) {\n  console.log(draft)\n}\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor draft in nohead.records.drafts(\"rec_01J9ZQ3F8X\"):\n    print(draft)\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.records.drafts(\"rec_01J9ZQ3F8X\").each do |draft|\n  puts draft\nend\n"
-          }
-        ]
+        }
       },
       "post": {
         "operationId": "drafts_create",
         "summary": "Start a draft",
-        "description": "Starts the record's draft (`records:write`): changes to its content\nthat wait until they are merged, now or at a set time, while the\nrecord keeps its current values. `data` takes values as a record\nupdate does, validated on what the record would read after the\nmerge. With `from_revision`, the draft starts from that revision's\nvalues (mapped onto the current schema, as a revert is), to bring an\nearlier version back for review. Works on any record, live or not.\n\nOne draft per record: a second is `409` with detail code\n`draft_exists` and its `draft_id`, so change that one instead. `409`\nwith detail code `deleted` while the record is soft-deleted.\n",
+        "description": "Starts the record's draft (`records:write`): changes to its content\nthat wait until they are merged, now or at a set time, while the\nrecord keeps its current values. `data` takes values as a record\nupdate does, validated on what the record would read after the\nmerge. With `from_revision`, the draft starts from that revision's\nvalues (mapped onto the current schema, as a revert is), to bring an\nearlier version back for review (`400` unless it is a revision\nnumber, `404` if the record has no such revision). Works on any\nrecord, live or not.\n\nOne draft per record: a second is `409` with detail code\n`draft_exists` and its `draft_id`, so change that one instead. `409`\nwith detail code `deleted` while the record is soft-deleted.\n",
         "tags": [
           "drafts"
         ],
@@ -1567,24 +1218,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.drafts.create(\"rec_01J9ZQ3F8X\", {\n  data: { title: \"Hey\" },\n})\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.drafts.create(\"rec_01J9ZQ3F8X\", data={\"title\": \"Hey\"})\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.drafts.create(\"rec_01J9ZQ3F8X\", data: { title: \"Hey\" })\n"
-          }
-        ]
+        }
       }
     },
     "/v1/collections/{collection_id}/drafts": {
@@ -1671,24 +1305,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const draft of nohead.drafts.list(\"posts\", {\n  record_id: [\"rec_01J9ZQ3F8X\"],\n})) {\n  console.log(draft)\n}\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor draft in nohead.drafts.list(\"posts\", record_id=[\"rec_01J9ZQ3F8X\"]):\n    print(draft)\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.drafts.list(\"posts\", record_id: [\"rec_01J9ZQ3F8X\"]).each do |draft|\n  puts draft\nend\n"
-          }
-        ]
+        }
       }
     },
     "/v1/drafts/{draft_id}": {
@@ -1728,24 +1345,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.drafts.get(\"drf_01J9ZQ3F8X\", { expand: [\"author\"] })\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.drafts.get(\"drf_01J9ZQ3F8X\", expand=[\"author\"])\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.drafts.get(\"drf_01J9ZQ3F8X\", expand: [\"author\"])\n"
-          }
-        ]
+        }
       },
       "patch": {
         "operationId": "drafts_update",
@@ -1803,24 +1403,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.drafts.update(\n  \"drf_01J9ZQ3F8X\",\n  { data: { title: \"Hey there\" } },\n  { ifMatch: 1 }\n)\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.drafts.update(\"drf_01J9ZQ3F8X\", data={\"title\": \"Hey there\"}, if_match=1)\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.drafts.update(\"drf_01J9ZQ3F8X\", data: { title: \"Hey there\" }, if_match: 1)\n"
-          }
-        ]
+        }
       },
       "delete": {
         "operationId": "drafts_discard",
@@ -1865,24 +1448,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.drafts.discard(\"drf_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.drafts.discard(\"drf_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.drafts.discard(\"drf_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/drafts/{draft_id}/merge": {
@@ -1894,7 +1460,7 @@
       "post": {
         "operationId": "drafts_merge",
         "summary": "Merge a draft",
-        "description": "Applies the draft to its record now (`records:write`), as one `merge`\nrevision that names the draft and its authors, then removes the\ndraft; returns the record. Content only: the record stays live or\nunpublished as it was, and `published_at` keeps its date. Fields the\nrecord changed since the draft started (`base_revision`) keep their\nvalues, unless the draft changes them too. The result is validated\nas a record update is, and unique values are checked again (`422`).\nWebhooks get `record.updated` with the `draft_id`.\n",
+        "description": "Applies the draft to its record now (`records:write`), as one `merge`\nrevision that names the draft and its authors, then removes the\ndraft; returns the record. Content only: the record stays live or\nunpublished as it was, and `published_at` keeps its date. Fields the\nrecord changed since the draft started (`base_revision`) keep their\nvalues, unless the draft changes them too. The result is validated\nas a record update is, and unique values are checked again (`422`).\n`If-Match` is the draft's revision; the response's `ETag` is the\nrecord's. Webhooks get `record.updated` with the `draft_id`.\n",
         "tags": [
           "drafts"
         ],
@@ -1940,24 +1506,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.drafts.merge(\"drf_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.drafts.merge(\"drf_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.drafts.merge(\"drf_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/drafts/{draft_id}/schedule": {
@@ -1969,7 +1518,7 @@
       "put": {
         "operationId": "drafts_schedule",
         "summary": "Schedule a draft's merge",
-        "description": "Merges the draft at `merge_at`, a future time (`records:write`),\nwithin a minute of it, from the scheduler (`via: scheduler`). The\nmerge uses the draft as it is then. One that can't be made leaves the\ndraft as it is, with `schedule.last_error` (and `draft.schedule_failed`).\nReturns the draft. A merge due while the record is deleted waits;\nonce its time has passed, restoring the record drops it, with\n`last_error`.\n",
+        "description": "Merges the draft at `merge_at`, a future time (`records:write`),\nwithin a minute of it, from the scheduler (`via: scheduler`). The\nmerge uses the draft as it is then. One that can't be made leaves the\ndraft as it is, with `schedule.last_error` (and `draft.schedule_failed`),\nas does one due while the collection is deleted; one due while a field\nmigration runs on the collection is made once the migration finishes.\nReturns the draft. A merge due while the record is deleted waits;\nonce its time has passed, restoring the record drops it, with\n`last_error`. Setting the time the draft already has changes nothing\nand records no event.\n",
         "tags": [
           "drafts"
         ],
@@ -2016,29 +1565,12 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.drafts.schedule(\"drf_01J9ZQ3F8X\", {\n  merge_at: \"2027-01-01T09:00:00Z\",\n})\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.drafts.schedule(\"drf_01J9ZQ3F8X\", merge_at=\"2027-01-01T09:00:00Z\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.drafts.schedule(\"drf_01J9ZQ3F8X\", merge_at: Time.utc(2027, 1, 1, 9))\n"
-          }
-        ]
+        }
       },
       "delete": {
         "operationId": "drafts_unschedule",
         "summary": "Cancel a draft's merge",
-        "description": "Clears `merge_at` and `last_error`; returns the draft.",
+        "description": "Clears `merge_at` and `last_error`; returns the draft. Cancelling when\nthere is nothing to clear changes nothing and records no event.\n",
         "tags": [
           "drafts"
         ],
@@ -2072,24 +1604,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.drafts.unschedule(\"drf_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.drafts.unschedule(\"drf_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.drafts.unschedule(\"drf_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/projects/{project_id}/collections": {
@@ -2142,24 +1657,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const collection of nohead.collections.list({ deleted: true })) {\n  console.log(collection)\n}\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor collection in nohead.collections.list(deleted=True):\n    print(collection)\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.collections.list(deleted: true).each do |collection|\n  puts collection\nend\n"
-          }
-        ]
+        }
       },
       "post": {
         "operationId": "collections_create",
@@ -2224,24 +1722,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.collections.create({ name: \"Posts\", slug: \"posts\" })\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.collections.create(name=\"Posts\", slug=\"posts\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.collections.create(name: \"Posts\", slug: \"posts\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/collections/{collection_id}": {
@@ -2283,24 +1764,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.collections.get(\"posts\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.collections.get(\"posts\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.collections.get(\"posts\")\n"
-          }
-        ]
+        }
       },
       "patch": {
         "operationId": "collections_update",
@@ -2362,24 +1826,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.collections.update(\"posts\", { name: \"Articles\" })\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.collections.update(\"posts\", name=\"Articles\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.collections.update(\"posts\", name: \"Articles\")\n"
-          }
-        ]
+        }
       },
       "delete": {
         "operationId": "collections_delete",
@@ -2428,24 +1875,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.collections.delete(\"posts\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.collections.delete(\"posts\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.collections.delete(\"posts\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/collections/{collection_id}/restore": {
@@ -2457,6 +1887,7 @@
       "post": {
         "operationId": "collections_restore",
         "summary": "Restore a deleted collection",
+        "description": "Brings back a deleted collection, its fields and records as they were.\nPast its `purge_after` it is being purged: `409` with detail code\n`purging`.\n",
         "tags": [
           "collections"
         ],
@@ -2506,24 +1937,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.collections.restore(\"posts\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.collections.restore(\"posts\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.collections.restore(\"posts\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/collections/{collection_id}/schema": {
@@ -2576,24 +1990,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.collections.schema(\"posts\", { version: 2 })\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.collections.schema(\"posts\", version=2)\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.collections.schema(\"posts\", version: 2)\n"
-          }
-        ]
+        }
       }
     },
     "/v1/collections/{collection_id}/schema-changes": {
@@ -2643,31 +2040,11 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const change of nohead.collections.schemaChanges.list(\"posts\")) {\n  console.log(change)\n}\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor change in nohead.collections.schema_changes.list(\"posts\"):\n    print(change)\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.collections.schema_changes.list(\"posts\").each do |change|\n  puts change\nend\n"
-          }
-        ]
+        }
       }
     },
-    "/v1/collections/{collection_id}/schema-changes/{schema_change_id}": {
+    "/v1/schema-changes/{schema_change_id}": {
       "parameters": [
-        {
-          "$ref": "#/components/parameters/CollectionRef"
-        },
         {
           "name": "schema_change_id",
           "in": "path",
@@ -2710,24 +2087,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.collections.schemaChanges.get(\n  \"posts\",\n  \"sch_01J9ZQ3F8X\"\n)\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.collections.schema_changes.get(\"posts\", \"sch_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.collections.schema_changes.get(\"posts\", \"sch_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/collections/{collection_id}/fields": {
@@ -2780,24 +2140,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const field of nohead.fields.list(\"posts\", { deleted: true })) {\n  console.log(field)\n}\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor field in nohead.fields.list(\"posts\", deleted=True):\n    print(field)\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.fields.list(\"posts\", deleted: true).each do |field|\n  puts field\nend\n"
-          }
-        ]
+        }
       },
       "post": {
         "operationId": "fields_create",
@@ -2858,24 +2201,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.fields.create(\"posts\", {\n  name: \"Title\",\n  api_key: \"title\",\n  type: \"text\",\n})\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.fields.create(\"posts\", name=\"Title\", api_key=\"title\", type=\"text\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.fields.create(\"posts\", name: \"Title\", api_key: \"title\", type: \"text\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/fields/{field_id}": {
@@ -2884,10 +2210,45 @@
           "$ref": "#/components/parameters/FieldId"
         }
       ],
+      "get": {
+        "operationId": "fields_get",
+        "summary": "Get a field",
+        "description": "A field of a collection, deleted ones included (with `deleted_at` and\n`purge_after`). Published-only keys can't read deleted fields (`403`).\n",
+        "tags": [
+          "fields"
+        ],
+        "responses": {
+          "200": {
+            "description": "The field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Field"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      },
       "patch": {
         "operationId": "fields_update",
         "summary": "Update a field",
-        "description": "Changes that keep existing record values valid. After an `api_key`\nchange the old key keeps working for 6 months as an alias (see\n`aliases`), so clients have time to move. Changing `type` or `multiple`, or a\n`configuration` that existing active records would violate, is rejected\nwith `requires_migration`: use `POST /v1/fields/{field_id}/migrations`.\n`409` with detail code `deleted` while the field is deleted.\n",
+        "description": "Changes that keep existing record values valid. After a `key`\nchange the old key keeps working for 6 months as an alias (see\n`aliases`), so clients have time to move. Changing `type` or `multiple`, or a\n`configuration` that existing active records would violate, is rejected\nwith `requires_migration`: use `POST /v1/fields/{field_id}/migrations`.\n`409` with detail code `deleted` while the field is deleted.\n",
         "tags": [
           "fields"
         ],
@@ -2944,24 +2305,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.fields.update(\"fld_01J9ZQ3F8X\", { name: \"Heading\" })\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.fields.update(\"fld_01J9ZQ3F8X\", name=\"Heading\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.fields.update(\"fld_01J9ZQ3F8X\", name: \"Heading\")\n"
-          }
-        ]
+        }
       },
       "delete": {
         "operationId": "fields_delete",
@@ -3010,24 +2354,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.fields.delete(\"fld_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.fields.delete(\"fld_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.fields.delete(\"fld_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/collections/{collection_id}/field-order": {
@@ -3062,24 +2389,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.fields.order(\"posts\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.fields.order(\"posts\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.fields.order(\"posts\")\n"
-          }
-        ]
+        }
       },
       "put": {
         "operationId": "fields_reorder",
@@ -3146,24 +2456,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.fields.reorder(\"posts\", {\n  field_ids: [\"fld_01J9ZQ3F8X\"],\n})\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.fields.reorder(\"posts\", [\"fld_01J9ZQ3F8X\"])\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.fields.reorder(\"posts\", [\"fld_01J9ZQ3F8X\"])\n"
-          }
-        ]
+        }
       }
     },
     "/v1/fields/{field_id}/aliases/{alias}": {
@@ -3175,7 +2468,7 @@
           "name": "alias",
           "in": "path",
           "required": true,
-          "description": "The old API key.",
+          "description": "The old key.",
           "schema": {
             "type": "string"
           }
@@ -3225,24 +2518,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.fields.removeAlias(\"fld_01J9ZQ3F8X\", \"old_title\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.fields.remove_alias(\"fld_01J9ZQ3F8X\", \"old_title\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.fields.remove_alias(\"fld_01J9ZQ3F8X\", \"old_title\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/fields/{field_id}/restore": {
@@ -3301,24 +2577,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.fields.restore(\"fld_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.fields.restore(\"fld_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.fields.restore(\"fld_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/collections/{collection_id}/migrations": {
@@ -3368,24 +2627,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const migration of nohead.migrations.list(\"posts\")) {\n  console.log(migration)\n}\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor migration in nohead.migrations.list(\"posts\"):\n    print(migration)\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.migrations.list(\"posts\").each do |migration|\n  puts migration\nend\n"
-          }
-        ]
+        }
       }
     },
     "/v1/fields/{field_id}/migrations": {
@@ -3472,24 +2714,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.fields.migrate(\"fld_01J9ZQ3F8X\", {\n  type: \"long_text\",\n  dry_run: true,\n})\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.fields.migrate(\"fld_01J9ZQ3F8X\", type=\"long_text\", dry_run=True)\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.fields.migrate(\"fld_01J9ZQ3F8X\", type: \"long_text\", dry_run: true)\n"
-          }
-        ]
+        }
       }
     },
     "/v1/migrations/{migration_id}": {
@@ -3531,24 +2756,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.migrations.get(\"mig_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.migrations.get(\"mig_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.migrations.get(\"mig_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/migrations/{migration_id}/cancel": {
@@ -3560,13 +2768,16 @@
       "post": {
         "operationId": "migrations_cancel",
         "summary": "Cancel a field migration",
-        "description": "A pending migration is cancelled at once. A running one stops at its\nnext batch and is rolled back entirely (`cancel_requested_at` is set\nuntil then). Finished migrations cannot be cancelled (`409`).\n",
+        "description": "A pending migration is cancelled at once. A running one stops at its\nnext batch and is rolled back entirely (`cancel_requested_at` is set\nuntil then). Finished migrations cannot be cancelled (`409` with\ndetail code `finished`).\n",
         "tags": [
           "migrations"
         ],
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/NoheadClient"
           }
         ],
         "responses": {
@@ -3598,24 +2809,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.migrations.cancel(\"mig_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.migrations.cancel(\"mig_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.migrations.cancel(\"mig_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/projects/{project_id}/assets": {
@@ -3668,24 +2862,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const asset of nohead.assets.list({ deleted: true })) {\n  console.log(asset)\n}\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor asset in nohead.assets.list(deleted=True):\n    print(asset)\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.assets.list(deleted: true).each do |asset|\n  puts asset\nend\n"
-          }
-        ]
+        }
       },
       "post": {
         "operationId": "assets_upload",
@@ -3700,9 +2877,6 @@
           },
           {
             "$ref": "#/components/parameters/NoheadClient"
-          },
-          {
-            "$ref": "#/components/parameters/ChangeNote"
           }
         ],
         "requestBody": {
@@ -3755,24 +2929,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.assets.upload(\n  new Blob([\"Hello\"], { type: \"text/plain\" }),\n  {\n    filename: \"hello.txt\",\n  }\n)\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.assets.upload(b\"Hello\", filename=\"hello.txt\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\nrequire \"stringio\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.assets.upload(StringIO.new(\"Hello\"), filename: \"hello.txt\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/assets/{asset_id}/complete": {
@@ -3784,7 +2941,7 @@
       "post": {
         "operationId": "assets_complete",
         "summary": "Complete an upload",
-        "description": "Step 2 of uploading a file: verifies the uploaded file (it exists, with the\ndeclared size and content type), reads image dimensions and marks the asset\n`ready`. Only ready assets can be used in records. Safe to retry: a ready\nasset is returned unchanged. `422 upload_missing` means the file has not\nbeen uploaded yet; `422 upload_mismatch` means it differed from what was\ndeclared, and the asset is marked `failed`. `409` if the file was uploaded\nagain while it was being checked: complete it again.\n",
+        "description": "Step 2 of uploading a file: verifies the uploaded file (it exists, with the\ndeclared size and content type), reads image dimensions and marks the asset\n`ready`. Only ready assets can be used in records. Safe to retry: a ready\nasset is returned unchanged. `422 upload_missing` means the file has not\nbeen uploaded yet; `422 upload_mismatch` means it differed from what was\ndeclared, and the asset is marked `failed` (completing it again is\n`409 upload_failed`: start a new upload). `409 upload_changed` if the\nfile was uploaded again while it was being checked: complete it again.\nWebhooks get `asset.created` now, when the asset is ready.\n",
         "tags": [
           "assets"
         ],
@@ -3794,9 +2951,6 @@
           },
           {
             "$ref": "#/components/parameters/NoheadClient"
-          },
-          {
-            "$ref": "#/components/parameters/ChangeNote"
           }
         ],
         "responses": {
@@ -3831,24 +2985,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.assets.complete(\"ast_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.assets.complete(\"ast_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.assets.complete(\"ast_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/assets/{asset_id}": {
@@ -3890,24 +3027,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.assets.get(\"ast_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.assets.get(\"ast_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.assets.get(\"ast_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       },
       "delete": {
         "operationId": "assets_delete",
@@ -3922,9 +3042,6 @@
           },
           {
             "$ref": "#/components/parameters/NoheadClient"
-          },
-          {
-            "$ref": "#/components/parameters/ChangeNote"
           }
         ],
         "responses": {
@@ -3956,24 +3073,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.assets.delete(\"ast_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.assets.delete(\"ast_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.assets.delete(\"ast_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/assets/{asset_id}/image-url": {
@@ -3985,7 +3085,7 @@
       "get": {
         "operationId": "assets_image_url",
         "summary": "Get an image URL",
-        "description": "A signed URL for a transformed rendition of a ready image asset\n(JPEG, PNG, GIF, WebP or AVIF). The same asset and options always give\nthe same URL, so it can be cached and embedded; it does not expire.\nOnly these options can be requested, so nobody can generate other\ntransformations. Without options it serves the original size. A width\nor height on its own rounds up to the next of 16, 32, 48, 64, 96, 128,\n160, 192, 256, 320, 384, 480, 512, 640, 768, 800, 960, 1024, 1200, 1280,\n1536, 1600, 1920, 2048, 2560, 3072, 3840 and 4096; with both, the larger\ndoes and the other keeps its ratio to it, rounded up to a multiple of\n1/32. Quality rounds up to a multiple of 10. The response says what\nwas signed. `409` for an upload not yet completed, and with detail\ncode `deleted` for a deleted asset.\n",
+        "description": "A signed URL for a transformed rendition of a ready image asset\n(JPEG, PNG, GIF, WebP or AVIF). The same asset and options always give\nthe same URL, so it can be cached and embedded; it does not expire.\nOnly these options can be requested, so nobody can generate other\ntransformations. Without options it serves the original size. A width\nor height on its own rounds up to the next of 16, 32, 48, 64, 96, 128,\n160, 192, 256, 320, 384, 480, 512, 640, 768, 800, 960, 1024, 1200, 1280,\n1536, 1600, 1920, 2048, 2560, 3072, 3840 and 4096; with both, the larger\ndoes and the other keeps its ratio to it, rounded up to a multiple of\n1/32. Quality rounds up to a multiple of 10. The response says what\nwas signed. `409` with detail code `upload_incomplete` for an upload\nnot yet completed, and `deleted` for a deleted asset.\n",
         "tags": [
           "assets"
         ],
@@ -4082,24 +3182,7 @@
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.assets.imageUrl(\"ast_01J9ZQ3F8X\", {\n  width: 100,\n  format: \"webp\",\n})\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.assets.image_url(\"ast_01J9ZQ3F8X\", width=100, format=\"webp\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.assets.image_url(\"ast_01J9ZQ3F8X\", width: 100, format: \"webp\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/assets/{asset_id}/download-url": {
@@ -4111,7 +3194,7 @@
       "get": {
         "operationId": "assets_download_url",
         "summary": "Get a download URL",
-        "description": "A short-lived URL (2 minutes) that downloads the original file under its\nfilename: ask for it when the download starts, not ahead of time. A\ndownload that has started finishes however long it takes. `409` for an\nupload not yet completed, and with detail code `deleted` for a deleted\nasset.\n",
+        "description": "A short-lived URL (2 minutes) that downloads the original file under its\nfilename: ask for it when the download starts, not ahead of time. A\ndownload that has started finishes however long it takes. `409` with\ndetail code `upload_incomplete` for an upload not yet completed, and\n`deleted` for a deleted asset.\n",
         "tags": [
           "assets"
         ],
@@ -4144,24 +3227,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.assets.downloadUrl(\"ast_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.assets.download_url(\"ast_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.assets.download_url(\"ast_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/assets/{asset_id}/usage": {
@@ -4173,7 +3239,7 @@
       "get": {
         "operationId": "assets_usage",
         "summary": "See where an asset is used",
-        "description": "The undeleted records that use the asset, through an asset field or\nas an image in a rich text field: how many, how many of them are\npublished, and the 10 most recently updated with the fields they use\nit in. Record history does not count. Needs `records:read` too, as\nit shows records; published-only API keys get `403`.\n",
+        "description": "The undeleted records that use the asset, through an asset field or\nas an image in a rich text field, in their content or in their\npending draft (whose merge needs the asset): how many, how many of\nthem are published with it in their content, and the 10 most\nrecently updated with the fields they use it in. Record history does\nnot count. Needs `records:read` too, as it shows records;\npublished-only API keys get `403`.\n",
         "tags": [
           "assets"
         ],
@@ -4203,24 +3269,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.assets.usage(\"ast_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.assets.usage(\"ast_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.assets.usage(\"ast_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/assets/{asset_id}/restore": {
@@ -4241,9 +3290,6 @@
           },
           {
             "$ref": "#/components/parameters/NoheadClient"
-          },
-          {
-            "$ref": "#/components/parameters/ChangeNote"
           }
         ],
         "responses": {
@@ -4275,24 +3321,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.assets.restore(\"ast_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.assets.restore(\"ast_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.assets.restore(\"ast_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/assets/{asset_id}/purge": {
@@ -4304,7 +3333,7 @@
       "post": {
         "operationId": "assets_purge",
         "summary": "Permanently delete a deleted asset",
-        "description": "Removes a deleted asset's original from storage now, instead of 30\ndays after the delete, and frees its storage. It cannot be restored.\nRecords that reference it keep the ID, which no longer resolves. Its\nimage URLs stop working within a minute or so (the CDN's copies are\ncleared), though browsers keep copies they already cached. An asset\nthat is not deleted is a `409`: delete it first.\n",
+        "description": "Removes a deleted asset's original from storage now, instead of 30\ndays after the delete, and frees its storage. It cannot be restored.\nRecords that reference it keep the ID, which no longer resolves. Its\nimage URLs stop working within a minute or so (the CDN's copies are\ncleared), though browsers keep copies they already cached. An asset\nthat is not deleted is `409 not_deleted`: delete it first.\n",
         "tags": [
           "assets"
         ],
@@ -4314,9 +3343,6 @@
           },
           {
             "$ref": "#/components/parameters/NoheadClient"
-          },
-          {
-            "$ref": "#/components/parameters/ChangeNote"
           }
         ],
         "responses": {
@@ -4348,24 +3374,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.assets.purge(\"ast_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.assets.purge(\"ast_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.assets.purge(\"ast_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/collections/{collection_id}/search": {
@@ -4377,7 +3386,7 @@
       "get": {
         "operationId": "collections_search",
         "summary": "Search records",
-        "description": "Full-text search in a collection, ranked by relevance (or `sort`).\nWith an API key, the collection must be `search_enabled` and the words\nmatch its `searchable` fields only; members in the web app search any\ncollection, on all its text fields. Filters work as in the records list,\non `published_at` (`exists` only) and on fields marked `filterable`\n(not on `deleted` or the other timestamps); `sort` on `created_at`, `updated_at`, `published_at` and\nfields marked `sortable` (`-` for descending).\nResults are the current records; changes appear within seconds. At\nmost the first 1,000 hits can be paged through. `expand` embeds related\nrecords and assets as in the records list. `409` when search is not\nenabled for API keys, while a new collection's index is first built,\nand when filtering or sorting on a field newly made `filterable` or\n`sortable` until the rebuild that adds it has run (detail code\n`rebuilding`; the index status is `stale` meanwhile).\n",
+        "description": "Full-text search in a collection, ranked by relevance (or `sort`).\nWith an API key, the collection must be `search_enabled` and the words\nmatch its `searchable` fields only; members in the web app search any\ncollection, on all its text fields. Filters work as in the records list,\non `published_at` (`exists` only) and on fields marked `filterable`\n(not on `deleted` or the other timestamps); `sort` on `created_at`, `updated_at`, `published_at` and\nfields marked `sortable` (`-` for descending).\nResults are the current records; changes appear within seconds. At\nmost the first 1,000 hits can be paged through. `expand` embeds related\nrecords and assets as in the records list. `409` with a detail code:\n`search_disabled` when search is not enabled (API keys),\n`index_building` while a new collection's index is first built, and\n`rebuilding` when filtering or sorting on a field newly made\n`filterable` or `sortable` until the rebuild that adds it has run (the\nindex status is `stale` meanwhile).\n",
         "tags": [
           "search"
         ],
@@ -4443,24 +3452,7 @@
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const record of nohead.records.search(\"posts\", \"hello\", {\n  filter: { published_at: { exists: true } },\n  sort: \"-published_at\",\n  expand: [\"author\"],\n})) {\n  console.log(record)\n}\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor record in nohead.records.search(\n    \"posts\",\n    \"hello\",\n    filter={\"published_at\": {\"exists\": True}},\n    sort=\"-published_at\",\n    expand=[\"author\"],\n):\n    print(record)\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.records.search(\"posts\", \"hello\", filter: { published_at: { exists: true } }, sort: \"-published_at\", expand: [\"author\"]).each do |record|\n  puts record\nend\n"
-          }
-        ]
+        }
       }
     },
     "/v1/projects/{project_id}/search": {
@@ -4582,24 +3574,7 @@
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const record of nohead.search(\"hello\", {\n  collections: [\"posts\"],\n  filter: { published_at: { exists: true } },\n})) {\n  console.log(record)\n}\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor record in nohead.search(\"hello\", collections=[\"posts\"], published=True):\n    print(record)\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.search(\"hello\", collections: [\"posts\"], published: true).each do |record|\n  puts record\nend\n"
-          }
-        ]
+        }
       }
     },
     "/v1/collections/{collection_id}/search-index": {
@@ -4641,24 +3616,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.collections.searchIndex.get(\"posts\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.collections.search_index.get(\"posts\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.collections.search_index.get(\"posts\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/collections/{collection_id}/search-index/rebuild": {
@@ -4680,9 +3638,6 @@
           },
           {
             "$ref": "#/components/parameters/NoheadClient"
-          },
-          {
-            "$ref": "#/components/parameters/ChangeNote"
           }
         ],
         "responses": {
@@ -4714,24 +3669,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.collections.searchIndex.rebuild(\"posts\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.collections.search_index.rebuild(\"posts\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.collections.search_index.rebuild(\"posts\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/projects/{project_id}/webhooks": {
@@ -4784,24 +3722,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const webhook of nohead.webhooks.list({ deleted: true })) {\n  console.log(webhook)\n}\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor webhook in nohead.webhooks.list(deleted=True):\n    print(webhook)\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.webhooks.list(deleted: true).each do |webhook|\n  puts webhook\nend\n"
-          }
-        ]
+        }
       },
       "post": {
         "operationId": "webhooks_create",
@@ -4816,9 +3737,6 @@
           },
           {
             "$ref": "#/components/parameters/NoheadClient"
-          },
-          {
-            "$ref": "#/components/parameters/ChangeNote"
           }
         ],
         "requestBody": {
@@ -4866,24 +3784,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.webhooks.create({\n  url: \"https://example.com/hook\",\n  event_types: [\"*\"],\n})\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.webhooks.create(url=\"https://example.com/hook\", event_types=[\"*\"])\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.webhooks.create(url: \"https://example.com/hook\", event_types: [\"*\"])\n"
-          }
-        ]
+        }
       }
     },
     "/v1/webhooks/{webhook_id}": {
@@ -4925,24 +3826,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.webhooks.get(\"wh_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.webhooks.get(\"wh_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.webhooks.get(\"wh_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       },
       "patch": {
         "operationId": "webhooks_update",
@@ -4957,9 +3841,6 @@
           },
           {
             "$ref": "#/components/parameters/NoheadClient"
-          },
-          {
-            "$ref": "#/components/parameters/ChangeNote"
           }
         ],
         "requestBody": {
@@ -5004,24 +3885,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.webhooks.update(\"wh_01J9ZQ3F8X\", { enabled: false })\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.webhooks.update(\"wh_01J9ZQ3F8X\", enabled=False)\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.webhooks.update(\"wh_01J9ZQ3F8X\", enabled: false)\n"
-          }
-        ]
+        }
       },
       "delete": {
         "operationId": "webhooks_delete",
@@ -5036,9 +3900,6 @@
           },
           {
             "$ref": "#/components/parameters/NoheadClient"
-          },
-          {
-            "$ref": "#/components/parameters/ChangeNote"
           }
         ],
         "responses": {
@@ -5070,24 +3931,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.webhooks.delete(\"wh_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.webhooks.delete(\"wh_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.webhooks.delete(\"wh_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/webhooks/{webhook_id}/test": {
@@ -5099,7 +3943,7 @@
       "post": {
         "operationId": "webhooks_test",
         "summary": "Send a test event",
-        "description": "Sends a `webhook.test` event to this webhook only. `409` if it is\ndisabled.\n",
+        "description": "Sends a `webhook.test` event to this webhook only. `409` with detail\ncode `disabled` if it is disabled.\n",
         "tags": [
           "webhooks"
         ],
@@ -5109,9 +3953,6 @@
           },
           {
             "$ref": "#/components/parameters/NoheadClient"
-          },
-          {
-            "$ref": "#/components/parameters/ChangeNote"
           }
         ],
         "responses": {
@@ -5143,24 +3984,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.webhooks.test(\"wh_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.webhooks.test(\"wh_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.webhooks.test(\"wh_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/webhooks/{webhook_id}/secrets": {
@@ -5210,24 +4034,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const secret of nohead.webhooks.secrets.list(\"wh_01J9ZQ3F8X\")) {\n  console.log(secret)\n}\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor secret in nohead.webhooks.secrets.list(\"wh_01J9ZQ3F8X\"):\n    print(secret)\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.webhooks.secrets.list(\"wh_01J9ZQ3F8X\").each do |secret|\n  puts secret\nend\n"
-          }
-        ]
+        }
       },
       "post": {
         "operationId": "webhooks_rotate_secret",
@@ -5242,9 +4049,6 @@
           },
           {
             "$ref": "#/components/parameters/NoheadClient"
-          },
-          {
-            "$ref": "#/components/parameters/ChangeNote"
           }
         ],
         "responses": {
@@ -5276,24 +4080,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.webhooks.rotateSecret(\"wh_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.webhooks.rotate_secret(\"wh_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.webhooks.rotate_secret(\"wh_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/webhook-secrets/{secret_id}": {
@@ -5315,9 +4102,6 @@
           },
           {
             "$ref": "#/components/parameters/NoheadClient"
-          },
-          {
-            "$ref": "#/components/parameters/ChangeNote"
           }
         ],
         "responses": {
@@ -5349,24 +4133,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.webhooks.secrets.retire(\"whs_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.webhooks.secrets.retire(\"whs_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.webhooks.secrets.retire(\"whs_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/webhooks/{webhook_id}/restore": {
@@ -5378,7 +4145,7 @@
       "post": {
         "operationId": "webhooks_restore",
         "summary": "Restore a webhook",
-        "description": "Brings a deleted webhook back, with its settings and secrets, until\n`purge_after`. Deliveries that came due while it was deleted failed;\nattempt them again with `POST /v1/webhook-deliveries/{delivery_id}/attempts`.\nRestoring counts against the plan's webhook limit (`402`).\n",
+        "description": "Brings a deleted webhook back, with its settings and secrets, until\n`purge_after`. Deliveries that came due while it was deleted failed;\nattempt them again with `POST /v1/webhook-deliveries/{delivery_id}/retry`.\nRestoring counts against the plan's webhook limit (`402`).\n",
         "tags": [
           "webhooks"
         ],
@@ -5388,9 +4155,6 @@
           },
           {
             "$ref": "#/components/parameters/NoheadClient"
-          },
-          {
-            "$ref": "#/components/parameters/ChangeNote"
           }
         ],
         "responses": {
@@ -5425,24 +4189,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.webhooks.restore(\"wh_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.webhooks.restore(\"wh_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.webhooks.restore(\"wh_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       }
     },
     "/v1/webhooks/{webhook_id}/deliveries": {
@@ -5512,24 +4259,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const delivery of nohead.webhooks.deliveries.list(\"wh_01J9ZQ3F8X\", {\n  status: \"failed\",\n})) {\n  console.log(delivery)\n}\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor delivery in nohead.webhooks.deliveries.list(\"wh_01J9ZQ3F8X\", status=\"failed\"):\n    print(delivery)\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.webhooks.deliveries.list(\"wh_01J9ZQ3F8X\", status: \"failed\").each do |delivery|\n  puts delivery\nend\n"
-          }
-        ]
+        }
       }
     },
     "/v1/webhook-deliveries/{delivery_id}": {
@@ -5571,27 +4301,10 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.webhooks.deliveries.get(\"whd_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.webhooks.deliveries.get(\"whd_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.webhooks.deliveries.get(\"whd_01J9ZQ3F8X\")\n"
-          }
-        ]
+        }
       }
     },
-    "/v1/webhook-deliveries/{delivery_id}/attempts": {
+    "/v1/webhook-deliveries/{delivery_id}/retry": {
       "parameters": [
         {
           "$ref": "#/components/parameters/DeliveryId"
@@ -5610,9 +4323,6 @@
           },
           {
             "$ref": "#/components/parameters/NoheadClient"
-          },
-          {
-            "$ref": "#/components/parameters/ChangeNote"
           }
         ],
         "responses": {
@@ -5644,32 +4354,8 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.webhooks.deliveries.retry(\"whd_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.webhooks.deliveries.retry(\"whd_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.webhooks.deliveries.retry(\"whd_01J9ZQ3F8X\")\n"
-          }
-        ]
-      }
-    },
-    "/v1/organizations/{organization_id}/audit-events": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/OrganizationId"
         }
-      ]
+      }
     },
     "/v1/projects/{project_id}/audit-events": {
       "parameters": [
@@ -5678,7 +4364,7 @@
         }
       ],
       "get": {
-        "operationId": "audit_events_list_for_project",
+        "operationId": "audit_events_list",
         "summary": "List a project's audit events",
         "description": "The project's audit events, newest first. API keys need the `audit:read`\nscope and see their own project only.\n",
         "tags": [
@@ -5724,24 +4410,7 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const event of nohead.auditEvents.list({\n  filter: { action: \"record.*\" },\n  sort: \"-id\",\n})) {\n  console.log(event)\n}\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor event in nohead.audit_events.list(filter={\"action\": \"record.*\"}, sort=\"-id\"):\n    print(event)\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.audit_events.list(filter: { action: \"record.*\" }, sort: \"-id\").each do |event|\n  puts event\nend\n"
-          }
-        ]
+        }
       }
     },
     "/v1/health": {
@@ -5777,24 +4446,7 @@
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.health.check()\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.health.check()\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.health.check\n"
-          }
-        ]
+        }
       }
     },
     "/v1/me": {
@@ -5822,31 +4474,14 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.me.get()\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.me.get()\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.me.get\n"
-          }
-        ]
+        }
       }
     },
     "/v1/feature-flags": {
       "get": {
         "operationId": "feature_flags_list",
         "summary": "Get evaluated feature flags",
-        "description": "Feature flags evaluated for the caller. Without credentials,\nonly public flags are returned, evaluated without actors (for the\nmarketing website). With a session or API key, client flags are\nincluded, evaluated for the user and the given organization/project\n(API keys: their own project). Server flags are never returned.\n",
+        "description": "Feature flags evaluated for the caller. Without credentials,\nonly public flags are returned, evaluated without actors (for the\nmarketing website). With credentials, client flags are included,\nevaluated for the caller: an API key's project, or for the web app the\nuser and the given organization or project. Server flags are never\nreturned.\n",
         "tags": [
           "system"
         ],
@@ -5854,27 +4489,6 @@
           {},
           {
             "apiKey": []
-          },
-          {
-            "session": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "organization_id",
-            "in": "query",
-            "description": "Organization context (sessions only).",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "project_id",
-            "in": "query",
-            "description": "Project context; implies its organization.",
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -5908,149 +4522,8 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.featureFlags.list()\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.feature_flags.list()\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.feature_flags.list\n"
-          }
-        ]
+        }
       }
-    },
-    "/v1/projects/{project_id}/api-keys": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/ProjectId"
-        }
-      ]
-    },
-    "/v1/api-keys/{api_key_id}": {
-      "parameters": [
-        {
-          "name": "api_key_id",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string"
-          }
-        }
-      ]
-    },
-    "/v1/projects/{project_id}": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/ProjectId"
-        }
-      ]
-    },
-    "/v1/projects/{project_id}/restore": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/ProjectId"
-        }
-      ]
-    },
-    "/v1/organizations/{organization_id}": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/OrganizationId"
-        }
-      ]
-    },
-    "/v1/organizations/{organization_id}/restore": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/OrganizationId"
-        }
-      ]
-    },
-    "/v1/organizations/{organization_id}/usage": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/OrganizationId"
-        }
-      ]
-    },
-    "/v1/organizations/{organization_id}/members": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/OrganizationId"
-        }
-      ]
-    },
-    "/v1/members/{membership_id}": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/MembershipId"
-        }
-      ]
-    },
-    "/v1/organizations/{organization_id}/invitations": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/OrganizationId"
-        }
-      ]
-    },
-    "/v1/invitations/{invitation_id}": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/InvitationId"
-        }
-      ]
-    },
-    "/v1/organizations/{organization_id}/access-review": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/OrganizationId"
-        }
-      ]
-    },
-    "/v1/me/invitations/{invitation_id}/accept": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/InvitationId"
-        }
-      ]
-    },
-    "/v1/me/invitations/{invitation_id}": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/InvitationId"
-        }
-      ]
-    },
-    "/v1/organizations/{organization_id}/billing": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/OrganizationId"
-        }
-      ]
-    },
-    "/v1/organizations/{organization_id}/billing/checkout-sessions": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/OrganizationId"
-        }
-      ]
-    },
-    "/v1/organizations/{organization_id}/billing/portal-sessions": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/OrganizationId"
-        }
-      ]
     }
   },
   "webhooks": {
@@ -6101,9 +4574,6 @@
         "responses": {
           "200": {
             "description": "Received (any 2xx)."
-          },
-          "429": {
-            "$ref": "#/components/responses/RateLimited"
           }
         }
       }
@@ -6115,42 +4585,9 @@
         "type": "http",
         "scheme": "bearer",
         "description": "Project-scoped API key, e.g. `sk_live_k7fz0a9c3m2q_<secret>`. Used by\nservers, CI, the CLI and coding agents.\n"
-      },
-      "session": {
-        "type": "apiKey",
-        "in": "cookie",
-        "name": "__Host-nohead_session",
-        "description": "A person signed in to the web app: the httpOnly cookie its sign-in\nsets, accepted only on requests from the web app's origin (named\n`nohead_session` over plain http, in local development). Servers,\nCI, the CLI and agents use an API key.\n"
       }
     },
     "parameters": {
-      "OrganizationId": {
-        "name": "organization_id",
-        "in": "path",
-        "required": true,
-        "schema": {
-          "type": "string"
-        },
-        "example": "org_01J9ZQ3F8X5W2K7M4N6P0R1S2T"
-      },
-      "MembershipId": {
-        "name": "membership_id",
-        "in": "path",
-        "required": true,
-        "schema": {
-          "type": "string"
-        },
-        "example": "mem_01J9ZQ3F8X5W2K7M4N6P0R1S2T"
-      },
-      "InvitationId": {
-        "name": "invitation_id",
-        "in": "path",
-        "required": true,
-        "schema": {
-          "type": "string"
-        },
-        "example": "inv_01J9ZQ3F8X5W2K7M4N6P0R1S2T"
-      },
       "ProjectId": {
         "name": "project_id",
         "in": "path",
@@ -6257,7 +4694,7 @@
       "Expand": {
         "name": "expand",
         "in": "query",
-        "description": "Comma-separated relation, asset or rich text field API keys whose records or assets to embed under `expanded` (at most 5); for a rich text field, the assets its images show. Embedding needs permission to read what is embedded: `records:read` for relations, `assets:read` for assets and rich text (`403` otherwise).",
+        "description": "Comma-separated relation, asset or rich text field keys whose records or assets to embed under `expanded` (at most 5); for a rich text field, the assets its images show. Embedding needs permission to read what is embedded: `records:read` for relations, `assets:read` for assets and rich text (`403` otherwise).",
         "schema": {
           "type": "string"
         },
@@ -6268,7 +4705,7 @@
         "in": "query",
         "style": "deepObject",
         "explode": true,
-        "description": "`filter[<key>]=value` (equal), or `filter[<key>][<operator>]=value`;\nfilters combine with AND. Keys are field API keys, `published_at`,\n`deleted` (`true` lists soft-deleted records instead) and, in record\nlists and counts, `created_at` and `updated_at`. In search,\n`published_at` takes only `exists`.\n\n- `eq`, `ne`: equal, not equal. For fields with several values,\n  \"contains\" and \"does not contain\". `ne` matches records with no value.\n- `gt`, `gte`, `lt`, `lte`: integer, decimal and date fields with one\n  value, and the timestamps.\n- `in`: any of up to 100 comma-separated values (`\\,` is a comma\n  inside a value, `\\\\` a backslash); for fields with several values,\n  \"contains any of\".\n- `exists`: `true` for records with a value, `false` for those without\n  (and `published_at`: published or not).\n\nValues are parsed per field type (`\"5\"` is not the integer 5), but\nnot held to the field's limits or format (`price[lt]=10` works when\n`max` is 5; a slug filter that isn't a slug matches nothing). Dates\ntake `today`, and dates with a time `now` too. A day (`YYYY-MM-DD`)\ngiven for a date with a time, or a timestamp, covers that day in the\nfield's `time_zone` (UTC without one): `gte` from its start, `lte` to\nits end, `eq` within it. A date with a time matches the same moment\nwritten with any offset.\n",
+        "description": "`filter[<key>]=value` (equal), or `filter[<key>][<operator>]=value`;\nfilters combine with AND. Keys are field keys, `published_at`,\n`deleted` (`true` lists soft-deleted records instead) and, in record\nlists and counts, `created_at` and `updated_at`. In search,\n`published_at` takes only `exists`.\n\n- `eq`, `ne`: equal, not equal. For fields with several values,\n  \"contains\" and \"does not contain\". `ne` matches records with no value.\n- `gt`, `gte`, `lt`, `lte`: integer, decimal and date fields with one\n  value, and the timestamps.\n- `in`: any of up to 100 comma-separated values (`\\,` is a comma\n  inside a value, `\\\\` a backslash); for fields with several values,\n  \"contains any of\".\n- `exists`: `true` for records with a value, `false` for those without\n  (and `published_at`: published or not).\n\nValues are parsed per field type (`\"5\"` is not the integer 5), but\nnot held to the field's limits or format (`price[lt]=10` works when\n`max` is 5; a slug filter that isn't a slug matches nothing). Dates\ntake `today`, and dates with a time `now` too. A day (`YYYY-MM-DD`)\ngiven for a date with a time, or a timestamp, covers that day in the\nfield's `time_zone` (UTC without one): `gte` from its start, `lte` to\nits end, `eq` within it. A date with a time matches the same moment\nwritten with any offset.\n",
         "schema": {
           "type": "object",
           "additionalProperties": {
@@ -6305,16 +4742,12 @@
         "in": "query",
         "style": "deepObject",
         "explode": true,
-        "description": "`action` matches exactly, or by prefix with a trailing `.*`\n(`filter[action]=record.*`). `since` is inclusive and `until` exclusive.\n",
+        "description": "`type` matches exactly, or by prefix with a trailing `.*`\n(`filter[type]=record.*`). `resource_type` takes one type, or several\nwith `[in]` (`filter[resource_type][in]=collection,field`). Unknown\nfilters are `400`.\n",
         "schema": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "project_id": {
-              "type": "string",
-              "description": "Organization list only."
-            },
-            "action": {
+            "type": {
               "type": "string",
               "examples": [
                 "field.updated",
@@ -6322,9 +4755,26 @@
               ]
             },
             "resource_type": {
-              "type": "string",
-              "examples": [
-                "record"
+              "oneOf": [
+                {
+                  "type": "string",
+                  "examples": [
+                    "record"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "in"
+                  ],
+                  "properties": {
+                    "in": {
+                      "type": "string",
+                      "description": "Comma-separated types."
+                    }
+                  }
+                }
               ]
             },
             "resource_id": {
@@ -6342,13 +4792,8 @@
               "type": "string",
               "description": "A user (`usr_...`) or API key (`key_...`)."
             },
-            "since": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "until": {
-              "type": "string",
-              "format": "date-time"
+            "created_at": {
+              "$ref": "#/components/schemas/TimeFilter"
             }
           }
         }
@@ -6358,36 +4803,20 @@
         "in": "query",
         "style": "deepObject",
         "explode": true,
-        "description": "`since` is inclusive and `until` exclusive.",
+        "description": "Unknown filters are `400`.",
         "schema": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
             "operation": {
-              "type": "string",
-              "enum": [
-                "create",
-                "update",
-                "publish",
-                "unpublish",
-                "delete",
-                "restore",
-                "revert",
-                "migrate",
-                "import"
-              ]
+              "$ref": "#/components/schemas/RecordRevisionOperation"
             },
             "actor_id": {
               "type": "string",
               "description": "A user (`usr_...`) or API key (`key_...`)."
             },
-            "since": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "until": {
-              "type": "string",
-              "format": "date-time"
+            "created_at": {
+              "$ref": "#/components/schemas/TimeFilter"
             }
           }
         }
@@ -6500,7 +4929,7 @@
       "ChangeNote": {
         "name": "Nohead-Change-Note",
         "in": "header",
-        "description": "Optional reason for the change, shown in history (at most 500\ncharacters once decoded). Percent-encoded UTF-8, as\n`encodeURIComponent` encodes it, so any language fits in a header:\n`Rettet%20stavefejl%20p%C3%A5%20forsiden`. Plain ASCII may be sent\nas is. Other bytes are `400`.\n",
+        "description": "Optional reason for the change, kept with the record revision, schema\nchange or field migration it makes (at most 500 characters once\ndecoded). Percent-encoded UTF-8, as\n`encodeURIComponent` encodes it, so any language fits in a header:\n`Rettet%20stavefejl%20p%C3%A5%20forsiden`. Plain ASCII may be sent\nas is. Other bytes are `400`.\n",
         "schema": {
           "type": "string"
         }
@@ -6676,19 +5105,324 @@
         ]
       },
       "Field": {
+        "description": "A field, typed by its `type`, which also decides the options its `configuration` takes.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/TextField"
+          },
+          {
+            "$ref": "#/components/schemas/LongTextField"
+          },
+          {
+            "$ref": "#/components/schemas/RichTextField"
+          },
+          {
+            "$ref": "#/components/schemas/IntegerField"
+          },
+          {
+            "$ref": "#/components/schemas/DecimalField"
+          },
+          {
+            "$ref": "#/components/schemas/DateField"
+          },
+          {
+            "$ref": "#/components/schemas/BooleanField"
+          },
+          {
+            "$ref": "#/components/schemas/EnumField"
+          },
+          {
+            "$ref": "#/components/schemas/AssetField"
+          },
+          {
+            "$ref": "#/components/schemas/RelationField"
+          },
+          {
+            "$ref": "#/components/schemas/JsonField"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "text": "#/components/schemas/TextField",
+            "long_text": "#/components/schemas/LongTextField",
+            "rich_text": "#/components/schemas/RichTextField",
+            "integer": "#/components/schemas/IntegerField",
+            "decimal": "#/components/schemas/DecimalField",
+            "date": "#/components/schemas/DateField",
+            "boolean": "#/components/schemas/BooleanField",
+            "enum": "#/components/schemas/EnumField",
+            "asset": "#/components/schemas/AssetField",
+            "relation": "#/components/schemas/RelationField",
+            "json": "#/components/schemas/JsonField"
+          }
+        }
+      },
+      "TextField": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldProperties"
+          },
+          {
+            "type": "object",
+            "required": [
+              "type",
+              "configuration"
+            ],
+            "properties": {
+              "type": {
+                "const": "text"
+              },
+              "configuration": {
+                "$ref": "#/components/schemas/TextFieldConfiguration"
+              }
+            }
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "LongTextField": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldProperties"
+          },
+          {
+            "type": "object",
+            "required": [
+              "type",
+              "configuration"
+            ],
+            "properties": {
+              "type": {
+                "const": "long_text"
+              },
+              "configuration": {
+                "$ref": "#/components/schemas/LongTextFieldConfiguration"
+              }
+            }
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "RichTextField": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldProperties"
+          },
+          {
+            "type": "object",
+            "required": [
+              "type",
+              "configuration"
+            ],
+            "properties": {
+              "type": {
+                "const": "rich_text"
+              },
+              "configuration": {
+                "$ref": "#/components/schemas/RichTextFieldConfiguration"
+              }
+            }
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "IntegerField": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldProperties"
+          },
+          {
+            "type": "object",
+            "required": [
+              "type",
+              "configuration"
+            ],
+            "properties": {
+              "type": {
+                "const": "integer"
+              },
+              "configuration": {
+                "$ref": "#/components/schemas/IntegerFieldConfiguration"
+              }
+            }
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "DecimalField": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldProperties"
+          },
+          {
+            "type": "object",
+            "required": [
+              "type",
+              "configuration"
+            ],
+            "properties": {
+              "type": {
+                "const": "decimal"
+              },
+              "configuration": {
+                "$ref": "#/components/schemas/DecimalFieldConfiguration"
+              }
+            }
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "DateField": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldProperties"
+          },
+          {
+            "type": "object",
+            "required": [
+              "type",
+              "configuration"
+            ],
+            "properties": {
+              "type": {
+                "const": "date"
+              },
+              "configuration": {
+                "$ref": "#/components/schemas/DateFieldConfiguration"
+              }
+            }
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "BooleanField": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldProperties"
+          },
+          {
+            "type": "object",
+            "required": [
+              "type",
+              "configuration"
+            ],
+            "properties": {
+              "type": {
+                "const": "boolean"
+              },
+              "configuration": {
+                "$ref": "#/components/schemas/BooleanFieldConfiguration"
+              }
+            }
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "EnumField": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldProperties"
+          },
+          {
+            "type": "object",
+            "required": [
+              "type",
+              "configuration"
+            ],
+            "properties": {
+              "type": {
+                "const": "enum"
+              },
+              "configuration": {
+                "$ref": "#/components/schemas/EnumFieldConfiguration"
+              }
+            }
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "AssetField": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldProperties"
+          },
+          {
+            "type": "object",
+            "required": [
+              "type",
+              "configuration"
+            ],
+            "properties": {
+              "type": {
+                "const": "asset"
+              },
+              "configuration": {
+                "$ref": "#/components/schemas/AssetFieldConfiguration"
+              }
+            }
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "RelationField": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldProperties"
+          },
+          {
+            "type": "object",
+            "required": [
+              "type",
+              "configuration"
+            ],
+            "properties": {
+              "type": {
+                "const": "relation"
+              },
+              "configuration": {
+                "$ref": "#/components/schemas/RelationFieldConfiguration"
+              }
+            }
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "JsonField": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldProperties"
+          },
+          {
+            "type": "object",
+            "required": [
+              "type",
+              "configuration"
+            ],
+            "properties": {
+              "type": {
+                "const": "json"
+              },
+              "configuration": {
+                "$ref": "#/components/schemas/JsonFieldConfiguration"
+              }
+            }
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "FieldProperties": {
         "type": "object",
-        "additionalProperties": false,
+        "description": "What every field has; `Field` adds its `type` and that type's `configuration`.",
         "required": [
           "id",
           "object",
           "collection_id",
           "name",
-          "api_key",
-          "type",
+          "key",
           "required",
           "multiple",
           "position",
-          "configuration",
           "deleted_at",
           "purge_after",
           "aliases",
@@ -6713,12 +5447,9 @@
             "type": "string",
             "description": "Display name. Safe to change."
           },
-          "api_key": {
+          "key": {
             "type": "string",
             "description": "Key used in record data. Part of the API contract."
-          },
-          "type": {
-            "$ref": "#/components/schemas/FieldType"
           },
           "required": {
             "type": "boolean",
@@ -6732,10 +5463,6 @@
             "type": "integer",
             "description": "Where the field sorts in the collection's order, lowest first. New fields are added last; `PUT /v1/collections/{collection_id}/field-order` changes the order, numbering the fields from 0."
           },
-          "configuration": {
-            "type": "object",
-            "description": "Type-specific options, e.g. `max_length`, `options`, `target_collection_id`,\n`accepted_types` (asset fields: MIME types or `type/*` wildcards that newly\nwritten values must have; any file when absent), `include_time` and\n`time_zone` (date fields, below), `format` (text fields, below),\n`unique` (text and integer fields, below), plus\nthe options for searches with API keys: `searchable` (the search words match the\nfield; default true for text, long_text, rich_text and enum), `filterable` and\n`sortable` (default false).\n\nDate fields hold a calendar date, `YYYY-MM-DD`, with no time and no\ntime zone: returned exactly as written, so it never shows as the day\nbefore or after. With `include_time: true` they hold a moment: ISO\n8601 with an offset, stored in UTC and returned in UTC, or with the\noffset of `time_zone` (an IANA name such as `Europe/Copenhagen`,\ndaylight saving included) when the field has one. Input may use any\noffset. Changing `time_zone` never rewrites values; turning\n`include_time` on or off does, through a field migration.\n\nText fields (not long text) can have a `format`: `slug`\n(lowercase letters, digits and single hyphens, at most 200\ncharacters; one value per record, never a list, and always\nunique: a slug field has `unique: true`), `url` (an absolute\n`http` or `https` address) or `email`. A value that doesn't match is\nrefused with `invalid_format`. A format sets its own length limits\n(254 characters for emails, 2,048 for URLs), so `min_length` and\n`max_length` are for plain text. Text and integer\nfields with one value can be `unique`: no two active records of the\ncollection share a value (emails compare ignoring capitals; records\nwithout a value don't count). A taken value is refused with\n`taken` and the `record_id` that has it. Turning `unique` on is\nrefused with `duplicate_values` while records share a value (and\nso is restoring a deleted unique field, `409`). A field migration\nto a unique field is refused with `duplicate_values` when its\nconverted values or backfill would be shared, and fails if values\nwritten while it waits would be.\n"
-          },
           "deleted_at": {
             "description": "When the field was deleted; null unless it is. Its values stay hidden in records until it is restored or purged.",
             "$ref": "#/components/schemas/NullableTimestamp"
@@ -6746,16 +5473,16 @@
           },
           "aliases": {
             "type": "array",
-            "description": "Old API keys of a renamed field that still work until `expires_at`:\nrecord data also carries the value under them, and writes, filters,\nsorts and `expand` accept them. Responses about the collection then\nhave `Deprecation` and `Sunset` headers.\n",
+            "description": "Old keys of a renamed field that still work until `expires_at`:\nrecord data also carries the value under them, and writes, filters,\nsorts and `expand` accept them. Responses about the collection then\nhave `Deprecation` and `Sunset` headers.\n",
             "items": {
               "type": "object",
               "additionalProperties": false,
               "required": [
-                "api_key",
+                "key",
                 "expires_at"
               ],
               "properties": {
-                "api_key": {
+                "key": {
                   "type": "string"
                 },
                 "expires_at": {
@@ -6771,6 +5498,381 @@
             "$ref": "#/components/schemas/Timestamp"
           }
         }
+      },
+      "TextFieldConfiguration": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Plain text up to 10,000 characters, or a `format`.",
+        "properties": {
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Help text for editors."
+          },
+          "searchable": {
+            "type": "boolean",
+            "description": "Search words match the field (API searches). Default true for text, long_text, rich_text and enum."
+          },
+          "filterable": {
+            "type": "boolean",
+            "description": "API searches can filter on it. Default false."
+          },
+          "sortable": {
+            "type": "boolean",
+            "description": "API searches can sort on it (one value only). Default false."
+          },
+          "min_length": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "max_length": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "slug",
+              "url",
+              "email"
+            ],
+            "description": "`slug` (always unique, one value), `url` (absolute http or https) or `email`; each sets its own length limits."
+          },
+          "unique": {
+            "type": "boolean",
+            "description": "No two active records of the collection share a value (one value only; a slug is always unique)."
+          }
+        }
+      },
+      "LongTextFieldConfiguration": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Text up to 100,000 characters.",
+        "properties": {
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Help text for editors."
+          },
+          "searchable": {
+            "type": "boolean",
+            "description": "Search words match the field (API searches). Default true for text, long_text, rich_text and enum."
+          },
+          "filterable": {
+            "type": "boolean",
+            "description": "API searches can filter on it. Default false."
+          },
+          "sortable": {
+            "type": "boolean",
+            "description": "API searches can sort on it (one value only). Default false."
+          },
+          "min_length": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "max_length": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "RichTextFieldConfiguration": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Help text for editors."
+          },
+          "searchable": {
+            "type": "boolean",
+            "description": "Search words match the field (API searches). Default true for text, long_text, rich_text and enum."
+          },
+          "filterable": {
+            "type": "boolean",
+            "description": "API searches can filter on it. Default false."
+          },
+          "sortable": {
+            "type": "boolean",
+            "description": "API searches can sort on it (one value only). Default false."
+          }
+        }
+      },
+      "IntegerFieldConfiguration": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Help text for editors."
+          },
+          "searchable": {
+            "type": "boolean",
+            "description": "Search words match the field (API searches). Default true for text, long_text, rich_text and enum."
+          },
+          "filterable": {
+            "type": "boolean",
+            "description": "API searches can filter on it. Default false."
+          },
+          "sortable": {
+            "type": "boolean",
+            "description": "API searches can sort on it (one value only). Default false."
+          },
+          "min": {
+            "type": "integer"
+          },
+          "max": {
+            "type": "integer"
+          },
+          "unique": {
+            "type": "boolean",
+            "description": "No two active records of the collection share a value (one value only)."
+          }
+        }
+      },
+      "DecimalFieldConfiguration": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Help text for editors."
+          },
+          "searchable": {
+            "type": "boolean",
+            "description": "Search words match the field (API searches). Default true for text, long_text, rich_text and enum."
+          },
+          "filterable": {
+            "type": "boolean",
+            "description": "API searches can filter on it. Default false."
+          },
+          "sortable": {
+            "type": "boolean",
+            "description": "API searches can sort on it (one value only). Default false."
+          },
+          "min": {
+            "type": "number"
+          },
+          "max": {
+            "type": "number"
+          }
+        }
+      },
+      "DateFieldConfiguration": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Help text for editors."
+          },
+          "searchable": {
+            "type": "boolean",
+            "description": "Search words match the field (API searches). Default true for text, long_text, rich_text and enum."
+          },
+          "filterable": {
+            "type": "boolean",
+            "description": "API searches can filter on it. Default false."
+          },
+          "sortable": {
+            "type": "boolean",
+            "description": "API searches can sort on it (one value only). Default false."
+          },
+          "include_time": {
+            "type": "boolean",
+            "description": "Holds a moment (ISO 8601 with an offset) instead of a calendar date; changing it is a field migration."
+          },
+          "time_zone": {
+            "type": "string",
+            "description": "An IANA time zone (`Europe/Copenhagen`) moments are returned in; changing it never rewrites values."
+          }
+        }
+      },
+      "BooleanFieldConfiguration": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Help text for editors."
+          },
+          "searchable": {
+            "type": "boolean",
+            "description": "Search words match the field (API searches). Default true for text, long_text, rich_text and enum."
+          },
+          "filterable": {
+            "type": "boolean",
+            "description": "API searches can filter on it. Default false."
+          },
+          "sortable": {
+            "type": "boolean",
+            "description": "API searches can sort on it (one value only). Default false."
+          }
+        }
+      },
+      "EnumFieldConfiguration": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "options"
+        ],
+        "properties": {
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Help text for editors."
+          },
+          "searchable": {
+            "type": "boolean",
+            "description": "Search words match the field (API searches). Default true for text, long_text, rich_text and enum."
+          },
+          "filterable": {
+            "type": "boolean",
+            "description": "API searches can filter on it. Default false."
+          },
+          "sortable": {
+            "type": "boolean",
+            "description": "API searches can sort on it (one value only). Default false."
+          },
+          "options": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 500,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          }
+        }
+      },
+      "AssetFieldConfiguration": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Help text for editors."
+          },
+          "searchable": {
+            "type": "boolean",
+            "description": "Search words match the field (API searches). Default true for text, long_text, rich_text and enum."
+          },
+          "filterable": {
+            "type": "boolean",
+            "description": "API searches can filter on it. Default false."
+          },
+          "sortable": {
+            "type": "boolean",
+            "description": "API searches can sort on it (one value only). Default false."
+          },
+          "accepted_types": {
+            "type": "array",
+            "maxItems": 50,
+            "description": "MIME types or `type/*` wildcards newly written values must have (`[\"image/*\", \"application/pdf\"]`); any file when absent.",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "RelationFieldConfiguration": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "target_collection_id"
+        ],
+        "properties": {
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Help text for editors."
+          },
+          "searchable": {
+            "type": "boolean",
+            "description": "Search words match the field (API searches). Default true for text, long_text, rich_text and enum."
+          },
+          "filterable": {
+            "type": "boolean",
+            "description": "API searches can filter on it. Default false."
+          },
+          "sortable": {
+            "type": "boolean",
+            "description": "API searches can sort on it (one value only). Default false."
+          },
+          "target_collection_id": {
+            "type": "string",
+            "description": "The collection (same project) whose records it points at."
+          }
+        }
+      },
+      "JsonFieldConfiguration": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Help text for editors."
+          },
+          "searchable": {
+            "type": "boolean",
+            "description": "Search words match the field (API searches). Default true for text, long_text, rich_text and enum."
+          },
+          "filterable": {
+            "type": "boolean",
+            "description": "API searches can filter on it. Default false."
+          },
+          "sortable": {
+            "type": "boolean",
+            "description": "API searches can sort on it (one value only). Default false."
+          }
+        }
+      },
+      "FieldConfiguration": {
+        "description": "Type-specific options, e.g. `max_length`, `options`, `target_collection_id`,\n`accepted_types` (asset fields: MIME types or `type/*` wildcards that newly\nwritten values must have; any file when absent), `include_time` and\n`time_zone` (date fields, below), `format` (text fields, below),\n`unique` (text and integer fields, below), plus\nthe options for searches with API keys: `searchable` (the search words match the\nfield; default true for text, long_text, rich_text and enum), `filterable` and\n`sortable` (default false).\n\nDate fields hold a calendar date, `YYYY-MM-DD`, with no time and no\ntime zone: returned exactly as written, so it never shows as the day\nbefore or after. With `include_time: true` they hold a moment: ISO\n8601 with an offset, stored in UTC and returned in UTC, or with the\noffset of `time_zone` (an IANA name such as `Europe/Copenhagen`,\ndaylight saving included) when the field has one. Input may use any\noffset. Changing `time_zone` never rewrites values; turning\n`include_time` on or off does, through a field migration.\n\nText fields (not long text) can have a `format`: `slug`\n(lowercase letters, digits and single hyphens, at most 200\ncharacters; one value per record, never a list, and always\nunique: a slug field has `unique: true`), `url` (an absolute\n`http` or `https` address) or `email`. A value that doesn't match is\nrefused with `invalid_format`. A format sets its own length limits\n(254 characters for emails, 2,048 for URLs), so `min_length` and\n`max_length` are for plain text. Text and integer\nfields with one value can be `unique`: no two active records of the\ncollection share a value (emails compare ignoring capitals; records\nwithout a value don't count). A taken value is refused with\n`taken` and the `record_id` that has it. Turning `unique` on is\nrefused with `duplicate_values` while records share a value (and\nso is restoring a deleted unique field, `409`). A field migration\nto a unique field is refused with `duplicate_values` when its\nconverted values or backfill would be shared, and fails if values\nwritten while it waits would be.\n",
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/TextFieldConfiguration"
+          },
+          {
+            "$ref": "#/components/schemas/LongTextFieldConfiguration"
+          },
+          {
+            "$ref": "#/components/schemas/RichTextFieldConfiguration"
+          },
+          {
+            "$ref": "#/components/schemas/IntegerFieldConfiguration"
+          },
+          {
+            "$ref": "#/components/schemas/DecimalFieldConfiguration"
+          },
+          {
+            "$ref": "#/components/schemas/DateFieldConfiguration"
+          },
+          {
+            "$ref": "#/components/schemas/BooleanFieldConfiguration"
+          },
+          {
+            "$ref": "#/components/schemas/EnumFieldConfiguration"
+          },
+          {
+            "$ref": "#/components/schemas/AssetFieldConfiguration"
+          },
+          {
+            "$ref": "#/components/schemas/RelationFieldConfiguration"
+          },
+          {
+            "$ref": "#/components/schemas/JsonFieldConfiguration"
+          }
+        ]
       },
       "RecordCount": {
         "type": "object",
@@ -6793,21 +5895,317 @@
         }
       },
       "FieldCreate": {
+        "description": "A new field. Its `type` decides the options `configuration` takes.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/TextFieldCreate"
+          },
+          {
+            "$ref": "#/components/schemas/LongTextFieldCreate"
+          },
+          {
+            "$ref": "#/components/schemas/RichTextFieldCreate"
+          },
+          {
+            "$ref": "#/components/schemas/IntegerFieldCreate"
+          },
+          {
+            "$ref": "#/components/schemas/DecimalFieldCreate"
+          },
+          {
+            "$ref": "#/components/schemas/DateFieldCreate"
+          },
+          {
+            "$ref": "#/components/schemas/BooleanFieldCreate"
+          },
+          {
+            "$ref": "#/components/schemas/EnumFieldCreate"
+          },
+          {
+            "$ref": "#/components/schemas/AssetFieldCreate"
+          },
+          {
+            "$ref": "#/components/schemas/RelationFieldCreate"
+          },
+          {
+            "$ref": "#/components/schemas/JsonFieldCreate"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "text": "#/components/schemas/TextFieldCreate",
+            "long_text": "#/components/schemas/LongTextFieldCreate",
+            "rich_text": "#/components/schemas/RichTextFieldCreate",
+            "integer": "#/components/schemas/IntegerFieldCreate",
+            "decimal": "#/components/schemas/DecimalFieldCreate",
+            "date": "#/components/schemas/DateFieldCreate",
+            "boolean": "#/components/schemas/BooleanFieldCreate",
+            "enum": "#/components/schemas/EnumFieldCreate",
+            "asset": "#/components/schemas/AssetFieldCreate",
+            "relation": "#/components/schemas/RelationFieldCreate",
+            "json": "#/components/schemas/JsonFieldCreate"
+          }
+        }
+      },
+      "TextFieldCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldCreateProperties"
+          },
+          {
+            "type": "object",
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "text"
+              },
+              "configuration": {
+                "$ref": "#/components/schemas/TextFieldConfiguration"
+              }
+            }
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "LongTextFieldCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldCreateProperties"
+          },
+          {
+            "type": "object",
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "long_text"
+              },
+              "configuration": {
+                "$ref": "#/components/schemas/LongTextFieldConfiguration"
+              }
+            }
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "RichTextFieldCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldCreateProperties"
+          },
+          {
+            "type": "object",
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "rich_text"
+              },
+              "configuration": {
+                "$ref": "#/components/schemas/RichTextFieldConfiguration"
+              }
+            }
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "IntegerFieldCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldCreateProperties"
+          },
+          {
+            "type": "object",
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "integer"
+              },
+              "configuration": {
+                "$ref": "#/components/schemas/IntegerFieldConfiguration"
+              }
+            }
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "DecimalFieldCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldCreateProperties"
+          },
+          {
+            "type": "object",
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "decimal"
+              },
+              "configuration": {
+                "$ref": "#/components/schemas/DecimalFieldConfiguration"
+              }
+            }
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "DateFieldCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldCreateProperties"
+          },
+          {
+            "type": "object",
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "date"
+              },
+              "configuration": {
+                "$ref": "#/components/schemas/DateFieldConfiguration"
+              }
+            }
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "BooleanFieldCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldCreateProperties"
+          },
+          {
+            "type": "object",
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "boolean"
+              },
+              "configuration": {
+                "$ref": "#/components/schemas/BooleanFieldConfiguration"
+              }
+            }
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "EnumFieldCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldCreateProperties"
+          },
+          {
+            "type": "object",
+            "required": [
+              "type",
+              "configuration"
+            ],
+            "properties": {
+              "type": {
+                "const": "enum"
+              },
+              "configuration": {
+                "$ref": "#/components/schemas/EnumFieldConfiguration"
+              }
+            }
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "AssetFieldCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldCreateProperties"
+          },
+          {
+            "type": "object",
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "asset"
+              },
+              "configuration": {
+                "$ref": "#/components/schemas/AssetFieldConfiguration"
+              }
+            }
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "RelationFieldCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldCreateProperties"
+          },
+          {
+            "type": "object",
+            "required": [
+              "type",
+              "configuration"
+            ],
+            "properties": {
+              "type": {
+                "const": "relation"
+              },
+              "configuration": {
+                "$ref": "#/components/schemas/RelationFieldConfiguration"
+              }
+            }
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "JsonFieldCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldCreateProperties"
+          },
+          {
+            "type": "object",
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "json"
+              },
+              "configuration": {
+                "$ref": "#/components/schemas/JsonFieldConfiguration"
+              }
+            }
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "FieldCreateProperties": {
         "type": "object",
+        "description": "What every new field takes; `FieldCreate` adds its `type` and that type's `configuration`.",
         "required": [
           "name",
-          "api_key",
-          "type"
+          "key"
         ],
         "properties": {
           "name": {
             "type": "string"
           },
-          "api_key": {
-            "type": "string"
-          },
-          "type": {
-            "$ref": "#/components/schemas/FieldType"
+          "key": {
+            "type": "string",
+            "description": "The field's key in records' `data`, filters and sorts. Reserved for records' own attributes, and a few kept for later: `id`, `object`, `collection`, `data`, `status`, `published_at`, `created_at`, `updated_at`, `deleted`, `deleted_at`, `purge_after`, `revision` and `schema_version`."
           },
           "required": {
             "type": "boolean",
@@ -6816,34 +6214,27 @@
           "multiple": {
             "type": "boolean",
             "description": "A list of distinct values (a repeated value is refused with `duplicate_value`, an empty string with `blank_value`). Not available for boolean, long_text, rich_text and json fields."
-          },
-          "configuration": {
-            "type": "object"
           }
         }
       },
       "FieldUpdate": {
         "type": "object",
+        "description": "Renames, describes or loosens a field. A change to its `type` or `multiple` rewrites record values, so it is a field migration (`POST /v1/fields/{id}/migrations`); either key here is `400` `unknown_parameter`, saying so.",
+        "additionalProperties": false,
         "properties": {
           "name": {
             "type": "string"
           },
-          "api_key": {
-            "type": "string"
-          },
-          "type": {
-            "$ref": "#/components/schemas/FieldType"
+          "key": {
+            "type": "string",
+            "description": "The field's key in records' `data`, filters and sorts. Reserved for records' own attributes, and a few kept for later: `id`, `object`, `collection`, `data`, `status`, `published_at`, `created_at`, `updated_at`, `deleted`, `deleted_at`, `purge_after`, `revision` and `schema_version`."
           },
           "required": {
             "type": "boolean",
             "description": "Every record must have a value. Not available for boolean fields (a boolean is true or false; no value reads as false)."
           },
-          "multiple": {
-            "type": "boolean",
-            "description": "A list of distinct values (a repeated value is refused with `duplicate_value`, an empty string with `blank_value`). Not available for boolean, long_text, rich_text and json fields."
-          },
           "configuration": {
-            "type": "object"
+            "$ref": "#/components/schemas/FieldConfiguration"
           }
         }
       },
@@ -6941,6 +6332,7 @@
       },
       "CollectionCreate": {
         "type": "object",
+        "additionalProperties": false,
         "required": [
           "name",
           "slug"
@@ -6971,6 +6363,7 @@
       },
       "CollectionUpdate": {
         "type": "object",
+        "additionalProperties": false,
         "properties": {
           "search_enabled": {
             "type": "boolean"
@@ -7050,7 +6443,7 @@
               "required": [
                 "id",
                 "name",
-                "api_key",
+                "key",
                 "type",
                 "required",
                 "multiple",
@@ -7065,7 +6458,7 @@
                 "name": {
                   "type": "string"
                 },
-                "api_key": {
+                "key": {
                   "type": "string"
                 },
                 "type": {
@@ -7081,7 +6474,7 @@
                   "type": "integer"
                 },
                 "configuration": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/FieldConfiguration"
                 },
                 "deleted_at": {
                   "$ref": "#/components/schemas/NullableTimestamp"
@@ -7170,7 +6563,6 @@
           "via",
           "note",
           "request_id",
-          "status",
           "created_at"
         ],
         "properties": {
@@ -7227,17 +6619,6 @@
             "type": [
               "string",
               "null"
-            ]
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "pending",
-              "validating",
-              "migrating",
-              "reindexing",
-              "complete",
-              "failed"
             ]
           },
           "created_at": {
@@ -7308,7 +6689,7 @@
             "$ref": "#/components/schemas/FieldType"
           },
           "configuration": {
-            "type": "object"
+            "$ref": "#/components/schemas/FieldConfiguration"
           },
           "multiple": {
             "type": "boolean",
@@ -7328,8 +6709,8 @@
             "$ref": "#/components/schemas/FieldType"
           },
           "configuration": {
-            "type": "object",
-            "description": "The complete new configuration. When the type changes and this is omitted, only `description`, `searchable`, `filterable` and `sortable` carry over."
+            "description": "The complete new configuration. When the type changes and this is omitted, only `description`, `searchable`, `filterable` and `sortable` carry over.",
+            "$ref": "#/components/schemas/FieldConfiguration"
           },
           "multiple": {
             "type": "boolean",
@@ -7673,7 +7054,7 @@
           "unpublish_at",
           "last_error"
         ],
-        "description": "When the record publishes or unpublishes on its own (within a minute of\nthe time), set with `PUT /v1/records/{record_id}/schedule`. A time is\ncleared once it has run. `last_error` explains the last scheduled change\nthat could not be made, until a new schedule is set.\n",
+        "description": "When the record publishes or unpublishes on its own (within a minute of\nthe time), set with `PUT /v1/records/{record_id}/schedule`. A time is\ncleared once it has run, or once the record is published or\nunpublished by hand or deleted. `last_error` explains the last\nscheduled change that could not be made, until a new schedule is set\nor a scheduled change is made.\n",
         "properties": {
           "object": {
             "const": "schedule"
@@ -7698,7 +7079,7 @@
       "RecordScheduleUpdate": {
         "type": "object",
         "additionalProperties": false,
-        "description": "A time in the future, or null for none. Omitted keys keep their value.",
+        "description": "The whole schedule. A time in the future, or null for none; a time left out is none too.",
         "properties": {
           "publish_at": {
             "$ref": "#/components/schemas/NullableTimestamp"
@@ -7731,7 +7112,7 @@
           },
           "revision": {
             "type": "integer",
-            "description": "The revision that is live."
+            "description": "The revision that is live, the record's current one (a live record's edits are live; a draft keeps changes back)."
           },
           "published_by": {
             "description": "Who published it last; null when that revision is no longer kept.",
@@ -7754,8 +7135,7 @@
           "action",
           "at",
           "record_id",
-          "draft_id",
-          "last_error"
+          "draft_id"
         ],
         "properties": {
           "object": {
@@ -7782,13 +7162,6 @@
               "null"
             ],
             "description": "The draft that merges, for `merge`."
-          },
-          "last_error": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "Why the last scheduled change could not be made, as in the record's (or the draft's) schedule."
           }
         }
       },
@@ -7811,9 +7184,47 @@
           }
         }
       },
+      "RecordRevisionOperation": {
+        "type": "string",
+        "description": "What made the revision; `merge` is a draft's changes.",
+        "enum": [
+          "create",
+          "update",
+          "publish",
+          "unpublish",
+          "delete",
+          "restore",
+          "revert",
+          "migrate",
+          "merge"
+        ]
+      },
+      "TimeFilter": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "A time range, as record lists filter times (`filter[created_at][gte]=2026-10-01T00:00:00Z`).",
+        "properties": {
+          "gte": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "gt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lte": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "Via": {
         "type": "string",
-        "description": "The client a change came through; `scheduler` for scheduled changes.",
+        "description": "The client a change came through; `scheduler` for scheduled changes. `import` and `migration` are not sent yet.",
         "enum": [
           "ui",
           "api",
@@ -7879,7 +7290,7 @@
           },
           "changed_fields": {
             "type": "array",
-            "description": "API keys of the fields the draft changes.",
+            "description": "Keys of the fields the draft changes.",
             "items": {
               "type": "string"
             }
@@ -8030,7 +7441,7 @@
       },
       "RecordData": {
         "type": "object",
-        "description": "Field values keyed by field `api_key`. A rich text value is a\nProseMirror/Tiptap JSON document (`{\"type\": \"doc\", \"content\": [...]}`).\nAn image of an asset in it is `{\"type\": \"image\", \"attrs\": {\"asset_id\":\n\"ast_...\", \"alt\": \"...\"}}`, between the document's blocks (not inside\na list or quote), at most 100 per document (`too_many_images`); a\nnewly shown image must be an uploaded JPEG, PNG, GIF, WebP or AVIF of\nthe project (`invalid_reference`, `type_not_accepted`). `expand` embeds the assets, and published-only\nkeys can read the images of published records.\n",
+        "description": "Field values keyed by field `key`. A rich text value is a\nProseMirror/Tiptap JSON document (`{\"type\": \"doc\", \"content\": [...]}`).\nAn image of an asset in it is `{\"type\": \"image\", \"attrs\": {\"asset_id\":\n\"ast_...\", \"alt\": \"...\"}}`, between the document's blocks (not inside\na list or quote), at most 100 per document (`too_many_images`); a\nnewly shown image must be an uploaded JPEG, PNG, GIF, WebP or AVIF of\nthe project (`invalid_reference`, `type_not_accepted`). `expand` embeds the assets, and published-only\nkeys can read the images of published records.\n",
         "additionalProperties": true,
         "examples": [
           {
@@ -8108,7 +7519,7 @@
           },
           "expanded": {
             "type": "object",
-            "description": "Only with `expand`: what each requested relation, asset or rich\ntext field points at, keyed by field API key: records for\nrelation fields, assets for asset fields. A single value is the object, or null when\nit no longer exists; a multiple value is a list of those that still\nexist. For a rich text field, the list of assets its images show,\nin document order, leaving out those that no longer exist.\nExpanded records are not expanded further.\n",
+            "description": "Only with `expand`: what each requested relation, asset or rich\ntext field points at, keyed by field key: records for\nrelation fields, assets for asset fields. A single value is the object, or null when\nit no longer exists; a multiple value is a list of those that still\nexist. For a rich text field, the list of assets its images show,\nin document order, leaving out those that no longer exist.\nExpanded records are not expanded further.\n",
             "additionalProperties": {
               "anyOf": [
                 {
@@ -8146,6 +7557,7 @@
       },
       "RecordWrite": {
         "type": "object",
+        "additionalProperties": false,
         "required": [
           "data"
         ],
@@ -8256,19 +7668,7 @@
             "type": "integer"
           },
           "operation": {
-            "type": "string",
-            "enum": [
-              "create",
-              "update",
-              "publish",
-              "unpublish",
-              "delete",
-              "restore",
-              "revert",
-              "migrate",
-              "import",
-              "merge"
-            ]
+            "$ref": "#/components/schemas/RecordRevisionOperation"
           },
           "actor": {
             "$ref": "#/components/schemas/Actor"
@@ -8293,14 +7693,14 @@
           },
           "changed_fields": {
             "type": "array",
-            "description": "API keys of changed fields, and changed attributes.",
+            "description": "Keys of changed fields, and changed attributes.",
             "items": {
               "type": "string"
             }
           },
           "redacted_fields": {
             "type": "array",
-            "description": "API keys of fields whose values in this revision were redacted (owners\nand admins redact them in the web app); those values read\n`{\"$redacted\": true}`.\n",
+            "description": "Keys of fields whose values in this revision were redacted (owners\nand admins redact them in the web app); those values read\n`{\"$redacted\": true}`.\n",
             "items": {
               "type": "string"
             }
@@ -8654,7 +8054,6 @@
         "description": "An event webhooks can subscribe to: the same names as the activity\nlog's actions. A subscription can also be every type of a resource\n(`record.*`, `draft.*`, `collection.*`, `field.*`, `asset.*`) or `*` for all.\n",
         "enum": [
           "record.created",
-          "record.imported",
           "record.updated",
           "record.published",
           "record.unpublished",
@@ -8756,7 +8155,7 @@
             "type": "array",
             "description": "The subscribed event types and wildcards (`record.*`, or `*` for all).",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/WebhookSubscription"
             }
           },
           "enabled": {
@@ -9021,7 +8420,7 @@
           "object",
           "organization_id",
           "project",
-          "action",
+          "type",
           "resource",
           "actor",
           "via",
@@ -9037,7 +8436,7 @@
             ]
           },
           "object": {
-            "const": "audit_event"
+            "const": "event"
           },
           "organization_id": {
             "type": "string"
@@ -9066,9 +8465,9 @@
               }
             ]
           },
-          "action": {
+          "type": {
             "type": "string",
-            "description": "`<resource>.<verb>`, e.g. `record.published`, `field.updated`,\n`api_key.created`, `member.role_changed`.\n",
+            "description": "`<resource>.<verb>`, e.g. `record.published`, `field.updated`,\n`api_key.created`, `member.role_changed`: a webhook event's type\ntoo, for the events webhooks get.\n",
             "examples": [
               "record.published"
             ]
@@ -9083,6 +8482,7 @@
             "properties": {
               "type": {
                 "type": "string",
+                "description": "What the event is about, such as `record`, `draft`, `collection`, `field`, `asset` or `webhook`; a field's change names its collection in `metadata.collection_id`.",
                 "examples": [
                   "record"
                 ]
@@ -9103,17 +8503,7 @@
                 "type": "null"
               },
               {
-                "type": "string",
-                "enum": [
-                  "ui",
-                  "api",
-                  "cli",
-                  "sdk",
-                  "import",
-                  "migration",
-                  "system",
-                  "scheduler"
-                ]
+                "$ref": "#/components/schemas/Via"
               }
             ]
           },
@@ -9418,7 +8808,7 @@
           "project_id",
           "data"
         ],
-        "description": "The JSON body of every webhook request. It is rendered from the event's\nhistory each time it is sent or shown, so redacted values are redacted\nin it too.\n",
+        "description": "The JSON body of every webhook request. It is rendered from the event's\nhistory each time it is sent or shown, so redacted values are redacted\nin it too. `data` depends on the `type`.\n",
         "properties": {
           "id": {
             "type": "string",
@@ -9431,8 +8821,14 @@
             "const": "event"
           },
           "type": {
-            "type": "string",
-            "description": "One of the event types (`WebhookEventType`), or `webhook.test`."
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WebhookEventType"
+              },
+              {
+                "const": "webhook.test"
+              }
+            ]
           },
           "created_at": {
             "$ref": "#/components/schemas/Timestamp"
@@ -9449,7 +8845,7 @@
             ]
           },
           "via": {
-            "description": "The client the change came through (null when not known). Always\nsent. An integration that writes back can skip changes made with\nits own API key (`actor`).\n",
+            "description": "The client the change came through (null when not known). Always\nsent. An integration that writes back can skip changes made with its own\nAPI key (`actor`).\n",
             "oneOf": [
               {
                 "type": "null"
@@ -9460,8 +8856,258 @@
             ]
           },
           "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RecordEventData"
+              },
+              {
+                "$ref": "#/components/schemas/DraftEventData"
+              },
+              {
+                "$ref": "#/components/schemas/AssetEventData"
+              },
+              {
+                "$ref": "#/components/schemas/SchemaEventData"
+              },
+              {
+                "$ref": "#/components/schemas/FieldAliasEventData"
+              },
+              {
+                "$ref": "#/components/schemas/WebhookTestEventData"
+              }
+            ]
+          }
+        }
+      },
+      "RecordEventData": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "record",
+          "revision",
+          "revision_id"
+        ],
+        "description": "`record.*`: the record as the change's revision left it, or as it is now for events without a revision (`record.scheduled`, `record.unscheduled`, `record.schedule_failed`, `record.redacted`).",
+        "properties": {
+          "record": {
+            "description": "Null once the record is purged.",
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Record"
+              }
+            ]
+          },
+          "revision": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "revision_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Null for events without a revision."
+          },
+          "draft_id": {
+            "type": "string",
+            "description": "On the `record.updated` of a merged draft, the draft it merged."
+          }
+        }
+      },
+      "DraftEventData": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "draft",
+          "draft_id",
+          "record_id"
+        ],
+        "description": "`draft.*`: the draft as it is now.",
+        "properties": {
+          "draft": {
+            "description": "Null once merged or discarded, and while its record is deleted.",
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Draft"
+              }
+            ]
+          },
+          "draft_id": {
+            "type": "string",
+            "description": "The draft's ID, also once it is gone."
+          },
+          "record_id": {
+            "type": "string"
+          }
+        }
+      },
+      "AssetEventData": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "asset"
+        ],
+        "description": "`asset.*`: the asset as it is now.",
+        "properties": {
+          "asset": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Asset"
+              },
+              {
+                "type": "object",
+                "description": "Only its ID once it is purged.",
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "object"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "object": {
+                    "const": "asset"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "SchemaEventData": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "collection",
+          "schema_change"
+        ],
+        "description": "`collection.*` and `field.*` (but `field.alias_removed`): the collection as the change left it, and the change.",
+        "properties": {
+          "collection": {
             "type": "object",
-            "description": "`record.*`: `record` (as the change's revision left it, or as it is\nnow for events without a revision such as `record.scheduled`; null\nonce it is purged), `revision` and `revision_id`; a merged draft's\n`record.updated` adds its `draft_id`. `draft.*`: `draft` (as it is\nnow; null once merged or discarded, and while its record is\ndeleted), `draft_id` and `record_id`. `asset.*`:\n`asset` (as it is now). `collection.*` and `field.*`: `collection`\nand `schema_change`, except `field.alias_removed`: `field`.\n`webhook.test`: `webhook`.\n"
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "object",
+              "slug",
+              "name",
+              "schema_version",
+              "deleted_at"
+            ],
+            "description": "Only `id` and `object` are known once the schema change is gone (the collection was purged).",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "object": {
+                "const": "collection"
+              },
+              "slug": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "schema_version": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "deleted_at": {
+                "$ref": "#/components/schemas/NullableTimestamp"
+              }
+            }
+          },
+          "field_id": {
+            "type": "string",
+            "description": "`field.*`: the field that changed."
+          },
+          "schema_change": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "operation",
+                  "from_version",
+                  "to_version"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "operation": {
+                    "type": "string"
+                  },
+                  "from_version": {
+                    "type": "integer"
+                  },
+                  "to_version": {
+                    "type": "integer"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "FieldAliasEventData": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "field"
+        ],
+        "description": "`field.alias_removed`: the field.",
+        "properties": {
+          "field": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Field"
+              }
+            ]
+          }
+        }
+      },
+      "WebhookTestEventData": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "webhook"
+        ],
+        "description": "`webhook.test`: the webhook it was sent to.",
+        "properties": {
+          "webhook": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Webhook"
+              }
+            ]
           }
         }
       },
@@ -9668,12 +9314,12 @@
           "records": {
             "type": "integer",
             "minimum": 0,
-            "description": "Undeleted records that use the asset."
+            "description": "Undeleted records that use the asset, in their content or their draft."
           },
           "published": {
             "type": "integer",
             "minimum": 0,
-            "description": "Of those, the published ones (what sites show)."
+            "description": "Of those, the published ones whose content uses it (what sites show)."
           },
           "uses": {
             "type": "array",
@@ -9693,7 +9339,7 @@
                 "fields": {
                   "type": "array",
                   "minItems": 1,
-                  "description": "API keys of the record's fields that use the asset.",
+                  "description": "Keys of the record's fields that use the asset, in its content or its draft.",
                   "items": {
                     "type": "string"
                   }
@@ -9829,7 +9475,7 @@
       },
       "ApiKeyScope": {
         "type": "string",
-        "description": "What a project API key may do. `webhooks:read` includes delivery payloads and `webhooks:write` can subscribe an endpoint to every event, so both give access to the record, schema and asset data in events, unpublished records included; published-only keys cannot have them.",
+        "description": "What a project API key may do. `records:write` also publishes, unpublishes and schedules records (the `records:publish` permission). `webhooks:read` includes delivery payloads and `webhooks:write` can subscribe an endpoint to every event, so both give access to the record, schema and asset data in events, unpublished records included; published-only keys cannot have them.",
         "enum": [
           "records:read",
           "records:write",
@@ -9874,7 +9520,7 @@
         "properties": {
           "field": {
             "type": "string",
-            "description": "API key of the offending field or parameter, when applicable."
+            "description": "Key of the offending field or parameter, when applicable."
           },
           "code": {
             "type": "string",
@@ -10033,7 +9679,7 @@
         }
       },
       "BadRequest": {
-        "description": "The request was malformed.",
+        "description": "The request was malformed: unparseable JSON, an invalid query parameter, or a body key the operation doesn't take (detail code `unknown_parameter`, naming the key).",
         "headers": {
           "X-Request-Id": {
             "$ref": "#/components/headers/RequestId"

@@ -8,20 +8,20 @@ A **collection** is a data model: blog posts, products, team members. It has a n
 A **field** has:
 
 - a **name** shown to editors ("Cover image");
-- an **API key**, the key its value has in a record's `data` (`cover_image`);
+- a **key**, the key its value has in a record's `data` (`cover_image`);
 - a **type**, such as text, number or relation;
 - **required**: whether every record must have a value (not for `boolean` fields: a boolean is true or false, and no value reads as false);
 - **multiple**: whether the value is a list (not available for `boolean`, `long_text`, `rich_text` and `json`);
-- a type-specific **configuration**, such as a maximum length or enum options.
+- a type-specific **configuration**, such as a maximum length or enum options (the API reference lists each type's).
 
 ## Naming rules
 
 | | Rule |
 | --- | --- |
 | Collection slug | Starts with a letter; lowercase letters, digits, `-` and `_`; at most 63 characters. Unique in the project. |
-| Field API key | Starts with a letter; lowercase letters, digits and `_` (snake_case); at most 63 characters. Unique in the collection. |
+| Field key | Starts with a letter; lowercase letters, digits and `_` (snake_case); at most 63 characters. Unique in the collection. |
 
-These field API keys are reserved, for records' own attributes and a few kept for later: `id`, `object`, `collection`, `data`, `status`, `published_at`, `created_at`, `updated_at`, `deleted`, `deleted_at`, `purge_after`, `revision`, `schema_version`.
+These field keys are reserved, for records' own attributes and a few kept for later: `id`, `object`, `collection`, `data`, `status`, `published_at`, `created_at`, `updated_at`, `deleted`, `deleted_at`, `purge_after`, `revision`, `schema_version`.
 
 ## Field types
 
@@ -120,18 +120,18 @@ A relation field points at records in another collection of the same project, se
 
 An asset field takes any file unless you limit it with `accepted_types`: MIME types or `type/*` wildcards, such as `["image/*", "application/pdf"]`. In the web app, these are the field's **Allowed files** (images, videos, audio, PDFs). The limit applies to newly written values: files already in records are kept, and a new file of another type is refused (`type_not_accepted`). To list only the assets a field takes, pass its types as `filter[content_type]` to `GET /v1/projects/{project_id}/assets` (`assets.list({ content_type })` in the SDKs).
 
-Records store only the IDs. To get the related records or assets in the same response, pass `expand` with up to five relation, asset or rich text field API keys (for rich text, the assets its images show):
+Records store only the IDs. To get the related records or assets in the same response, pass `expand` with up to five relation, asset or rich text field keys (for rich text, the assets its images show):
 
 ```bash
 curl "$NOHEAD_API_URL/v1/collections/blog-posts/records?expand=author,cover_image" \
   -H "Authorization: Bearer $NOHEAD_API_KEY"
 ```
 
-Each record then has an `expanded` object keyed by field API key. A related record or asset that no longer exists is `null` for a single-value field and left out of the list for a multiple one. With a published-only key, related unpublished records are left out too.
+Each record then has an `expanded` object keyed by field key. A related record or asset that no longer exists is `null` for a single-value field and left out of the list for a multiple one. With a published-only key, related unpublished records are left out too.
 
 ## Filtering and search
 
-Record lists filter on field values with `filter[<api_key>]=value` (equal), or with an operator, `filter[<api_key>][<operator>]=value`, for `text`, `long_text`, `integer`, `decimal`, `boolean`, `date`, `enum`, `asset` and `relation` fields. Filters combine with AND:
+Record lists filter on field values with `filter[<key>]=value` (equal), or with an operator, `filter[<key>][<operator>]=value`, for `text`, `long_text`, `integer`, `decimal`, `boolean`, `date`, `enum`, `asset` and `relation` fields. Filters combine with AND:
 
 | Operator | Matches | Example |
 | --- | --- | --- |
@@ -151,7 +151,7 @@ Every collection is indexed for full-text search, so members can search any coll
 
 You can change a collection's name and description at any time. Adding fields, renaming them and changing their options is safe: record data is stored by field ID, so it never moves.
 
-- **Renaming a field's API key** keeps its values. Records come back under the new key, and requests that use the old key keep working for six months, so your code has time to switch.
+- **Renaming a field's key** keeps its values. Records come back under the new key, and requests that use the old key keep working for six months, so your code has time to switch.
 - **Changing a field's type, making it multiple, or adding or removing a date's time** rewrites stored values, so it runs as a **field migration**. You can preview how many records convert cleanly before you start, and the collection is read-only while the migration runs.
 - **Tightening a field** (making it required, lowering a maximum, removing enum options) is refused while existing records would break the new rule. Fix those records first, or run a field migration that fills in a value for them.
 - **Deleting a field or collection** is a soft delete, and can be undone.

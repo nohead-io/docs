@@ -62,7 +62,7 @@ description: Create a project, publish a record and fetch it from your code.
 
 ## The response
 
-Lists return the records under `data`, with a cursor for the next page under `meta`. Each record's values are under its own `data`, keyed by field API key. A record is published when it has a `published_at`:
+Lists return the records under `data`, with a cursor for the next page under `meta`. Each record's values are under its own `data`, keyed by field key. A record is published when it has a `published_at`:
 
 ```json
 {
@@ -93,6 +93,6 @@ Lists return the records under `data`, with a cursor for the next page under `me
 ## Next steps
 
 - Pass `limit` (1 to 100) and `cursor` to page through long lists, and `sort` (for example `-published_at`) to order them.
-- Filter on a field with `filter[<api_key>]=value`, for example `filter[category]=news`.
+- Filter on a field with `filter[<key>]=value`, for example `filter[category]=news`.
 - Embed related records or assets with `expand=author,cover_image`.
 - Fetch one record with `GET /v1/records/{record_id}`.
