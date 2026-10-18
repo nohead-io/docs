@@ -468,81 +468,6 @@
         ]
       }
     },
-    "/v1/records/{record_id}/restore": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/RecordId"
-        }
-      ],
-      "post": {
-        "operationId": "records_restore",
-        "summary": "Restore a record",
-        "description": "Brings a soft-deleted record back; restoring one that isn't deleted\nchanges nothing. `409` when another record took one of its `unique`\nvalues meanwhile (detail code `taken`, with that record's `record_id`).\n",
-        "tags": [
-          "records"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/IdempotencyKey"
-          },
-          {
-            "$ref": "#/components/parameters/IfMatch"
-          },
-          {
-            "$ref": "#/components/parameters/NoheadClient"
-          },
-          {
-            "$ref": "#/components/parameters/ChangeNote"
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/components/responses/Record"
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "402": {
-            "$ref": "#/components/responses/PlanLimitExceeded"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "409": {
-            "$ref": "#/components/responses/Conflict"
-          },
-          "412": {
-            "$ref": "#/components/responses/PreconditionFailed"
-          },
-          "429": {
-            "$ref": "#/components/responses/RateLimited"
-          }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.restore(\"rec_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.restore(\"rec_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.restore(\"rec_01J9ZQ3F8X\")\n"
-          }
-        ]
-      }
-    },
     "/v1/collections/{collection_id}/records/count": {
       "parameters": [
         {
@@ -689,6 +614,81 @@
             "lang": "ruby",
             "label": "Ruby",
             "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.bulk(\"posts\", action: \"publish\", record_ids: [\"rec_01J9ZQ3F8X\"])\n"
+          }
+        ]
+      }
+    },
+    "/v1/records/{record_id}/restore": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/RecordId"
+        }
+      ],
+      "post": {
+        "operationId": "records_restore",
+        "summary": "Restore a record",
+        "description": "Brings a soft-deleted record back; restoring one that isn't deleted\nchanges nothing. `409` when another record took one of its `unique`\nvalues meanwhile (detail code `taken`, with that record's `record_id`).\n",
+        "tags": [
+          "records"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          },
+          {
+            "$ref": "#/components/parameters/NoheadClient"
+          },
+          {
+            "$ref": "#/components/parameters/ChangeNote"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Record"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PlanLimitExceeded"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "412": {
+            "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.restore(\"rec_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.restore(\"rec_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.restore(\"rec_01J9ZQ3F8X\")\n"
           }
         ]
       }
@@ -3030,161 +3030,6 @@
         ]
       }
     },
-    "/v1/fields/{field_id}/restore": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/FieldId"
-        }
-      ],
-      "post": {
-        "operationId": "fields_restore",
-        "summary": "Restore a deleted field",
-        "description": "Brings a deleted field back with its values. `409` (detail code\n`duplicate_values`) for a unique field whose values records share\nnow.\n",
-        "tags": [
-          "fields"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/IdempotencyKey"
-          },
-          {
-            "$ref": "#/components/parameters/NoheadClient"
-          },
-          {
-            "$ref": "#/components/parameters/ChangeNote"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The restored field.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Field"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "409": {
-            "$ref": "#/components/responses/Conflict"
-          },
-          "422": {
-            "$ref": "#/components/responses/ValidationFailed"
-          },
-          "429": {
-            "$ref": "#/components/responses/RateLimited"
-          }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.fields.restore(\"fld_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.fields.restore(\"fld_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.fields.restore(\"fld_01J9ZQ3F8X\")\n"
-          }
-        ]
-      }
-    },
-    "/v1/fields/{field_id}/aliases/{alias}": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/FieldId"
-        },
-        {
-          "name": "alias",
-          "in": "path",
-          "required": true,
-          "description": "The old API key.",
-          "schema": {
-            "type": "string"
-          }
-        }
-      ],
-      "delete": {
-        "operationId": "fields_remove_alias",
-        "summary": "Stop accepting a renamed field's old key",
-        "description": "Removes an alias before it expires (`schema:write`): clients using the\nold key stop working at once. Audited as `field.alias_removed`.\n",
-        "tags": [
-          "fields"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/IdempotencyKey"
-          },
-          {
-            "$ref": "#/components/parameters/NoheadClient"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The field.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Field"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "409": {
-            "$ref": "#/components/responses/Conflict"
-          },
-          "429": {
-            "$ref": "#/components/responses/RateLimited"
-          }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.fields.removeAlias(\"fld_01J9ZQ3F8X\", \"old_title\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.fields.remove_alias(\"fld_01J9ZQ3F8X\", \"old_title\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.fields.remove_alias(\"fld_01J9ZQ3F8X\", \"old_title\")\n"
-          }
-        ]
-      }
-    },
     "/v1/collections/{collection_id}/field-order": {
       "parameters": [
         {
@@ -3317,6 +3162,161 @@
             "lang": "ruby",
             "label": "Ruby",
             "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.fields.reorder(\"posts\", [\"fld_01J9ZQ3F8X\"])\n"
+          }
+        ]
+      }
+    },
+    "/v1/fields/{field_id}/aliases/{alias}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/FieldId"
+        },
+        {
+          "name": "alias",
+          "in": "path",
+          "required": true,
+          "description": "The old API key.",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "delete": {
+        "operationId": "fields_remove_alias",
+        "summary": "Stop accepting a renamed field's old key",
+        "description": "Removes an alias before it expires (`schema:write`): clients using the\nold key stop working at once. Audited as `field.alias_removed`.\n",
+        "tags": [
+          "fields"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/NoheadClient"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Field"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.fields.removeAlias(\"fld_01J9ZQ3F8X\", \"old_title\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.fields.remove_alias(\"fld_01J9ZQ3F8X\", \"old_title\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.fields.remove_alias(\"fld_01J9ZQ3F8X\", \"old_title\")\n"
+          }
+        ]
+      }
+    },
+    "/v1/fields/{field_id}/restore": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/FieldId"
+        }
+      ],
+      "post": {
+        "operationId": "fields_restore",
+        "summary": "Restore a deleted field",
+        "description": "Brings a deleted field back with its values. `409` (detail code\n`duplicate_values`) for a unique field whose values records share\nnow.\n",
+        "tags": [
+          "fields"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/NoheadClient"
+          },
+          {
+            "$ref": "#/components/parameters/ChangeNote"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The restored field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Field"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.fields.restore(\"fld_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.fields.restore(\"fld_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.fields.restore(\"fld_01J9ZQ3F8X\")\n"
           }
         ]
       }
@@ -3775,6 +3775,82 @@
         ]
       }
     },
+    "/v1/assets/{asset_id}/complete": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/AssetId"
+        }
+      ],
+      "post": {
+        "operationId": "assets_complete",
+        "summary": "Complete an upload",
+        "description": "Step 2 of uploading a file: verifies the uploaded file (it exists, with the\ndeclared size and content type), reads image dimensions and marks the asset\n`ready`. Only ready assets can be used in records. Safe to retry: a ready\nasset is returned unchanged. `422 upload_missing` means the file has not\nbeen uploaded yet; `422 upload_mismatch` means it differed from what was\ndeclared, and the asset is marked `failed`. `409` if the file was uploaded\nagain while it was being checked: complete it again.\n",
+        "tags": [
+          "assets"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/NoheadClient"
+          },
+          {
+            "$ref": "#/components/parameters/ChangeNote"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The ready asset.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Asset"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.assets.complete(\"ast_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.assets.complete(\"ast_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.assets.complete(\"ast_01J9ZQ3F8X\")\n"
+          }
+        ]
+      }
+    },
     "/v1/assets/{asset_id}": {
       "parameters": [
         {
@@ -3896,82 +3972,6 @@
             "lang": "ruby",
             "label": "Ruby",
             "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.assets.delete(\"ast_01J9ZQ3F8X\")\n"
-          }
-        ]
-      }
-    },
-    "/v1/assets/{asset_id}/complete": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/AssetId"
-        }
-      ],
-      "post": {
-        "operationId": "assets_complete",
-        "summary": "Complete an upload",
-        "description": "Step 2 of uploading a file: verifies the uploaded file (it exists, with the\ndeclared size and content type), reads image dimensions and marks the asset\n`ready`. Only ready assets can be used in records. Safe to retry: a ready\nasset is returned unchanged. `422 upload_missing` means the file has not\nbeen uploaded yet; `422 upload_mismatch` means it differed from what was\ndeclared, and the asset is marked `failed`. `409` if the file was uploaded\nagain while it was being checked: complete it again.\n",
-        "tags": [
-          "assets"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/IdempotencyKey"
-          },
-          {
-            "$ref": "#/components/parameters/NoheadClient"
-          },
-          {
-            "$ref": "#/components/parameters/ChangeNote"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The ready asset.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Asset"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "409": {
-            "$ref": "#/components/responses/Conflict"
-          },
-          "422": {
-            "$ref": "#/components/responses/ValidationFailed"
-          },
-          "429": {
-            "$ref": "#/components/responses/RateLimited"
-          }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.assets.complete(\"ast_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.assets.complete(\"ast_01J9ZQ3F8X\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.assets.complete(\"ast_01J9ZQ3F8X\")\n"
           }
         ]
       }
@@ -4463,138 +4463,6 @@
         ]
       }
     },
-    "/v1/collections/{collection_id}/search-index": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/CollectionRef"
-        }
-      ],
-      "get": {
-        "operationId": "search_index_get",
-        "summary": "Get search index status",
-        "description": "Whether the collection's search index is built and up to date.",
-        "tags": [
-          "search"
-        ],
-        "responses": {
-          "200": {
-            "description": "The index status.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SearchIndex"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "429": {
-            "$ref": "#/components/responses/RateLimited"
-          }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.collections.searchIndex.get(\"posts\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.collections.search_index.get(\"posts\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.collections.search_index.get(\"posts\")\n"
-          }
-        ]
-      }
-    },
-    "/v1/collections/{collection_id}/search-index/rebuild": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/CollectionRef"
-        }
-      ],
-      "post": {
-        "operationId": "search_index_rebuild",
-        "summary": "Rebuild the search index",
-        "description": "Rebuilds the collection's index from its records in the background.\nSearch keeps working with the current index until the new one is ready.\nRarely needed: indexes follow record and schema changes automatically.\nLimited to a few an hour per collection and per organization (`429`).\n",
-        "tags": [
-          "search"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/IdempotencyKey"
-          },
-          {
-            "$ref": "#/components/parameters/NoheadClient"
-          },
-          {
-            "$ref": "#/components/parameters/ChangeNote"
-          }
-        ],
-        "responses": {
-          "202": {
-            "description": "The rebuild was queued.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SearchIndex"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "409": {
-            "$ref": "#/components/responses/Conflict"
-          },
-          "429": {
-            "$ref": "#/components/responses/RateLimited"
-          }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "typescript",
-            "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.collections.searchIndex.rebuild(\"posts\")\n"
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.collections.search_index.rebuild(\"posts\")\n"
-          },
-          {
-            "lang": "ruby",
-            "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.collections.search_index.rebuild(\"posts\")\n"
-          }
-        ]
-      }
-    },
     "/v1/projects/{project_id}/search": {
       "parameters": [
         {
@@ -4730,6 +4598,138 @@
             "lang": "ruby",
             "label": "Ruby",
             "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.search(\"hello\", collections: [\"posts\"], published: true).each do |record|\n  puts record\nend\n"
+          }
+        ]
+      }
+    },
+    "/v1/collections/{collection_id}/search-index": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/CollectionRef"
+        }
+      ],
+      "get": {
+        "operationId": "search_index_get",
+        "summary": "Get search index status",
+        "description": "Whether the collection's search index is built and up to date.",
+        "tags": [
+          "search"
+        ],
+        "responses": {
+          "200": {
+            "description": "The index status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchIndex"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.collections.searchIndex.get(\"posts\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.collections.search_index.get(\"posts\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.collections.search_index.get(\"posts\")\n"
+          }
+        ]
+      }
+    },
+    "/v1/collections/{collection_id}/search-index/rebuild": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/CollectionRef"
+        }
+      ],
+      "post": {
+        "operationId": "search_index_rebuild",
+        "summary": "Rebuild the search index",
+        "description": "Rebuilds the collection's index from its records in the background.\nSearch keeps working with the current index until the new one is ready.\nRarely needed: indexes follow record and schema changes automatically.\nLimited to a few an hour per collection and per organization (`429`).\n",
+        "tags": [
+          "search"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/NoheadClient"
+          },
+          {
+            "$ref": "#/components/parameters/ChangeNote"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "The rebuild was queued.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchIndex"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.collections.searchIndex.rebuild(\"posts\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.collections.search_index.rebuild(\"posts\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.collections.search_index.rebuild(\"posts\")\n"
           }
         ]
       }
@@ -5090,16 +5090,16 @@
         ]
       }
     },
-    "/v1/webhooks/{webhook_id}/restore": {
+    "/v1/webhooks/{webhook_id}/test": {
       "parameters": [
         {
           "$ref": "#/components/parameters/WebhookId"
         }
       ],
       "post": {
-        "operationId": "webhooks_restore",
-        "summary": "Restore a webhook",
-        "description": "Brings a deleted webhook back, with its settings and secrets, until\n`purge_after`. Deliveries that came due while it was deleted failed;\nattempt them again with `POST /v1/webhook-deliveries/{delivery_id}/attempts`.\nRestoring counts against the plan's webhook limit (`402`).\n",
+        "operationId": "webhooks_test",
+        "summary": "Send a test event",
+        "description": "Sends a `webhook.test` event to this webhook only. `409` if it is\ndisabled.\n",
         "tags": [
           "webhooks"
         ],
@@ -5115,12 +5115,12 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "The restored webhook.",
+          "202": {
+            "description": "The queued delivery.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Webhook"
+                  "$ref": "#/components/schemas/WebhookDelivery"
                 }
               }
             }
@@ -5130,9 +5130,6 @@
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
-          },
-          "402": {
-            "$ref": "#/components/responses/PlanLimitExceeded"
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
@@ -5151,17 +5148,17 @@
           {
             "lang": "typescript",
             "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.webhooks.restore(\"wh_01J9ZQ3F8X\")\n"
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.webhooks.test(\"wh_01J9ZQ3F8X\")\n"
           },
           {
             "lang": "python",
             "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.webhooks.restore(\"wh_01J9ZQ3F8X\")\n"
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.webhooks.test(\"wh_01J9ZQ3F8X\")\n"
           },
           {
             "lang": "ruby",
             "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.webhooks.restore(\"wh_01J9ZQ3F8X\")\n"
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.webhooks.test(\"wh_01J9ZQ3F8X\")\n"
           }
         ]
       }
@@ -5372,16 +5369,16 @@
         ]
       }
     },
-    "/v1/webhooks/{webhook_id}/test": {
+    "/v1/webhooks/{webhook_id}/restore": {
       "parameters": [
         {
           "$ref": "#/components/parameters/WebhookId"
         }
       ],
       "post": {
-        "operationId": "webhooks_test",
-        "summary": "Send a test event",
-        "description": "Sends a `webhook.test` event to this webhook only. `409` if it is\ndisabled.\n",
+        "operationId": "webhooks_restore",
+        "summary": "Restore a webhook",
+        "description": "Brings a deleted webhook back, with its settings and secrets, until\n`purge_after`. Deliveries that came due while it was deleted failed;\nattempt them again with `POST /v1/webhook-deliveries/{delivery_id}/attempts`.\nRestoring counts against the plan's webhook limit (`402`).\n",
         "tags": [
           "webhooks"
         ],
@@ -5397,12 +5394,12 @@
           }
         ],
         "responses": {
-          "202": {
-            "description": "The queued delivery.",
+          "200": {
+            "description": "The restored webhook.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WebhookDelivery"
+                  "$ref": "#/components/schemas/Webhook"
                 }
               }
             }
@@ -5412,6 +5409,9 @@
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PlanLimitExceeded"
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
@@ -5430,17 +5430,17 @@
           {
             "lang": "typescript",
             "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.webhooks.test(\"wh_01J9ZQ3F8X\")\n"
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.webhooks.restore(\"wh_01J9ZQ3F8X\")\n"
           },
           {
             "lang": "python",
             "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.webhooks.test(\"wh_01J9ZQ3F8X\")\n"
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.webhooks.restore(\"wh_01J9ZQ3F8X\")\n"
           },
           {
             "lang": "ruby",
             "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.webhooks.test(\"wh_01J9ZQ3F8X\")\n"
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.webhooks.restore(\"wh_01J9ZQ3F8X\")\n"
           }
         ]
       }
