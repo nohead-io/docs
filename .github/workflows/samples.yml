@@ -43,8 +43,8 @@ jobs:
           if ! git diff --cached --quiet; then
             echo "hash=$(git diff --cached --binary | sha256sum | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
           fi
-      # A pull request opened with the workflow's token starts no CI, so the
-      # check runs here.
+      # A pull request opened with the workflow's token gets a CI run only
+      # once someone approves it, so the check runs here.
       - if: steps.change.outputs.hash != ''
         run: npm run check
 
