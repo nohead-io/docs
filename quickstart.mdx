@@ -16,7 +16,12 @@ description: Create a project, publish a record and fetch it from your code.
   <Step title="Create an API key">
     Under **API keys**, create a key with the **Read records** scope (`records:read`). Leave **Published records only** on (the default) for a key your live site uses, so unpublished records never reach it; turn it off for a key that writes.
 
-    The key is shown once. Store it somewhere safe, for example as `NOHEAD_API_KEY` in your app's environment.
+    The key is shown once. Store it somewhere safe, for example as `NOHEAD_API_KEY` in your app's environment, next to the API's address:
+
+    ```bash
+    export NOHEAD_API_URL=https://api.nohead.io
+    export NOHEAD_API_KEY=sk_live_...
+    ```
   </Step>
   <Step title="Fetch your content">
     List the collection's published records. With an API key, you can use the collection's slug instead of its ID.
@@ -24,7 +29,7 @@ description: Create a project, publish a record and fetch it from your code.
     <CodeGroup>
 
     ```bash curl
-    curl "$NOHEAD_API_URL/v1/collections/blog-posts/records?filter[published_at][exists]=true" \
+    curl -g "$NOHEAD_API_URL/v1/collections/blog-posts/records?filter[published_at][exists]=true" \
       -H "Authorization: Bearer $NOHEAD_API_KEY"
     ```
 
@@ -65,7 +70,7 @@ Lists return the records under `data`, with a cursor for the next page under `me
     {
       "id": "rec_01J9ZQ3F8X5W2K7M4N6P0R1S2T",
       "object": "record",
-      "collection_id": "col_01J9ZQ3F8X5W2K7M4N6P0AUTHR",
+      "collection_id": "col_01J9ZQ3F8X5W2K7M4N6P0ATHRS",
       "collection": "blog-posts",
       "published_at": "2026-09-27T12:00:00Z",
       "revision": 2,

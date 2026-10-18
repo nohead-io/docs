@@ -11,7 +11,7 @@ The SDKs cover every operation an API key can call, and every endpoint in the [A
 | Python (sync and async) | `nohead` | [nohead-io/nohead-python](https://github.com/nohead-io/nohead-python) |
 | Ruby | `nohead` | [nohead-io/nohead-ruby](https://github.com/nohead-io/nohead-ruby) |
 
-PHP is next. Anything else can call the API over HTTP, or generate a client from [`/openapi.json`](/api-reference/overview).
+Go and PHP can follow on request. Anything else can call the API over HTTP, or generate a client from [`/openapi.json`](/api-reference/overview).
 
 ## Install and connect
 
@@ -31,7 +31,7 @@ gem "nohead" # in your Gemfile
 
 </CodeGroup>
 
-Create a client with a project API key. Both read `NOHEAD_API_KEY` from the environment when you don't pass one. API keys belong to a project, so you never pass a project ID, and you can name collections by slug.
+Create a client with a project API key. Each reads `NOHEAD_API_KEY` (and `NOHEAD_API_URL`) from the environment when you don't pass one. Writing content, drafts, uploads and webhooks needs a key with **Published records only** off and the write scopes (`records:write`, `assets:write`, …); new keys are published-only by default. API keys belong to a project, so you never pass a project ID, and you can name collections by slug.
 
 <CodeGroup>
 
