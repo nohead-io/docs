@@ -170,7 +170,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const record of nohead.records.list(\"posts\", {\n  filter: { published_at: { exists: true } },\n  sort: \"-created_at\",\n  expand: [\"author\"],\n  limit: 5,\n})) {\n  console.log(record)\n}\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor record in nohead.records.list(\n    \"posts\",\n    filter={\"published_at\": {\"exists\": True}},\n    sort=\"-created_at\",\n    expand=[\"author\"],\n    limit=5,\n):\n    print(record)\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.records.list(\"posts\", filter: { published_at: { exists: true } }, sort: \"-created_at\", expand: [\"author\"], limit: 5).each do |record|\n  puts record\nend\n"
+          }
+        ]
       },
       "post": {
         "operationId": "records_create",
@@ -228,7 +245,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.create(\"posts\", { data: { title: \"Hi\" } })\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.create(\"posts\", data={\"title\": \"Hi\"})\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.create(\"posts\", data: { title: \"Hi\" })\n"
+          }
+        ]
       }
     },
     "/v1/records/{record_id}": {
@@ -268,7 +302,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.get(\"rec_01J9ZQ3F8X\", {\n  expand: [\"author\"],\n})\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.get(\"rec_01J9ZQ3F8X\", expand=[\"author\"])\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.get(\"rec_01J9ZQ3F8X\", expand: [\"author\"])\n"
+          }
+        ]
       },
       "patch": {
         "operationId": "records_update",
@@ -329,7 +380,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.update(\n  \"rec_01J9ZQ3F8X\",\n  { data: { title: \"Hey\" } },\n  { ifMatch: 1 }\n)\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.update(\"rec_01J9ZQ3F8X\", data={\"title\": \"Hey\"}, if_match=1)\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.update(\"rec_01J9ZQ3F8X\", data: { title: \"Hey\" }, if_match: 1)\n"
+          }
+        ]
       },
       "delete": {
         "operationId": "records_delete",
@@ -377,7 +445,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.delete(\"rec_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.delete(\"rec_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.delete(\"rec_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/collections/{collection_id}/records/count": {
@@ -424,7 +509,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.count(\"posts\", {\n  filter: { published_at: { exists: false } },\n})\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.count(\"posts\", filter={\"published_at\": {\"exists\": False}})\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.count(\"posts\", filter: { published_at: { exists: false } })\n"
+          }
+        ]
       }
     },
     "/v1/collections/{collection_id}/record-batches": {
@@ -493,7 +595,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.bulk(\"posts\", {\n  action: \"publish\",\n  record_ids: [\"rec_01J9ZQ3F8X\"],\n})\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.bulk(\"posts\", action=\"publish\", record_ids=[\"rec_01J9ZQ3F8X\"])\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.bulk(\"posts\", action: \"publish\", record_ids: [\"rec_01J9ZQ3F8X\"])\n"
+          }
+        ]
       }
     },
     "/v1/records/{record_id}/restore": {
@@ -551,7 +670,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.restore(\"rec_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.restore(\"rec_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.restore(\"rec_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/records/{record_id}/publication": {
@@ -593,7 +729,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.publication(\"rec_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.publication(\"rec_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.publication(\"rec_01J9ZQ3F8X\")\n"
+          }
+        ]
       },
       "post": {
         "operationId": "records_publish",
@@ -641,7 +794,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.publish(\"rec_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.publish(\"rec_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.publish(\"rec_01J9ZQ3F8X\")\n"
+          }
+        ]
       },
       "delete": {
         "operationId": "records_unpublish",
@@ -689,7 +859,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.unpublish(\"rec_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.unpublish(\"rec_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.unpublish(\"rec_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/records/{record_id}/schedule": {
@@ -724,7 +911,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.getSchedule(\"rec_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.get_schedule(\"rec_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.get_schedule(\"rec_01J9ZQ3F8X\")\n"
+          }
+        ]
       },
       "put": {
         "operationId": "records_schedule",
@@ -776,7 +980,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.schedule(\"rec_01J9ZQ3F8X\", {\n  publish_at: \"2027-01-01T00:00:00Z\",\n})\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.schedule(\"rec_01J9ZQ3F8X\", publish_at=\"2027-01-01T00:00:00Z\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.schedule(\"rec_01J9ZQ3F8X\", publish_at: Time.utc(2027, 1, 1))\n"
+          }
+        ]
       },
       "delete": {
         "operationId": "records_unschedule",
@@ -815,7 +1036,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.unschedule(\"rec_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.unschedule(\"rec_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.unschedule(\"rec_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/collections/{collection_id}/scheduled-changes": {
@@ -877,7 +1115,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const change of nohead.records.scheduledChanges(\"posts\", {\n  sort: \"-at\",\n})) {\n  console.log(change)\n}\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor change in nohead.records.scheduled_changes(\"posts\", sort=\"-at\"):\n    print(change)\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.records.scheduled_changes(\"posts\", sort: \"-at\").each do |change|\n  puts change\nend\n"
+          }
+        ]
       }
     },
     "/v1/records/{record_id}/revisions": {
@@ -930,7 +1185,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const revision of nohead.records.revisions.list(\"rec_01J9ZQ3F8X\", {\n  filter: { operation: \"update\" },\n})) {\n  console.log(revision)\n}\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor revision in nohead.records.revisions.list(\n    \"rec_01J9ZQ3F8X\", filter={\"operation\": \"update\"}\n):\n    print(revision)\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.records.revisions.list(\"rec_01J9ZQ3F8X\", filter: { operation: \"update\" }).each do |revision|\n  puts revision\nend\n"
+          }
+        ]
       }
     },
     "/v1/records/{record_id}/revisions/{revision}": {
@@ -974,7 +1246,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.revisions.get(\"rec_01J9ZQ3F8X\", 1)\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.revisions.get(\"rec_01J9ZQ3F8X\", 1)\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.revisions.get(\"rec_01J9ZQ3F8X\", 1)\n"
+          }
+        ]
       }
     },
     "/v1/records/{record_id}/revisions/{revision}/revert": {
@@ -1062,7 +1351,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.revisions.revert(\"rec_01J9ZQ3F8X\", 1, {\n  dry_run: true,\n})\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.revisions.revert(\"rec_01J9ZQ3F8X\", 1, dry_run=True)\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.revisions.revert(\"rec_01J9ZQ3F8X\", 1, dry_run: true)\n"
+          }
+        ]
       }
     },
     "/v1/records/{record_id}/diff": {
@@ -1123,7 +1429,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.diff(\"rec_01J9ZQ3F8X\", { from: 1, to: 2 })\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.diff(\"rec_01J9ZQ3F8X\", from_revision=1, to_revision=2)\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.diff(\"rec_01J9ZQ3F8X\", from: 1, to: 2)\n"
+          }
+        ]
       }
     },
     "/v1/records/{record_id}/drafts": {
@@ -1166,7 +1489,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const draft of nohead.records.drafts(\"rec_01J9ZQ3F8X\")) {\n  console.log(draft)\n}\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor draft in nohead.records.drafts(\"rec_01J9ZQ3F8X\"):\n    print(draft)\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.records.drafts(\"rec_01J9ZQ3F8X\").each do |draft|\n  puts draft\nend\n"
+          }
+        ]
       },
       "post": {
         "operationId": "drafts_create",
@@ -1218,7 +1558,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.drafts.create(\"rec_01J9ZQ3F8X\", {\n  data: { title: \"Hey\" },\n})\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.drafts.create(\"rec_01J9ZQ3F8X\", data={\"title\": \"Hey\"})\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.drafts.create(\"rec_01J9ZQ3F8X\", data: { title: \"Hey\" })\n"
+          }
+        ]
       }
     },
     "/v1/collections/{collection_id}/drafts": {
@@ -1305,7 +1662,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const draft of nohead.drafts.list(\"posts\", {\n  record_id: [\"rec_01J9ZQ3F8X\"],\n})) {\n  console.log(draft)\n}\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor draft in nohead.drafts.list(\"posts\", record_id=[\"rec_01J9ZQ3F8X\"]):\n    print(draft)\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.drafts.list(\"posts\", record_id: [\"rec_01J9ZQ3F8X\"]).each do |draft|\n  puts draft\nend\n"
+          }
+        ]
       }
     },
     "/v1/drafts/{draft_id}": {
@@ -1345,7 +1719,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.drafts.get(\"drf_01J9ZQ3F8X\", { expand: [\"author\"] })\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.drafts.get(\"drf_01J9ZQ3F8X\", expand=[\"author\"])\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.drafts.get(\"drf_01J9ZQ3F8X\", expand: [\"author\"])\n"
+          }
+        ]
       },
       "patch": {
         "operationId": "drafts_update",
@@ -1403,7 +1794,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.drafts.update(\n  \"drf_01J9ZQ3F8X\",\n  { data: { title: \"Hey there\" } },\n  { ifMatch: 1 }\n)\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.drafts.update(\"drf_01J9ZQ3F8X\", data={\"title\": \"Hey there\"}, if_match=1)\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.drafts.update(\"drf_01J9ZQ3F8X\", data: { title: \"Hey there\" }, if_match: 1)\n"
+          }
+        ]
       },
       "delete": {
         "operationId": "drafts_discard",
@@ -1448,7 +1856,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.drafts.discard(\"drf_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.drafts.discard(\"drf_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.drafts.discard(\"drf_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/drafts/{draft_id}/merge": {
@@ -1506,7 +1931,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.drafts.merge(\"drf_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.drafts.merge(\"drf_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.drafts.merge(\"drf_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/drafts/{draft_id}/schedule": {
@@ -1565,7 +2007,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.drafts.schedule(\"drf_01J9ZQ3F8X\", {\n  merge_at: \"2027-01-01T09:00:00Z\",\n})\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.drafts.schedule(\"drf_01J9ZQ3F8X\", merge_at=\"2027-01-01T09:00:00Z\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.drafts.schedule(\"drf_01J9ZQ3F8X\", merge_at: Time.utc(2027, 1, 1, 9))\n"
+          }
+        ]
       },
       "delete": {
         "operationId": "drafts_unschedule",
@@ -1604,7 +2063,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.drafts.unschedule(\"drf_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.drafts.unschedule(\"drf_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.drafts.unschedule(\"drf_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/projects/{project_id}/collections": {
@@ -1657,7 +2133,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const collection of nohead.collections.list({ deleted: true })) {\n  console.log(collection)\n}\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor collection in nohead.collections.list(deleted=True):\n    print(collection)\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.collections.list(deleted: true).each do |collection|\n  puts collection\nend\n"
+          }
+        ]
       },
       "post": {
         "operationId": "collections_create",
@@ -1722,7 +2215,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.collections.create({ name: \"Posts\", slug: \"posts\" })\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.collections.create(name=\"Posts\", slug=\"posts\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.collections.create(name: \"Posts\", slug: \"posts\")\n"
+          }
+        ]
       }
     },
     "/v1/collections/{collection_id}": {
@@ -1764,7 +2274,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.collections.get(\"posts\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.collections.get(\"posts\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.collections.get(\"posts\")\n"
+          }
+        ]
       },
       "patch": {
         "operationId": "collections_update",
@@ -1826,7 +2353,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.collections.update(\"posts\", { name: \"Articles\" })\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.collections.update(\"posts\", name=\"Articles\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.collections.update(\"posts\", name: \"Articles\")\n"
+          }
+        ]
       },
       "delete": {
         "operationId": "collections_delete",
@@ -1875,7 +2419,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.collections.delete(\"posts\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.collections.delete(\"posts\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.collections.delete(\"posts\")\n"
+          }
+        ]
       }
     },
     "/v1/collections/{collection_id}/restore": {
@@ -1937,7 +2498,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.collections.restore(\"posts\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.collections.restore(\"posts\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.collections.restore(\"posts\")\n"
+          }
+        ]
       }
     },
     "/v1/collections/{collection_id}/schema": {
@@ -1990,7 +2568,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.collections.schema(\"posts\", { version: 2 })\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.collections.schema(\"posts\", version=2)\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.collections.schema(\"posts\", version: 2)\n"
+          }
+        ]
       }
     },
     "/v1/collections/{collection_id}/schema-changes": {
@@ -2040,7 +2635,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const change of nohead.collections.schemaChanges.list(\"posts\")) {\n  console.log(change)\n}\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor change in nohead.collections.schema_changes.list(\"posts\"):\n    print(change)\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.collections.schema_changes.list(\"posts\").each do |change|\n  puts change\nend\n"
+          }
+        ]
       }
     },
     "/v1/schema-changes/{schema_change_id}": {
@@ -2087,7 +2699,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.collections.schemaChanges.get(\"sch_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.collections.schema_changes.get(\"sch_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.collections.schema_changes.get(\"sch_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/collections/{collection_id}/fields": {
@@ -2140,7 +2769,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const field of nohead.fields.list(\"posts\", { deleted: true })) {\n  console.log(field)\n}\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor field in nohead.fields.list(\"posts\", deleted=True):\n    print(field)\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.fields.list(\"posts\", deleted: true).each do |field|\n  puts field\nend\n"
+          }
+        ]
       },
       "post": {
         "operationId": "fields_create",
@@ -2201,7 +2847,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.fields.create(\"posts\", {\n  name: \"Title\",\n  key: \"title\",\n  type: \"text\",\n})\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.fields.create(\"posts\", name=\"Title\", key=\"title\", type=\"text\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.fields.create(\"posts\", name: \"Title\", key: \"title\", type: \"text\")\n"
+          }
+        ]
       }
     },
     "/v1/fields/{field_id}": {
@@ -2243,7 +2906,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.fields.get(\"fld_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.fields.get(\"fld_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.fields.get(\"fld_01J9ZQ3F8X\")\n"
+          }
+        ]
       },
       "patch": {
         "operationId": "fields_update",
@@ -2305,7 +2985,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.fields.update(\"fld_01J9ZQ3F8X\", { name: \"Heading\" })\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.fields.update(\"fld_01J9ZQ3F8X\", name=\"Heading\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.fields.update(\"fld_01J9ZQ3F8X\", name: \"Heading\")\n"
+          }
+        ]
       },
       "delete": {
         "operationId": "fields_delete",
@@ -2354,7 +3051,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.fields.delete(\"fld_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.fields.delete(\"fld_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.fields.delete(\"fld_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/collections/{collection_id}/field-order": {
@@ -2389,7 +3103,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.fields.order(\"posts\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.fields.order(\"posts\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.fields.order(\"posts\")\n"
+          }
+        ]
       },
       "put": {
         "operationId": "fields_reorder",
@@ -2456,7 +3187,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.fields.reorder(\"posts\", {\n  field_ids: [\"fld_01J9ZQ3F8X\"],\n})\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.fields.reorder(\"posts\", field_ids=[\"fld_01J9ZQ3F8X\"])\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.fields.reorder(\"posts\", field_ids: [\"fld_01J9ZQ3F8X\"])\n"
+          }
+        ]
       }
     },
     "/v1/fields/{field_id}/aliases/{alias}": {
@@ -2518,7 +3266,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.fields.removeAlias(\"fld_01J9ZQ3F8X\", \"old_title\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.fields.remove_alias(\"fld_01J9ZQ3F8X\", \"old_title\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.fields.remove_alias(\"fld_01J9ZQ3F8X\", \"old_title\")\n"
+          }
+        ]
       }
     },
     "/v1/fields/{field_id}/restore": {
@@ -2577,7 +3342,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.fields.restore(\"fld_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.fields.restore(\"fld_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.fields.restore(\"fld_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/collections/{collection_id}/migrations": {
@@ -2627,7 +3409,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const migration of nohead.migrations.list(\"posts\")) {\n  console.log(migration)\n}\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor migration in nohead.migrations.list(\"posts\"):\n    print(migration)\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.migrations.list(\"posts\").each do |migration|\n  puts migration\nend\n"
+          }
+        ]
       }
     },
     "/v1/fields/{field_id}/migrations": {
@@ -2714,7 +3513,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.fields.migrate(\"fld_01J9ZQ3F8X\", {\n  type: \"long_text\",\n  dry_run: true,\n})\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.fields.migrate(\"fld_01J9ZQ3F8X\", type=\"long_text\", dry_run=True)\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.fields.migrate(\"fld_01J9ZQ3F8X\", type: \"long_text\", dry_run: true)\n"
+          }
+        ]
       }
     },
     "/v1/migrations/{migration_id}": {
@@ -2756,7 +3572,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.migrations.get(\"mig_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.migrations.get(\"mig_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.migrations.get(\"mig_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/migrations/{migration_id}/cancel": {
@@ -2809,7 +3642,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.migrations.cancel(\"mig_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.migrations.cancel(\"mig_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.migrations.cancel(\"mig_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/projects/{project_id}/assets": {
@@ -2862,7 +3712,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const asset of nohead.assets.list({ deleted: true })) {\n  console.log(asset)\n}\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor asset in nohead.assets.list(deleted=True):\n    print(asset)\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.assets.list(deleted: true).each do |asset|\n  puts asset\nend\n"
+          }
+        ]
       },
       "post": {
         "operationId": "assets_upload",
@@ -2929,7 +3796,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.assets.upload(\n  new Blob([\"Hello\"], { type: \"text/plain\" }),\n  {\n    filename: \"hello.txt\",\n  }\n)\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.assets.upload(b\"Hello\", filename=\"hello.txt\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\nrequire \"stringio\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.assets.upload(StringIO.new(\"Hello\"), filename: \"hello.txt\")\n"
+          }
+        ]
       }
     },
     "/v1/assets/{asset_id}/complete": {
@@ -2985,7 +3869,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.assets.complete(\"ast_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.assets.complete(\"ast_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.assets.complete(\"ast_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/assets/{asset_id}": {
@@ -3027,7 +3928,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.assets.get(\"ast_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.assets.get(\"ast_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.assets.get(\"ast_01J9ZQ3F8X\")\n"
+          }
+        ]
       },
       "delete": {
         "operationId": "assets_delete",
@@ -3073,7 +3991,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.assets.delete(\"ast_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.assets.delete(\"ast_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.assets.delete(\"ast_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/assets/{asset_id}/image-url": {
@@ -3182,7 +4117,24 @@
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.assets.imageUrl(\"ast_01J9ZQ3F8X\", {\n  width: 100,\n  format: \"webp\",\n})\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.assets.image_url(\"ast_01J9ZQ3F8X\", width=100, format=\"webp\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.assets.image_url(\"ast_01J9ZQ3F8X\", width: 100, format: \"webp\")\n"
+          }
+        ]
       }
     },
     "/v1/assets/{asset_id}/download-url": {
@@ -3227,7 +4179,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.assets.downloadUrl(\"ast_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.assets.download_url(\"ast_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.assets.download_url(\"ast_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/assets/{asset_id}/usage": {
@@ -3269,7 +4238,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.assets.usage(\"ast_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.assets.usage(\"ast_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.assets.usage(\"ast_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/assets/{asset_id}/restore": {
@@ -3321,7 +4307,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.assets.restore(\"ast_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.assets.restore(\"ast_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.assets.restore(\"ast_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/assets/{asset_id}/purge": {
@@ -3374,7 +4377,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.assets.purge(\"ast_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.assets.purge(\"ast_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.assets.purge(\"ast_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/collections/{collection_id}/search": {
@@ -3452,7 +4472,24 @@
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const record of nohead.records.search(\"posts\", \"hello\", {\n  filter: { published_at: { exists: true } },\n  sort: \"-published_at\",\n  expand: [\"author\"],\n})) {\n  console.log(record)\n}\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor record in nohead.records.search(\n    \"posts\",\n    \"hello\",\n    filter={\"published_at\": {\"exists\": True}},\n    sort=\"-published_at\",\n    expand=[\"author\"],\n):\n    print(record)\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.records.search(\"posts\", \"hello\", filter: { published_at: { exists: true } }, sort: \"-published_at\", expand: [\"author\"]).each do |record|\n  puts record\nend\n"
+          }
+        ]
       }
     },
     "/v1/projects/{project_id}/search": {
@@ -3574,7 +4611,24 @@
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const record of nohead.search(\"hello\", {\n  collections: [\"posts\"],\n  filter: { published_at: { exists: true } },\n})) {\n  console.log(record)\n}\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor record in nohead.search(\n    \"hello\", collections=[\"posts\"], filter={\"published_at\": {\"exists\": True}}\n):\n    print(record)\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.search(\"hello\", collections: [\"posts\"], filter: { published_at: { exists: true } }).each do |record|\n  puts record\nend\n"
+          }
+        ]
       }
     },
     "/v1/collections/{collection_id}/search-index": {
@@ -3616,7 +4670,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.collections.searchIndex.get(\"posts\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.collections.search_index.get(\"posts\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.collections.search_index.get(\"posts\")\n"
+          }
+        ]
       }
     },
     "/v1/collections/{collection_id}/search-index/rebuild": {
@@ -3669,7 +4740,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.collections.searchIndex.rebuild(\"posts\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.collections.search_index.rebuild(\"posts\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.collections.search_index.rebuild(\"posts\")\n"
+          }
+        ]
       }
     },
     "/v1/projects/{project_id}/webhooks": {
@@ -3722,7 +4810,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const webhook of nohead.webhooks.list({ deleted: true })) {\n  console.log(webhook)\n}\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor webhook in nohead.webhooks.list(deleted=True):\n    print(webhook)\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.webhooks.list(deleted: true).each do |webhook|\n  puts webhook\nend\n"
+          }
+        ]
       },
       "post": {
         "operationId": "webhooks_create",
@@ -3784,7 +4889,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.webhooks.create({\n  url: \"https://example.com/hook\",\n  event_types: [\"*\"],\n})\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.webhooks.create(url=\"https://example.com/hook\", event_types=[\"*\"])\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.webhooks.create(url: \"https://example.com/hook\", event_types: [\"*\"])\n"
+          }
+        ]
       }
     },
     "/v1/webhooks/{webhook_id}": {
@@ -3826,7 +4948,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.webhooks.get(\"wh_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.webhooks.get(\"wh_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.webhooks.get(\"wh_01J9ZQ3F8X\")\n"
+          }
+        ]
       },
       "patch": {
         "operationId": "webhooks_update",
@@ -3885,7 +5024,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.webhooks.update(\"wh_01J9ZQ3F8X\", { enabled: false })\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.webhooks.update(\"wh_01J9ZQ3F8X\", enabled=False)\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.webhooks.update(\"wh_01J9ZQ3F8X\", enabled: false)\n"
+          }
+        ]
       },
       "delete": {
         "operationId": "webhooks_delete",
@@ -3931,7 +5087,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.webhooks.delete(\"wh_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.webhooks.delete(\"wh_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.webhooks.delete(\"wh_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/webhooks/{webhook_id}/test": {
@@ -3984,7 +5157,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.webhooks.test(\"wh_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.webhooks.test(\"wh_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.webhooks.test(\"wh_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/webhooks/{webhook_id}/secrets": {
@@ -4034,7 +5224,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const secret of nohead.webhooks.secrets.list(\"wh_01J9ZQ3F8X\")) {\n  console.log(secret)\n}\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor secret in nohead.webhooks.secrets.list(\"wh_01J9ZQ3F8X\"):\n    print(secret)\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.webhooks.secrets.list(\"wh_01J9ZQ3F8X\").each do |secret|\n  puts secret\nend\n"
+          }
+        ]
       },
       "post": {
         "operationId": "webhooks_rotate_secret",
@@ -4080,7 +5287,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.webhooks.rotateSecret(\"wh_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.webhooks.rotate_secret(\"wh_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.webhooks.rotate_secret(\"wh_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/webhook-secrets/{secret_id}": {
@@ -4133,7 +5357,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.webhooks.secrets.retire(\"whs_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.webhooks.secrets.retire(\"whs_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.webhooks.secrets.retire(\"whs_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/webhooks/{webhook_id}/restore": {
@@ -4189,7 +5430,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.webhooks.restore(\"wh_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.webhooks.restore(\"wh_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.webhooks.restore(\"wh_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/webhooks/{webhook_id}/deliveries": {
@@ -4259,7 +5517,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const delivery of nohead.webhooks.deliveries.list(\"wh_01J9ZQ3F8X\", {\n  status: \"failed\",\n})) {\n  console.log(delivery)\n}\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor delivery in nohead.webhooks.deliveries.list(\"wh_01J9ZQ3F8X\", status=\"failed\"):\n    print(delivery)\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.webhooks.deliveries.list(\"wh_01J9ZQ3F8X\", status: \"failed\").each do |delivery|\n  puts delivery\nend\n"
+          }
+        ]
       }
     },
     "/v1/webhook-deliveries/{delivery_id}": {
@@ -4301,7 +5576,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.webhooks.deliveries.get(\"whd_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.webhooks.deliveries.get(\"whd_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.webhooks.deliveries.get(\"whd_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/webhook-deliveries/{delivery_id}/retry": {
@@ -4354,7 +5646,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.webhooks.deliveries.retry(\"whd_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.webhooks.deliveries.retry(\"whd_01J9ZQ3F8X\")\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.webhooks.deliveries.retry(\"whd_01J9ZQ3F8X\")\n"
+          }
+        ]
       }
     },
     "/v1/projects/{project_id}/audit-events": {
@@ -4410,7 +5719,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nfor await (const event of nohead.auditEvents.list({\n  filter: {\n    type: \"record.*\",\n    created_at: { gte: \"2026-10-01T00:00:00Z\" },\n  },\n  sort: \"-id\",\n})) {\n  console.log(event)\n}\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nfor event in nohead.audit_events.list(filter={\"type\": \"record.*\"}, sort=\"-id\"):\n    print(event)\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nnohead.audit_events.list(filter: { type: \"record.*\", resource_type: %w[record draft] }, sort: \"-id\").each do |event|\n  puts event\nend\n"
+          }
+        ]
       }
     },
     "/v1/health": {
@@ -4446,7 +5772,24 @@
           "503": {
             "$ref": "#/components/responses/ServiceUnavailable"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.health.check()\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.health.check()\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.health.check\n"
+          }
+        ]
       }
     },
     "/v1/me": {
@@ -4474,7 +5817,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.me.get()\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.me.get()\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.me.get\n"
+          }
+        ]
       }
     },
     "/v1/feature-flags": {
@@ -4522,7 +5882,24 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "typescript",
+            "label": "TypeScript",
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.featureFlags.list()\n"
+          },
+          {
+            "lang": "python",
+            "label": "Python",
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.feature_flags.list()\n"
+          },
+          {
+            "lang": "ruby",
+            "label": "Ruby",
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.feature_flags.list\n"
+          }
+        ]
       }
     }
   },
