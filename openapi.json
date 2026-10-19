@@ -9,7 +9,7 @@
       "email": "hello@nohead.io",
       "url": "https://nohead.io"
     },
-    "description": "The Nohead API manages projects, collections (your data models), their\nfields, and records (your content), with full version history.\n\n## Authentication\n\nSend `Authorization: Bearer <token>`. Servers, CI and agents use a\nproject API key (`sk_live_...`, created in the web app under API keys)\nwith scopes such as `records:read` or `schema:write`. Organization,\nproject, member and API key management need a person signed in to the\nweb app and are not available to API keys.\n\n## Resources and IDs\n\nEvery object has an `object` type, and every resource with an identity of\nits own an opaque, prefixed `id` (`col_`, `fld_`, `rec_`, ...). Record values live under `data`, keyed by each\nfield's `key`. Timestamps are ISO 8601 in UTC. Deleting a record,\ncollection, field, asset or webhook is soft: it can be restored until its\n`purge_after`.\n\n## Lists\n\nLists return `{ \"data\": [...], \"meta\": { \"next_cursor\", \"has_more\" } }`.\nPass `limit` (1-100) and `cursor` to page, and `sort` (prefix `-` for\ndescending). Records also take `filter[<key>]=value`,\n`filter[published_at][exists]=true` and `expand=<relation, asset or\nrich text fields>`.\n\n## Errors\n\nErrors share one envelope: `{ \"error\": { \"type\", \"message\",\n\"request_id\", \"details\" } }`. `details` lists field-level problems as\n`{ \"field\", \"code\", \"message\" }`. Include the `request_id` when asking\nfor support.\n\n## Safe retries and concurrent edits\n\nSend `Idempotency-Key` on any `POST`, `PUT`, `PATCH` or `DELETE` to make retrying\nit safe: the first result is stored for 24 hours and returned again for\nthe same request. Record responses carry the record's revision as an\n`ETag`; send it back as `If-Match` to update only if nobody changed the\nrecord in the meantime (`412` otherwise).\n\n## History\n\nEvery change to a record is a revision, attributed to the person or API\nkey that made it: record revisions can be listed, diffed and reverted,\nand collections keep a schema history. Send `Nohead-Change-Note` to\nrecord why a change was made. Changes that rewrite existing values\n(such as a field's type) are explicit, previewable field migrations.\n\nHow long revisions are kept depends on the organization's plan. Older\nones are removed, but every record keeps its first revision and its\nlast 10; `history_pruned_through` says how far history was removed.\n",
+    "description": "The Nohead API manages projects, collections (your data models), their\nfields, and records (your content), with full version history.\n\n## Authentication\n\nSend `Authorization: Bearer <token>`. Servers, CI and agents use a\nproject API key (`nohead_sk_...`, or `nohead_pk_...` for a published-only\nkey; created in the web app under API keys)\nwith scopes such as `records:read` or `schema:write`. Organization,\nproject, member and API key management need a person signed in to the\nweb app and are not available to API keys.\n\n## Resources and IDs\n\nEvery object has an `object` type, and every resource with an identity of\nits own an opaque, prefixed `id` (`col_`, `fld_`, `rec_`, ...). Record values live under `data`, keyed by each\nfield's `key`. Timestamps are ISO 8601 in UTC. Deleting a record,\ncollection, field, asset or webhook is soft: it can be restored until its\n`purge_after`.\n\n## Lists\n\nLists return `{ \"data\": [...], \"meta\": { \"next_cursor\", \"has_more\" } }`.\nPass `limit` (1-100) and `cursor` to page, and `sort` (prefix `-` for\ndescending). Records also take `filter[<key>]=value`,\n`filter[published_at][exists]=true` and `expand=<relation, asset or\nrich text fields>`.\n\n## Errors\n\nErrors share one envelope: `{ \"error\": { \"type\", \"message\",\n\"request_id\", \"details\" } }`. `details` lists field-level problems as\n`{ \"field\", \"code\", \"message\" }`. Include the `request_id` when asking\nfor support.\n\n## Safe retries and concurrent edits\n\nSend `Idempotency-Key` on any `POST`, `PUT`, `PATCH` or `DELETE` to make retrying\nit safe: the first result is stored for 24 hours and returned again for\nthe same request. Record responses carry the record's revision as an\n`ETag`; send it back as `If-Match` to update only if nobody changed the\nrecord in the meantime (`412` otherwise).\n\n## History\n\nEvery change to a record is a revision, attributed to the person or API\nkey that made it: record revisions can be listed, diffed and reverted,\nand collections keep a schema history. Send `Nohead-Change-Note` to\nrecord why a change was made. Changes that rewrite existing values\n(such as a field's type) are explicit, previewable field migrations.\n\nHow long revisions are kept depends on the organization's plan. Older\nones are removed, but every record keeps its first revision and its\nlast 10; `history_pruned_through` says how far history was removed.\n",
     "license": {
       "name": "Proprietary",
       "identifier": "LicenseRef-Proprietary"
@@ -3908,6 +3908,65 @@
           }
         ]
       },
+      "patch": {
+        "operationId": "assets_update",
+        "summary": "Update an asset",
+        "description": "Rename the asset or set its alt text. The file itself can't change:\nupload a new asset for that. `alt` is the default wherever the asset\nis used; an image in rich text keeps its own `alt` once it has one.\nA change sends `asset.updated` to webhooks; one that changes nothing\nsends nothing. `409` with detail code `deleted` while the asset is\ndeleted.\n",
+        "tags": [
+          "assets"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/NoheadClient"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The asset.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Asset"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      },
       "delete": {
         "operationId": "assets_delete",
         "summary": "Delete an asset",
@@ -5922,7 +5981,7 @@
       "apiKey": {
         "type": "http",
         "scheme": "bearer",
-        "description": "Project-scoped API key, e.g. `sk_live_k7fz0a9c3m2q_<secret>`. Used by\nservers, CI, the CLI and coding agents.\n"
+        "description": "Project-scoped API key, e.g. `nohead_sk_k7fz0a9c3m2q_<secret>`, or\n`nohead_pk_…` for a published-only key. Used by servers, CI, the CLI\nand coding agents.\n"
       }
     },
     "parameters": {
@@ -9448,6 +9507,7 @@
           "field.migrated",
           "field.alias_removed",
           "asset.created",
+          "asset.updated",
           "asset.deleted",
           "asset.restored",
           "asset.purged"
@@ -10487,6 +10547,26 @@
         ],
         "unevaluatedProperties": false
       },
+      "AssetUpdate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "filename": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Control characters are removed and path separators become `_`, as on upload."
+          },
+          "alt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 1000,
+            "description": "Surrounding whitespace is removed; empty or null clears it."
+          }
+        }
+      },
       "AssetProperties": {
         "type": "object",
         "required": [
@@ -10494,6 +10574,7 @@
           "object",
           "project_id",
           "filename",
+          "alt",
           "content_type",
           "byte_size",
           "width",
@@ -10521,7 +10602,15 @@
           },
           "filename": {
             "type": "string",
-            "description": "The original filename, any Unicode."
+            "description": "The filename, any Unicode, as uploaded unless renamed since. Downloads use it."
+          },
+          "alt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 1000,
+            "description": "Alternative text, saying what an image shows; null until set. The default wherever the asset is used."
           },
           "content_type": {
             "type": "string",
