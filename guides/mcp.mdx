@@ -9,7 +9,7 @@ Coding agents and CI jobs with a shell are usually better served by the `nohead`
 
 ## Connect
 
-The server speaks Streamable HTTP at `https://mcp.nohead.io/mcp`. Authenticate with a project API key as the bearer token. Give the agent a key of its own, with only the scopes it needs, so its changes are attributed to it in history.
+The server speaks Streamable HTTP at `https://mcp.nohead.io/mcp`. Authenticate with a project API key as the bearer token. Give the agent a key of its own, with only the scopes it needs, so its changes are attributed to it in history. New keys are published-only by default: an agent that changes content needs a key with **Published records only** off and `records:write`.
 
 <CodeGroup>
 
@@ -18,7 +18,7 @@ claude mcp add --transport http nohead https://mcp.nohead.io/mcp \
   --header "Authorization: Bearer $NOHEAD_API_KEY"
 ```
 
-```json Other clients
+```json JSON config
 {
   "mcpServers": {
     "nohead": {
@@ -30,6 +30,8 @@ claude mcp add --transport http nohead https://mcp.nohead.io/mcp \
 ```
 
 </CodeGroup>
+
+Clients that take a JSON config name these fields differently (some want `"type": "http"` as well): check your client's documentation for remote servers.
 
 Chat apps that only connect through a sign-in (OAuth), such as Claude.ai connectors, aren't supported yet.
 
@@ -52,7 +54,7 @@ Chat apps that only connect through a sign-in (OAuth), such as Claude.ai connect
 | `revert_record` | Make an earlier revision current again (with `dry_run`) | `records:write` |
 | `restore_record` | Bring back a deleted record | `records:write` |
 
-An agent sees only the tools its key's scopes allow, and a published-only key reads published records only. Each tool's arguments carry the API reference's own descriptions. Schema changes aren't tools: make those as reviewed [schema files](/guides/content-modelling) with the CLI.
+An agent sees only the tools its key's scopes allow, and a published-only key reads published records only. Each tool's arguments carry the API reference's own descriptions. Schema changes aren't tools: make those as reviewed schema files with the CLI (`nohead schema pull`, `diff` and `push`).
 
 ## Guardrails
 
@@ -63,4 +65,4 @@ The tools follow the same rules the CLI does:
 - **Safe retries.** Every write takes an optional `idempotency_key`. Retrying with the same key never applies a change twice.
 - **Nothing irreversible.** Every change is a revision you can revert, and `revert_record` previews with `dry_run: true`. New records start unpublished.
 
-Errors come back as tool errors with the API's error envelope, so an agent sees the same `type`, `code` and `details` the [API reference](/api-reference/overview) documents.
+Errors come back as tool errors with the API's error envelope, so an agent sees the same `type`, `message` and `details` (each with its `code`) the [API reference](/api-reference/overview) documents.
