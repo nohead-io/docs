@@ -1,0 +1,66 @@
+---
+title: MCP server
+description: Connect agents without a shell, such as chat apps, agent frameworks and automation platforms, to your content with a project API key.
+---
+
+Nohead has an [MCP](https://modelcontextprotocol.io) server for agents that can't run the CLI: chat apps, agent frameworks in your own product, and automation platforms. It offers the content work as tools, and it is another client of the same API. Every tool call is one API request made with your key, so scopes, rate limits, usage and history work exactly as they do over HTTP.
+
+Coding agents and CI jobs with a shell are usually better served by the `nohead` CLI. Its `--json` output and exit codes cost an agent less context than a list of tools.
+
+## Connect
+
+The server speaks Streamable HTTP at `https://mcp.nohead.io/mcp`. Authenticate with a project API key as the bearer token. Give the agent a key of its own, with only the scopes it needs, so its changes are attributed to it in history.
+
+<CodeGroup>
+
+```bash Claude Code
+claude mcp add --transport http nohead https://mcp.nohead.io/mcp \
+  --header "Authorization: Bearer $NOHEAD_API_KEY"
+```
+
+```json Other clients
+{
+  "mcpServers": {
+    "nohead": {
+      "url": "https://mcp.nohead.io/mcp",
+      "headers": { "Authorization": "Bearer <your API key>" }
+    }
+  }
+}
+```
+
+</CodeGroup>
+
+Chat apps that only connect through a sign-in (OAuth), such as Claude.ai connectors, aren't supported yet.
+
+## Tools
+
+| Tool | What it does | Scope |
+|---|---|---|
+| `list_collections` | The project's collections | `schema:read` |
+| `get_schema` | A collection's fields, types and validation | `schema:read` |
+| `search` | Full-text search across the project | `search:read` |
+| `search_collection` | Search one collection, with filters and sorting | `search:read` |
+| `list_records` | A collection's records, with filters, sorting and pages | `records:read` |
+| `get_record` | One record, with its current revision | `records:read` |
+| `create_record` | A new record, unpublished | `records:write` |
+| `update_record` | Change some of a record's field values | `records:write` |
+| `publish_record` | Publish a record's current revision | `records:write` |
+| `unpublish_record` | Take a record off sites and apps | `records:write` |
+| `list_revisions` | A record's history | `records:read` |
+| `diff_record` | What changed between two revisions | `records:read` |
+| `revert_record` | Make an earlier revision current again (with `dry_run`) | `records:write` |
+| `restore_record` | Bring back a deleted record | `records:write` |
+
+An agent sees only the tools its key's scopes allow, and a published-only key reads published records only. Each tool's arguments carry the API reference's own descriptions. Schema changes aren't tools: make those as reviewed [schema files](/guides/content-modelling) with the CLI.
+
+## Guardrails
+
+The tools follow the same rules the CLI does:
+
+- **A note on every change.** Every write takes a required `note` saying why. It is stored in the record's history next to the key's name and "via MCP".
+- **No overwriting.** Changes to an existing record take the `expected_revision` the agent read. If someone changed the record since, the change is refused with `precondition_failed`, and the agent should read it again.
+- **Safe retries.** Every write takes an optional `idempotency_key`. Retrying with the same key never applies a change twice.
+- **Nothing irreversible.** Every change is a revision you can revert, and `revert_record` previews with `dry_run: true`. New records start unpublished.
+
+Errors come back as tool errors with the API's error envelope, so an agent sees the same `type`, `code` and `details` the [API reference](/api-reference/overview) documents.
