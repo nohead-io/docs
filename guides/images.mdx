@@ -1,0 +1,64 @@
+---
+title: Images
+description: Resize, crop and convert images by writing options into their URLs, with no API call per size.
+---
+
+Every image you upload has an `image_url`: the whole image, served from a CDN. Image URLs are open, so you make any size, crop or format of an image by writing [imgproxy](https://docs.imgproxy.net/usage/processing) processing options into its URL. There is no API call per rendition, and frameworks' image components can build their `srcset` themselves.
+
+## Image URLs
+
+An asset that is a ready JPEG, PNG, GIF, WebP or AVIF image has an `image_url` (it is `null` for other files):
+
+```text
+https://images.nohead.io/insecure/plain/projects/<project>/assets/<asset>
+```
+
+Write processing options between `/insecure/` and `/plain/`, and a format after `@`:
+
+```text
+https://images.nohead.io/insecure/rs:fill:1200:630/g:sm/plain/projects/<project>/assets/<asset>@webp
+```
+
+That is a 1200×630 crop, around the most interesting part of the image, as WebP. Assets also have a `preview_url`, a small WebP that fits in 640×640, for thumbnails.
+
+## Common options
+
+| Option | Example | What it does |
+|---|---|---|
+| `rs:<fit>:<width>:<height>` | `rs:fit:800:0` | Resize. `fit` keeps the whole image inside the box, `fill` fills it and crops, `force` stretches. `0` leaves a side free. |
+| `g:<gravity>` | `g:sm`, `g:fp:0.5:0.3` | What a crop keeps: `sm` the most interesting part, `fp:x:y` a focal point, `ce`, `no`, `so`, `ea`, `we` a side. |
+| `dpr:<n>` | `dpr:2` | Pixel density, for 2x screens. |
+| `q:<n>` | `q:75` | Quality, 1 to 100. |
+| `@<format>` | `@avif` | The format: `webp`, `avif`, `jpeg` or `png`. |
+| `bl:<n>`, `sh:<n>`, `pix:<n>` | `bl:10` | Blur, sharpen, pixelate. |
+
+Options combine in any order: `rs:fill:400:400/g:sm/dpr:2/q:80`. imgproxy's [processing options](https://docs.imgproxy.net/usage/processing) list them all.
+
+## Frameworks
+
+Image components take a loader that turns a source and a width into a URL:
+
+```javascript
+// Next.js: a file named by images.loaderFile in next.config
+export default function noheadLoader({ src, width, quality }) {
+  const options = [`rs:fit:${width}:0`, quality && `q:${quality}`].filter(Boolean)
+  return src.replace("/plain/", `/${options.join("/")}/plain/`)
+}
+```
+
+Then `<Image src={asset.image_url} width={1200} height={630} alt={asset.alt} />` gets a `srcset` of renditions. Astro's image services and Nuxt Image's providers build their URLs the same way.
+
+If you'd rather not build URLs, `GET /v1/assets/{asset_id}/image-url` returns one for a `width`, `height`, `fit`, `format` and `quality`.
+
+## Limits
+
+So that any URL stays cheap to serve:
+
+- Renditions are at most 4096 pixels a side, and originals at most 50 megapixels.
+- Options that would return a file as stored are refused: `raw`, `skip_processing` and `strip_metadata`. Renditions never carry a photo's metadata, such as its location.
+- SVG images have no `image_url`. A rendition of one is a sanitized copy, without scripts.
+- Each rendition is cached for a year. A burst of new renditions from one address is rate limited.
+
+## Deleted and purged images
+
+Knowing an image's URL is all it takes to see it, as with any public image. A deleted image's URLs keep working until it is purged (30 days later, or sooner with `POST /v1/assets/{asset_id}/purge`). A purge removes every rendition from the CDN within a minute or so; browsers keep what they cached.
