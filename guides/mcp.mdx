@@ -9,7 +9,7 @@ Coding agents and CI jobs with a shell are usually better served by the `nohead`
 
 ## Connect
 
-The server speaks Streamable HTTP at `https://mcp.nohead.io/mcp`. Authenticate with a project API key as the bearer token. Give the agent a key of its own, with only the scopes it needs, so its changes are attributed to it in history. New keys are published-only by default: an agent that changes content needs a key with **Published records only** off and `records:write`.
+The server speaks Streamable HTTP at `https://mcp.nohead.io/mcp`. Authenticate with a project API key as the bearer token. Give the agent a key of its own, with only the scopes it needs, so its changes are attributed to it in history. New keys are published-only by default: an agent that changes content needs a key with **Published records only** off and `records:write`. Changing a record that is published or scheduled to publish also needs `records:publish`; leave it off for an agent whose changes a person should publish.
 
 <CodeGroup>
 
@@ -47,8 +47,8 @@ Chat apps that only connect through a sign-in (OAuth), such as Claude.ai connect
 | `get_record` | One record, with its current revision | `records:read` |
 | `create_record` | A new record, unpublished | `records:write` |
 | `update_record` | Change some of a record's field values | `records:write` |
-| `publish_record` | Publish a record's current revision | `records:write` |
-| `unpublish_record` | Take a record off sites and apps | `records:write` |
+| `publish_record` | Publish a record's current revision | `records:publish` |
+| `unpublish_record` | Take a record off sites and apps | `records:publish` |
 | `list_revisions` | A record's history | `records:read` |
 | `diff_record` | What changed between two revisions | `records:read` |
 | `revert_record` | Make an earlier revision current again (with `dry_run`) | `records:write` |
