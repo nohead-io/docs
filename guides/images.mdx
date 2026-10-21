@@ -56,8 +56,8 @@ So that any URL stays cheap to serve:
 
 - Renditions are at most 4096 pixels a side, and originals at most 50 megapixels.
 - Options that would return a file as stored are refused: `raw`, `skip_processing` and `strip_metadata`. Renditions never carry a photo's metadata, such as its location.
-- SVG images have no `image_url`. A rendition of one is a sanitized copy, without scripts.
-- Each rendition is cached for a year. A burst of new renditions from one address is rate limited.
+- SVG images have no `image_url`: download them as they are (`GET /v1/assets/{asset_id}/download-url`).
+- Each rendition is cached for a year. Requests from one address are rate limited, generously enough for pages full of images.
 
 ## Deleted and purged images
 

@@ -17,6 +17,8 @@ A token is public: it goes in your page source. Every field of the published rec
 
 ## Search from a site
 
+In these examples, `searchUrl`, `token` and `index` are the values the **Search tokens** page shows: the index is the collection's own name in the search engine, not its slug.
+
 ```javascript
 const response = await fetch(`${searchUrl}/multi-search`, {
   method: "POST",
