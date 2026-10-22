@@ -24,7 +24,7 @@
           },
           {
             "group": "Concepts",
-            "pages": ["guides/content-modelling", "guides/images", "guides/site-search", "guides/sdks", "guides/mcp"]
+            "pages": ["guides/content-modelling", "guides/images", "guides/search-tokens", "guides/sdks", "guides/mcp"]
           }
         ]
       },
