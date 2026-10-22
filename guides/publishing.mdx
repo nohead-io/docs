@@ -1,5 +1,6 @@
 ---
 title: Drafts and publishing
+icon: send
 description: Publish and unpublish records, hold changes back in a draft, schedule both, and read only published content from your site.
 ---
 
@@ -142,6 +143,6 @@ A key with **Published records only** on (a `nohead_pk_` key) reads what your si
 - gets `403` for drafts, schedules, publications, record history and schema history
 - holds read scopes only (`records:read`, `schema:read`, `assets:read`, `search:read`)
 
-Use one for your site's build or server, so a draft or an unpublished record can never reach a page. With it you don't need a `published_at` filter; a full-access key lists unpublished records too, unless you filter with `filter[published_at][exists]=true`. Keep the key on your server like any API key; for search from the browser, use a [search token](/guides/search-tokens).
+Use one for your site's build or server, so a draft or an unpublished record can never reach a page. With it you don't need a `published_at` filter; a full-access key lists unpublished records too, unless you filter with `filter[published_at][exists]=true`. Keep the key on your server like any API key; for search from the browser, use [public search](/guides/public-search).
 
 To rebuild pages when content goes live, subscribe a webhook to `record.published`, `record.unpublished` and `record.updated` (which merges send): see [Webhooks](/guides/webhooks). Every endpoint is in the [API reference](/api-reference/overview).

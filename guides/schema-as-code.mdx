@@ -1,5 +1,6 @@
 ---
 title: Schema as code
+icon: file-code
 description: Keep your collections and fields in a YAML file in your repository, review changes as a diff, and apply them from CI.
 ---
 
@@ -78,7 +79,7 @@ collections:
 - Collections are keyed by slug and fields by key, with fields in the order editors see them. A field that is only a type can be written as one: `bio: long_text`.
 - A field takes `type`, `name`, `required`, `multiple` and its type's [configuration](/guides/content-modelling#field-types) as plain keys: `max_length`, `options`, `format`, `unique`, `include_time`, `time_zone`, `accepted_types`, `description`, and the search settings `searchable`, `filterable` and `sortable`.
 - A relation names its target collection by slug: `collection: authors`.
-- `public_search: true` includes a collection in [public search](/guides/search-tokens).
+- `public_search: true` includes a collection in [public search](/guides/public-search).
 - A collection takes `name` and `description`. Names left out are the key's default: `blog-posts` is "Blog Posts" and `cover_image` "Cover Image". `schema pull` writes a name only when it differs, and leaves out `unique` on slugs, which are always unique.
 
 The file describes each collection and field in full: a name, description or option you remove from it is removed from the project on the next push.

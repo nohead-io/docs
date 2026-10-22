@@ -1,9 +1,10 @@
 ---
-title: Search with the API
+title: API search
+icon: search
 description: Search the records of one collection or a whole project from your servers, with filters, sorting and related records.
 ---
 
-Every collection is indexed for full-text search. With an API key that has the `search:read` scope, your servers, scripts and agents search through the API and get back full records, most relevant first. To search from a site's browser code, use a [search token](/guides/search-tokens) instead: it goes straight to the search engine, needs no API key, and finds published records only.
+Every collection is indexed for full-text search. With an API key that has the `search:read` scope, your servers, scripts and agents search through the API and get back full records, most relevant first. To search from a site's browser code, use [public search](/guides/public-search) instead: with a search token it goes straight to the search engine, needs no API key, and finds published records only.
 
 ## Search a collection
 
@@ -126,7 +127,7 @@ Indexes follow record and schema changes on their own. `GET /v1/collections/{col
 - `status`: `building` until the index is first built, `ready`, `stale` from a change that needs a rebuild until the rebuild has run, or `failed` if the last rebuild failed (it is retried).
 - `documents`: how many records it holds (for a published-only key, how many are published).
 - `last_built_at` and `rebuild_requested_at`.
-- `index`: the index's name in the search engine, which [search tokens](/guides/search-tokens#index-names) search by. API searches don't need it.
+- `index`: the index's name in the search engine, which [public search](/guides/public-search#index-names) search by. API searches don't need it.
 
 The collection's **Search** tab shows the same status, with a **Rebuild index** button. You rarely need it.
 
