@@ -174,8 +174,11 @@ nohead.drafts.merge(draft.id) # or drafts.schedule(draft.id, merge_at: ...)
 
 Failed requests are retried twice by default:
 - connection errors and timeouts
-- `429 rate_limited`, honoring `Retry-After` up to a minute
+- `429 rate_limited`, waiting for `Retry-After` when it is at most a minute (a longer wait raises `RateLimitError` at once)
 - `500`, `502`, `503` and `504`
+- `409` with detail code `in_progress`: the same write, still running
+
+Each attempt times out after 60 seconds. Set `timeout` and `maxRetries` (`max_retries`) on the client or for one call to change them. [What the SDKs retry](/guides/errors-and-retries#what-the-sdks-retry) has the details.
 
 Every write carries an `Idempotency-Key` that stays the same across its retries, so a retry after a lost response never writes twice.
 
@@ -268,7 +271,7 @@ except ValidationError as error:
 begin
   nohead.records.create("posts", data: {})
 rescue Nohead::ValidationError => e
-  e.details.each { |detail| puts "#{detail.field}: #{detail.message}" }
+  e.details.each { |detail| puts "#{detail['field']}: #{detail.message}" }
 end
 ```
 
@@ -284,9 +287,9 @@ Files go straight to storage, never through the API. `assets.upload` does the wh
 import { openAsBlob } from "node:fs"
 import { imageUrl } from "@nohead/sdk/images"
 
-const asset = await nohead.assets.upload(await openAsBlob("cover.jpg"), {
-  filename: "cover.jpg",
-})
+// Give the Blob its type: Node's openAsBlob leaves it empty.
+const file = await openAsBlob("cover.jpg", { type: "image/jpeg" })
+const asset = await nohead.assets.upload(file, { filename: "cover.jpg" })
 await nohead.records.update(id, { data: { cover: asset.id } })
 const url = imageUrl(asset, { width: 1200, format: "webp" }) // no request
 ```
@@ -307,9 +310,11 @@ url = Nohead::Images.url(asset, width: 1200, format: "webp") # no request
 
 </CodeGroup>
 
+[Images](/guides/images) covers image URLs and the loaders for Next.js, Astro and Nuxt. To search, see [API search](/guides/api-search).
+
 ## Verify webhooks
 
-Webhook requests are signed. `unwrap` checks the signature and the timestamp and returns the event; it raises (or throws) when either is off. Pass the raw body, before any JSON parsing.
+Webhook requests are signed. `unwrap` (`unwrapWebhook` in TypeScript) checks the signature and the timestamp and returns the event; it raises (or throws) when either is off. Pass the raw body, before any JSON parsing.
 
 <CodeGroup>
 
@@ -353,4 +358,4 @@ The same event can arrive twice: deduplicate by the `webhook-id` header.
 
 ## Versions
 
-The SDKs have their own version numbers, separate from the API's `/v1`. The API only changes additively within `/v1`, so an older SDK keeps working. Anything an SDK depends on is deprecated at least 12 months before it is removed, and the SDKs warn when they call something deprecated. Each SDK's README covers the rest: async in Python, typed record data in TypeScript, and the full list of methods.
+The SDKs have their own version numbers, separate from the API's `/v1`. Within `/v1` the API adds without breaking clients, so an older SDK keeps working. Anything an SDK depends on is deprecated at least 12 months before it is removed, and the SDKs warn when they call something deprecated. Each SDK's README covers the rest: async in Python, typed record data in TypeScript, and the full list of methods.

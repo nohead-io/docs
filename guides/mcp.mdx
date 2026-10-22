@@ -34,7 +34,7 @@ claude mcp add --transport http nohead https://mcp.nohead.io/mcp \
 
 Clients that take a JSON config name these fields differently (some want `"type": "http"` as well): check your client's documentation for remote servers.
 
-Chat apps that only connect through a sign-in (OAuth), such as Claude.ai connectors, aren't supported yet.
+Chat apps that only connect through a sign-in (OAuth), such as Claude.ai connectors, aren't supported.
 
 ## Tools
 
@@ -55,14 +55,14 @@ Chat apps that only connect through a sign-in (OAuth), such as Claude.ai connect
 | `revert_record` | Make an earlier revision current again (with `dry_run`) | `records:write` |
 | `restore_record` | Bring back a deleted record | `records:write` |
 
-An agent sees only the tools its key's scopes allow, and a published-only key reads published records only. Each tool's arguments carry the API reference's own descriptions. Schema changes aren't tools: make those as reviewed schema files with the CLI (`nohead schema pull`, `diff` and `push`).
+An agent sees only the tools its key's scopes allow, and a published-only key reads published records only: its `list_revisions` and `diff_record` calls are refused (`403`), since history can hold unpublished content. Each tool's arguments carry the API reference's own descriptions. Schema changes aren't tools: make those as reviewed schema files with the CLI (`nohead schema pull`, `diff` and `push`).
 
 ## Guardrails
 
-The tools follow the same rules the CLI does:
+The tools add guardrails for agents:
 
-- **A note on every change.** Every write takes a required `note` saying why. It is stored in the record's history next to the key's name and "via MCP".
-- **No overwriting.** Changes to an existing record take the `expected_revision` the agent read. If someone changed the record since, the change is refused with `precondition_failed`, and the agent should read it again.
+- **A note on every change.** Every write takes a required `note` saying why, up to 500 characters. It is stored in the record's history next to the key's name and the client, **MCP**.
+- **No overwriting.** Changes to an existing record take the `expected_revision` the agent read, and the server's instructions ask agents to pass it. If someone changed the record since, the change is refused with `precondition_failed`, and the agent should read it again. Without it, the last write wins.
 - **Safe retries.** Every write takes an optional `idempotency_key`. Retrying with the same key never applies a change twice.
 - **Nothing irreversible.** Every change is a revision you can revert, and `revert_record` previews with `dry_run: true`. New records start unpublished.
 

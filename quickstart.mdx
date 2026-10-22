@@ -12,10 +12,10 @@ description: Create a project, publish a record and fetch it from your code.
     Under **Collections**, choose **New collection**. Start from a template (blog posts, pages, products, team members or FAQ) or from a blank collection, and adjust the fields to your needs. [Content modelling](/guides/content-modelling) explains the field types.
   </Step>
   <Step title="Add and publish a record">
-    Open the collection, create a record, fill in its fields and choose **Publish**. Records start unpublished; only published records are visible to published-only keys.
+    Open the collection, choose **New record**, fill in its fields and choose **Create and publish** from the **Create** button's menu. Records start unpublished; only published records are visible to published-only keys.
   </Step>
   <Step title="Create an API key">
-    Under **API keys**, create a key with the **Read records** scope (`records:read`). Leave **Published records only** on (the default) for a key your live site uses, so unpublished records never reach it; turn it off for a key that writes. A published-only key starts `nohead_pk_`, and a full-access one `nohead_sk_`.
+    Under **API keys**, choose **New API key** and give it the **Read records** scope (`records:read`). Leave **Published records only** on (the default) for a key your live site uses, so unpublished records never reach it; turn it off for a key that writes. A published-only key starts `nohead_pk_`, and a full-access one `nohead_sk_`.
 
     The key is shown once. Store it somewhere safe, for example as `NOHEAD_API_KEY` in your app's environment, next to the API's address:
 
@@ -94,6 +94,6 @@ Lists return the records under `data`, with a cursor for the next page under `me
 ## Next steps
 
 - Pass `limit` (1 to 100) and `cursor` to page through long lists, and `sort` (for example `-published_at`) to order them.
-- Filter on a field with `filter[<key>]=value`, for example `filter[category]=news`.
-- Embed related records or assets with `expand=author,cover_image`.
+- Filter on a field with `filter[<key>]=value`, for example `filter[tags]=news` (on a field with several values, it matches records whose list includes the value).
+- Embed assets or related records with `expand`, for example `expand=cover_image`. Asset fields need the key's **Read assets** scope (`assets:read`) too.
 - Fetch one record with `GET /v1/records/{record_id}`.

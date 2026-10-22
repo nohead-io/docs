@@ -37,17 +37,21 @@ Options combine in any order: `rs:fill:400:400/g:sm/dpr:2/q:80`. imgproxy's [pro
 
 ## Frameworks
 
-Image components take a loader that turns a source and a width into a URL:
+Image components take a loader that turns a source and a width into a URL. `@nohead/sdk/images` has one for each, with no dependencies; it leaves other images, the site's own, as they are:
+
+- **Next.js:** in a file named by `images.loaderFile` in next.config, `export { nextImageLoader as default } from "@nohead/sdk/images"`. Then `<Image src={asset.image_url} width={1200} height={630} alt={asset.alt} />` gets a `srcset` of renditions.
+- **Astro:** in a module named by `image.service.entrypoint` in astro.config, `export { astroImageService as default } from "@nohead/sdk/images"`.
+- **Nuxt Image:** in a provider file in nuxt.config's `image.providers`, `export { nuxtImageProvider as default } from "@nohead/sdk/images"` (on Nuxt Image 1, `export { getImage } from "@nohead/sdk/images"`).
+
+In your own code, `imageUrl(asset, { width: 800, fit: "cover", format: "webp" })` writes the options into an asset's URL; Python has `nohead.images.image_url` and Ruby `Nohead::Images.url` ([SDKs](/guides/sdks#upload-files)). Without the SDK, a loader only has to add the options before `/plain/`:
 
 ```javascript
-// Next.js: a file named by images.loaderFile in next.config
+// Next.js, by hand: a file named by images.loaderFile in next.config
 export default function noheadLoader({ src, width, quality }) {
   const options = [`rs:fit:${width}:0`, quality && `q:${quality}`].filter(Boolean)
   return src.replace("/plain/", `/${options.join("/")}/plain/`)
 }
 ```
-
-Then `<Image src={asset.image_url} width={1200} height={630} alt={asset.alt} />` gets a `srcset` of renditions. Astro's image services and Nuxt Image's providers build their URLs the same way.
 
 There is no API call for renditions: write the options into the URL, in your code or your framework's loader.
 
@@ -57,7 +61,7 @@ So that any URL stays cheap to serve:
 
 - Renditions are at most 4096 pixels a side, and originals at most 50 megapixels.
 - Options that would return a file as stored are refused: `raw`, `skip_processing` and `strip_metadata`. Renditions never carry a photo's metadata, such as its location.
-- SVG images have no `image_url`: download them as they are (`GET /v1/assets/{asset_id}/download-url`).
+- SVG images have no `image_url`, only a `preview_url` (a WebP): download them as they are (`GET /v1/assets/{asset_id}/download-url`).
 - Each rendition is cached for a year. Requests from one address are rate limited, generously enough for pages full of images.
 
 ## Where an asset is used

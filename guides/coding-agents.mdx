@@ -25,13 +25,13 @@ In the web app, open your project's **API keys** page and choose **New API key**
 |---|---|
 | Read content for a site build | `records:read`, plus `assets:read` for images and files |
 | Seed or sync content | `records:read`, `records:write` |
-| Manage the schema as code | `schema:read`, `schema:write`, plus `records:read` to preview field migrations |
+| Manage the schema as code | `schema:read`, `schema:write`, `records:read` |
 | Upload files | `assets:write` |
 | Search | `search:read` |
 | Manage webhooks | `webhooks:read`, `webhooks:write` |
 | Read the audit log | `audit:read` |
 
-New keys are published-only by default (**Published records only**): they read published records and nothing else, which is what a site needs. Turn it off for a key that writes, or that reads unpublished content or history. Published-only keys start with `nohead_pk_`, the others with `nohead_sk_`.
+New keys are published-only by default (**Published records only**): they read published records and nothing else, which is what a site needs. Turn it off for a key that writes, reads unpublished content or history, manages webhooks or reads the audit log. Published-only keys start with `nohead_pk_`, the others with `nohead_sk_`.
 
 Pass the key as `NOHEAD_API_KEY`, and keep it in your CI's secret store, never in the repository. A key belongs to one project, so the agent never needs a project ID. With a key per agent or pipeline, history shows which one made each change, and revoking a key stops only that one.
 
@@ -48,8 +48,8 @@ On your own machine, `echo "$NOHEAD_API_KEY" | nohead login` saves the key in a 
 
 ## Output agents can rely on
 
-- With `--json`, stdout carries exactly one JSON document: the API's own representation of the result.
-- Errors go to stderr. With `--json`, they use the API's error envelope, `{ "error": { "type", "message", "request_id", "details" } }`. Quote the `request_id` when you ask for support.
+- With `--json`, stdout carries exactly one JSON document: the API's own representation of the result, or for `schema` commands the plan.
+- Errors go to stderr. With `--json`, they use the API's error envelope, `{ "error": { "type", "message", "request_id", "details" } }`, and the CLI adds a few types of its own, such as `network_error` and `schema_differs`. Quote the `request_id` when you ask for support.
 - Rate limits (`429`), network failures and `5xx` responses are retried on their own, and every write carries an `Idempotency-Key`, so a retry never applies a change twice.
 
 | Exit code | Meaning |
@@ -62,7 +62,7 @@ On your own machine, `echo "$NOHEAD_API_KEY" | nohead login` saves the key in a 
 
 ## Schema as code in CI
 
-Keep your collections and fields in a `nohead.schema.yaml` file in your repository, and let CI apply it. `nohead schema diff --exit-code` exits `1` when the project differs from the file (or the API refuses the request), which makes a good check on pull requests, and `nohead schema push --yes` applies the file after merge. A push never deletes collections or fields, and changes that rewrite existing values (field migrations) need `--allow-migrations`. [Schema as code](/guides/schema-as-code) covers the file and the workflow.
+Keep your collections and fields in a `nohead.schema.yaml` file in your repository, and let CI apply it. `nohead schema diff` shows a pull request's changes, `nohead schema push --yes` applies the file after merge, and a scheduled `nohead schema diff --exit-code` catches changes someone made in the web app instead. A push never deletes collections or fields, and changes that rewrite existing values (field migrations) need `--allow-migrations`. [Schema as code](/guides/schema-as-code) covers the file and the workflow.
 
 ## Change content safely
 
@@ -75,7 +75,7 @@ nohead records revert rec_01J9ZQ3F8X 2 --dry-run
 - **Say why.** `--note` is kept with the revision, the merge or the schema change it makes, and shown in history next to the key's name and the client it came through, such as the CLI. Through the API, send the `Nohead-Change-Note` header; in the SDKs, pass `changeNote` (TypeScript) or `change_note` (Python, Ruby).
 - **Don't overwrite newer edits.** `--if-revision` refuses the change with `412` if someone changed the record since the revision the agent read. Read it again, and apply the change again.
 - **Propose, don't publish.** A draft holds changes until a person reviews them and merges them in the editor (**Publish changes**, or **Apply changes** for an unpublished record), or with `nohead drafts merge`.
-- **Sync without duplicates.** Creating a record with `upsert_on`, the key of a `unique` field such as a slug, updates the record that already has that value instead of adding another, so a sync job can run again and again.
+- **Sync without duplicates.** Through the API or an SDK, creating a record with `upsert_on`, the key of a `unique` field such as a slug, updates the record that already has that value instead of adding another, so a sync job can run again and again.
 - **Undo.** Every change is a revision you can revert, `--dry-run` previews a revert, and deleted records, fields, collections and assets can be restored for 30 days.
 
 ## Point the agent at the API

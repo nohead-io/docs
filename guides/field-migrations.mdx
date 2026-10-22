@@ -36,7 +36,7 @@ A preview checks every record, deleted ones included, and writes nothing. It giv
 - how many records end up `unchanged`, `converted`, `backfilled`, `cleared` or `invalid`;
 - up to 10 sample records with their values before and after, invalid ones first.
 
-A migration with invalid records doesn't start. Fix those records, give a backfill for records without a value, or choose to clear the values that can't convert. Deleted records are converted too, so restoring one never brings back a value of the old type, but they are never backfilled. A migration to a `unique` field is refused with `duplicate_values` while converted values or the backfill would be shared.
+A migration with invalid records doesn't start. Fix those records, give a backfill for records without a value, or choose to clear the values that can't convert. Deleted records are converted too, so restoring one never brings back a value of the old type, but they are never backfilled. Invalid records can be deleted ones (their samples have a `deleted_at`): restore and fix them, or clear their values. A migration to a `unique` field is refused with `duplicate_values` while converted values or the backfill would be shared.
 
 ## In the web app
 
@@ -46,7 +46,7 @@ Open the collection's **Schema** tab and configure the field:
 - Turning **Multiple values** off opens the preview straight away. Turning it on skips the preview, since every value converts: the migration starts when you save.
 - When **Required** can't be turned on because records have no value, choose **Fill empty values…** and enter a **Value for records without one**.
 
-The preview shows the counts and a few examples. Check **Clear values that cannot be converted** to clear them, then start the migration (**Migrate 12 records**, for example). A banner on the collection follows it, with **Cancel migration**.
+The preview shows the counts and a few examples. Check **Clear values that cannot be converted** to clear them, then start the migration (**Migrate 12 records**, for example, or **Clear 3 values and migrate** when values are cleared). A banner on the collection follows it, with **Cancel migration**.
 
 ## Through the API
 
@@ -120,7 +120,7 @@ nohead fields migrate products category --required --backfill general
 
 ## While it runs
 
-- From the start, the collection's fields can't change: schema writes are refused with `409` (`migration_in_progress`). While a migration is `pending`, waiting for others to finish, records can still be edited; a new value that can't convert fails it (or is cleared, with `on_invalid: "clear"`).
+- From the start, the collection's fields can't change: schema writes are refused with `409` (`migration_in_progress`). While a migration is `pending` (queued, not started yet), records can still be edited; a new value that can't convert fails it (or is cleared, with `on_invalid: "clear"`).
 - Once it is `running`, record writes are refused with `409` too. Reads are never affected: clients see the old values until the migration completes, then every new value at once.
 - Drafts' values for the field are converted as well; a value that can't be is dropped from its draft. Scheduled publishes and merges that come due while it runs are made once it finishes.
 
@@ -130,4 +130,4 @@ Cancel a migration with **Cancel migration**, `nohead migrations cancel` or `POS
 
 A completed migration's `records` counts each outcome. Each record whose value changed gets a `migrate` revision, so its old value stays in its history (**Migrated** in the web app). The collection's schema history, on its **History** tab or at `GET /v1/collections/{collection_id}/schema-changes`, has a `migrate_field` change (the migration's `schema_change_id`), and `GET /v1/collections/{collection_id}/migrations` lists its migrations, newest first. Add a reason with the `Nohead-Change-Note` header.
 
-A completed migration sends one `field.migrated` [webhook](/guides/sdks#verify-webhooks) event, not a `record.updated` per record, so a site that rebuilds on record changes should listen for `field.migrated` too.
+A completed migration sends one `field.migrated` [webhook](/guides/webhooks) event, not a `record.updated` per record, so a site that rebuilds on record changes should listen for `field.migrated` too.
