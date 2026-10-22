@@ -102,13 +102,10 @@ An image in a rich text document is one of the project's assets, by ID, with its
 
 In the web app, the editor's **Image** button chooses an asset or uploads one, and images can be pasted or dropped in.
 
-To render a document, expand the field: `expanded` then lists the assets its images show, in order, with their dimensions. Then ask for each image's URL at the size your page needs:
+To render a document, expand the field: `expanded` then lists the assets its images show, in order, with their dimensions and `image_url`. Write the size your page needs into each image's URL ([Images](/guides/images)), with no further request:
 
 ```bash
 curl "$NOHEAD_API_URL/v1/collections/blog-posts/records?expand=body" \
-  -H "Authorization: Bearer $NOHEAD_API_KEY"
-
-curl "$NOHEAD_API_URL/v1/assets/ast_01J9ZQ3F8X5W2K7M4N6P0R1S2T/image-url?width=1200&format=webp" \
   -H "Authorization: Bearer $NOHEAD_API_KEY"
 ```
 
@@ -145,7 +142,7 @@ Values are read as the field's type, so `"5"` is not the integer 5. Dates take `
 
 Record lists sort by `created_at` (the default, newest first), `updated_at`, `published_at` (unpublished records first), `id`, or a text, number, date, boolean or enum field with one value: `sort=price`, or `sort=-published_on` for descending. Records with no value for the field come last either way, and text sorts by character code.
 
-Every collection is indexed for full-text search, so members can search any collection in the web app. To let API keys search a collection, turn on search for it (`search_enabled`). The `searchable`, `filterable` and `sortable` options then choose how each field takes part in API searches. Search takes the same filter operators on `filterable` fields, and `filter[published_at][exists]` (`true` for published records, `false` for unpublished ones). Search words match `searchable` fields only, so a field kept out of search can't be probed through it.
+Every collection is indexed for full-text search, and anyone who can read a collection can search it: members in the web app, API keys through the API, and sites with a [search token](/guides/site-search). The `searchable`, `filterable` and `sortable` options choose how each field takes part: search words match `searchable` fields, and filters and sorts need `filterable` and `sortable` ones. API searches take the same filter operators, and `filter[published_at][exists]` (`true` for published records, `false` for unpublished ones). `searchable` decides relevance, not privacy: whoever can search a collection can also read its records.
 
 ## Changing a collection
 
