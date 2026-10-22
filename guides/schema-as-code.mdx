@@ -10,6 +10,8 @@ npm install -g @nohead/cli    # or run it without installing: npx nohead
 echo "$NOHEAD_API_KEY" | nohead login
 ```
 
+The CLI needs Node 26 or newer.
+
 Pulling needs a project API key with `schema:read`. Pushing, and previewing migrations in `diff`, need `schema:write` too, on a key with **Published records only** off; previews also need `records:read`. In CI, set `NOHEAD_API_KEY` instead of logging in.
 
 ## Pull, diff, push
@@ -33,7 +35,7 @@ nohead schema push --yes         # apply it
 · field blog-posts.legacy_id is not in the file (left alone)
 ```
 
-`+` adds, `~` changes, `!` is a field migration and `·` is something only in the project. For each migration, `diff` also runs a preview and reports how many records would convert and how many can't (`--no-preview` skips it). With `--exit-code`, it exits with `1` when push would change anything.
+`+` adds, `~` changes, `!` is a field migration and `·` is something only in the project. For each migration, `diff` also runs a preview and reports how many records would convert and how many can't (`--no-preview` skips it). With `--exit-code`, it exits with `1` when push would change anything. That is also the exit code for an error from the API, such as a revoked key; with `--json`, an error is the one printed to stderr.
 
 ## The file
 
@@ -104,7 +106,7 @@ nohead --note "Add summaries" schema push --yes
 
 ## In CI
 
-Keep `nohead.schema.yaml` in the repository and let CI apply it once a change is merged. A GitHub Actions job could look like this:
+Keep `nohead.schema.yaml` in the repository and let CI apply it once a change is merged. A GitHub Actions job could look like this, with the CLI's version pinned so that upgrading it is a change you make:
 
 ```yaml
 on:
@@ -120,11 +122,16 @@ jobs:
     env:
       NOHEAD_API_KEY: ${{ secrets.NOHEAD_API_KEY }}
     steps:
-      - uses: actions/checkout@v4
-      - run: npx nohead schema diff
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+      - run: npx --yes nohead@0.1 schema diff
       - if: github.event_name == 'push'
-        run: npx nohead schema push --yes
+        run: npx --yes nohead@0.1 schema push --yes
 ```
+
+GitHub doesn't give workflows for pull requests from forks the repository's secrets, so on those the diff step fails without a key (exit code `2`).
 
 Leave `--allow-migrations` out of CI, and run migrations by hand after reviewing their preview. A scheduled `nohead schema diff --exit-code` tells you when someone changed the schema in the web app without updating the file. Add `--json` for one JSON document on stdout instead of text.
 

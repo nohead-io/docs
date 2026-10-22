@@ -24,7 +24,7 @@ In the web app, open your project's **API keys** page and choose **New API key**
 |---|---|
 | Read content for a site build | `records:read`, plus `assets:read` for images and files |
 | Seed or sync content | `records:read`, `records:write` |
-| Manage the schema as code | `schema:read`, `schema:write` |
+| Manage the schema as code | `schema:read`, `schema:write`, plus `records:read` to preview field migrations |
 | Upload files | `assets:write` |
 | Search | `search:read` |
 | Manage webhooks | `webhooks:read`, `webhooks:write` |
@@ -40,6 +40,8 @@ Pass the key as `NOHEAD_API_KEY`, and keep it in your CI's secret store, never i
 npm install -g @nohead/cli   # or run it without installing: npx nohead
 nohead whoami                # reads NOHEAD_API_KEY
 ```
+
+The CLI needs Node 26 or newer. In CI, pin its version (`npx nohead@0.1`), so an upgrade is a change you choose.
 
 On your own machine, `echo "$NOHEAD_API_KEY" | nohead login` saves the key in a profile instead.
 
@@ -59,7 +61,7 @@ On your own machine, `echo "$NOHEAD_API_KEY" | nohead login` saves the key in a 
 
 ## Schema as code in CI
 
-Keep your collections and fields in a `nohead.schema.yaml` file in your repository, and let CI apply it. `nohead schema diff --exit-code` exits `1` when the project differs from the file, which makes a good check on pull requests, and `nohead schema push --yes` applies the file after merge. A push never deletes collections or fields, and changes that rewrite existing values (field migrations) need `--allow-migrations`. [Schema as code](/guides/schema-as-code) covers the file and the workflow.
+Keep your collections and fields in a `nohead.schema.yaml` file in your repository, and let CI apply it. `nohead schema diff --exit-code` exits `1` when the project differs from the file (or the API refuses the request), which makes a good check on pull requests, and `nohead schema push --yes` applies the file after merge. A push never deletes collections or fields, and changes that rewrite existing values (field migrations) need `--allow-migrations`. [Schema as code](/guides/schema-as-code) covers the file and the workflow.
 
 ## Change content safely
 
