@@ -68,7 +68,7 @@ Fields take part in searches by their [search settings](/guides/content-modellin
 { indexUid: index, q: "soup", filter: 'data.cuisine = "french"', sort: ["published_at:desc"] }
 ```
 
-Dates are Unix seconds here too: records from October 2026 on are `'data.starts_on >= 1790812800'`.
+Dates are Unix seconds here too: `'data.starts_on >= 1790812800'` finds records from 1 October 2026 (00:00 UTC) on.
 
 ## InstantSearch
 
