@@ -5,15 +5,19 @@ description: Search published records straight from your site's browser with a s
 
 A **search token** lets your site search published records straight from the browser, without going through the API: results come back as fast as you type, and the searches don't count toward your API requests. Search runs on [Meilisearch](https://www.meilisearch.com), so its clients and [InstantSearch](https://www.algolia.com/doc/guides/building-search-ui/what-is-instantsearch/js/) work as they are.
 
-## Create a token
+## Choose what sites can search
 
-In the web app, open your project's **Search tokens** page, choose **New search token**, name it and pick its collections. The token shows with what your site needs: the search URL, the token, and each collection's index. **How to use** on the list shows them again.
+Sites search only collections marked **Searchable from sites**: turn it on in a collection's **Search** tab, or when you create the collection. It is off by default, and it applies to every search token of the project, so a collection you mark later is searchable with the tokens you already have. Through the API, it is the collection's `site_search`.
 
-A token finds only the **published** records of the collections it names. The search engine enforces that: other collections, other projects and unpublished records stay out of reach, whatever a request asks for.
+A token finds only the **published** records of marked collections. The search engine enforces that: unmarked collections, other projects and unpublished records stay out of reach, whatever a request asks for. Marking or unmarking a collection reaches every token within seconds.
 
 <Warning>
-A token is public: it goes in your page source. Every field of the published records it finds can be read with it, so leave out collections your site keeps behind its own sign-in, or that hold fields you don't publish.
+A token is public: it goes in your page source. Every field of the published records it finds can be read with it, so leave unmarked the collections your site keeps behind its own sign-in, or that hold fields you don't publish.
 </Warning>
+
+## Create a token
+
+In the web app, open your project's **Search tokens** page, choose **New search token** and name it. The token shows with what your site needs: the search URL, the token, and each marked collection's index. **How to use** on the list shows them again.
 
 ## Search from a site
 
@@ -68,6 +72,6 @@ instantsearch({ indexName: index, searchClient })
 
 ## Revoke a token
 
-Delete it on the **Search tokens** page: searches with it fail at once, and your other tokens keep working. A token's collections are fixed, so searching another collection means a new token. While a project or organization is scheduled for deletion its tokens stop working, and they work again if it is restored.
+Delete it on the **Search tokens** page: searches with it fail at once, and your other tokens keep working. To stop sites searching one collection, unmark it instead. While a project or organization is scheduled for deletion its tokens stop working, and they work again if it is restored.
 
 Your servers can also search through the API with an API key: `GET /v1/collections/{collection_id}/search` and `GET /v1/projects/{project_id}/search` return full records, with `expand`.

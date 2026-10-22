@@ -7621,6 +7621,7 @@
           "schema_version",
           "deleted_at",
           "purge_after",
+          "site_search",
           "fields",
           "created_at",
           "updated_at"
@@ -7661,6 +7662,10 @@
             "description": "When a deleted collection is removed for good, with its fields and records, unless restored first.",
             "$ref": "#/components/schemas/NullableTimestamp"
           },
+          "site_search": {
+            "type": "boolean",
+            "description": "Whether sites find its published records with the project's\nsearch tokens (made in the web app), straight from the browser.\nOff by default: every field of those records becomes readable by\nanyone with a token, so turn it on only for collections whose\npublished records are public. A change reaches search tokens\nwithin seconds.\n"
+          },
           "fields": {
             "type": "array",
             "description": "Active fields in position order.",
@@ -7696,6 +7701,10 @@
               "null"
             ]
           },
+          "site_search": {
+            "type": "boolean",
+            "default": false
+          },
           "fields": {
             "type": "array",
             "items": {
@@ -7719,6 +7728,9 @@
               "string",
               "null"
             ]
+          },
+          "site_search": {
+            "type": "boolean"
           }
         }
       },
@@ -7771,6 +7783,10 @@
           },
           "deleted_at": {
             "$ref": "#/components/schemas/NullableTimestamp"
+          },
+          "site_search": {
+            "type": "boolean",
+            "description": "Absent from schemas before the setting existed (off)."
           },
           "fields": {
             "type": "array",
