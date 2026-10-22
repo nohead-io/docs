@@ -1,0 +1,103 @@
+---
+title: Coding agents
+description: Let coding agents and CI jobs change your schema and content with their own API key, readable output and a note on every change.
+---
+
+Coding agents such as Claude Code, Cursor or Codex, CI jobs and scripts work with Nohead through the same public API as the web app. Every change they make is attributed to their API key and kept in history, so you can see what an agent did, and why, and revert it.
+
+## Pick an interface
+
+| Interface | Use it when | Start here |
+|---|---|---|
+| The `nohead` CLI | The agent has a shell: coding agents, CI | `nohead --help`, [Schema as code](/guides/schema-as-code) |
+| The REST API | Anything that speaks HTTP | `/llms.txt` and `/openapi.json` on the API |
+| The MCP server | The agent has no shell: chat apps, agent frameworks, automation platforms | [MCP server](/guides/mcp) |
+| An SDK | Your application's code | [SDKs](/guides/sdks) |
+
+For a coding agent, the CLI is usually the best fit: `--json` output and exit codes cost it less context than a list of tools.
+
+## Give each agent its own key
+
+In the web app, open your project's **API keys** page and choose **New API key**. Give the agent a key of its own, with only the scopes its job needs:
+
+| Job | Scopes |
+|---|---|
+| Read content for a site build | `records:read`, plus `assets:read` for images and files |
+| Seed or sync content | `records:read`, `records:write` |
+| Manage the schema as code | `schema:read`, `schema:write`, plus `records:read` to preview field migrations |
+| Upload files | `assets:write` |
+| Search | `search:read` |
+| Manage webhooks | `webhooks:read`, `webhooks:write` |
+| Read the audit log | `audit:read` |
+
+New keys are published-only by default (**Published records only**): they read published records and nothing else, which is what a site needs. Turn it off for a key that writes, or that reads unpublished content or history. Published-only keys start with `nohead_pk_`, the others with `nohead_sk_`.
+
+Pass the key as `NOHEAD_API_KEY`, and keep it in your CI's secret store, never in the repository. A key belongs to one project, so the agent never needs a project ID. With a key per agent or pipeline, history shows which one made each change, and revoking a key stops only that one.
+
+## Install the CLI
+
+```bash
+npm install -g @nohead/cli   # or run it without installing: npx nohead
+nohead whoami                # reads NOHEAD_API_KEY
+```
+
+The CLI needs Node 26 or newer. In CI, pin its version (`npx nohead@0.1`), so an upgrade is a change you choose.
+
+On your own machine, `echo "$NOHEAD_API_KEY" | nohead login` saves the key in a profile instead.
+
+## Output agents can rely on
+
+- With `--json`, stdout carries exactly one JSON document: the API's own representation of the result.
+- Errors go to stderr. With `--json`, they use the API's error envelope, `{ "error": { "type", "message", "request_id", "details" } }`. Quote the `request_id` when you ask for support.
+- Rate limits (`429`), network failures and `5xx` responses are retried on their own, and every write carries an `Idempotency-Key`, so a retry never applies a change twice.
+
+| Exit code | Meaning |
+|---|---|
+| `0` | Success |
+| `1` | The API refused the request: validation, permission, not found, a changed record, a plan limit |
+| `2` | Usage error: bad arguments, a missing API key, an unreadable file |
+| `3` | The API could not be reached, after retries |
+| `4` | The CLI failed unexpectedly |
+
+## Schema as code in CI
+
+Keep your collections and fields in a `nohead.schema.yaml` file in your repository, and let CI apply it. `nohead schema diff --exit-code` exits `1` when the project differs from the file (or the API refuses the request), which makes a good check on pull requests, and `nohead schema push --yes` applies the file after merge. A push never deletes collections or fields, and changes that rewrite existing values (field migrations) need `--allow-migrations`. [Schema as code](/guides/schema-as-code) covers the file and the workflow.
+
+## Change content safely
+
+```bash
+nohead --note "Fix the price typo" records update rec_01J9ZQ3F8X --set price:=12 --if-revision 3
+nohead drafts create rec_01J9ZQ3F8X --set title="Spring menu"
+nohead records revert rec_01J9ZQ3F8X 2 --dry-run
+```
+
+- **Say why.** `--note` is kept with the revision, the merge or the schema change it makes, and shown in history next to the key's name and the client it came through, such as the CLI. Through the API, send the `Nohead-Change-Note` header; in the SDKs, pass `changeNote` (TypeScript) or `change_note` (Python, Ruby).
+- **Don't overwrite newer edits.** `--if-revision` refuses the change with `412` if someone changed the record since the revision the agent read. Read it again, and apply the change again.
+- **Propose, don't publish.** A draft holds changes until a person reviews them and merges them in the editor (**Publish changes**, or **Apply changes** for an unpublished record), or with `nohead drafts merge`.
+- **Sync without duplicates.** Creating a record with `upsert_on`, the key of a `unique` field such as a slug, updates the record that already has that value instead of adding another, so a sync job can run again and again.
+- **Undo.** Every change is a revision you can revert, `--dry-run` previews a revert, and deleted records, fields, collections and assets can be restored for 30 days.
+
+## Point the agent at the API
+
+The API serves `/llms.txt`, a plain-text map of every endpoint and the API's conventions, generated from the same contract the API is tested against. It suits an agent's context better than the full contract, `/openapi.json`:
+
+```bash
+curl "$NOHEAD_API_URL/llms.txt"
+```
+
+## A snippet for your AGENTS.md
+
+Tell your coding agent how your project uses Nohead, in `AGENTS.md`, `CLAUDE.md` or your tool's rules file:
+
+```markdown
+## Content (Nohead)
+
+- The schema lives in `nohead.schema.yaml`. Change it there and run
+  `nohead schema diff`; CI runs `nohead schema push --yes`. Never push field
+  migrations (`--allow-migrations`) without showing a person the diff's
+  migration preview first.
+- Use `--json` and check exit codes. Pass `--note "<why>"` on every write and
+  `--if-revision <n>` when updating a record you read earlier.
+- Propose content changes as drafts for review instead of publishing them.
+- API map: https://api.nohead.io/llms.txt
+```

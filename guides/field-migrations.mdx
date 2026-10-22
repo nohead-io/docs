@@ -109,6 +109,14 @@ end
 
 </CodeGroup>
 
+The [CLI](/guides/schema-as-code) does the same, and waits for the migration to finish:
+
+```bash
+nohead fields migrate products price --type decimal --dry-run
+nohead fields migrate products price --type decimal
+nohead fields migrate products category --required --backfill general
+```
+
 ## While it runs
 
 - From the start, the collection's fields can't change: schema writes are refused with `409` (`migration_in_progress`). While a migration is `pending`, waiting for others to finish, records can still be edited; a new value that can't convert fails it (or is cleared, with `on_invalid: "clear"`).

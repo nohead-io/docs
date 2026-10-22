@@ -1,0 +1,147 @@
+---
+title: Schema as code
+description: Keep your collections and fields in a YAML file in your repository, review changes as a diff, and apply them from CI.
+---
+
+The `nohead` CLI keeps a project's schema in a file, `nohead.schema.yaml`. You change the file, review what it would change, and push it, from your machine or from CI. Push applies the file through the API with the same rules as the web app: it never deletes anything, and changes that rewrite values run as [field migrations](/guides/field-migrations) only when you allow them.
+
+```bash
+npm install -g @nohead/cli    # or run it without installing: npx nohead
+echo "$NOHEAD_API_KEY" | nohead login
+```
+
+The CLI needs Node 26 or newer.
+
+Pulling needs a project API key with `schema:read`. Pushing, and previewing migrations in `diff`, need `schema:write` too, on a key with **Published records only** off; previews also need `records:read`. In CI, set `NOHEAD_API_KEY` instead of logging in.
+
+## Pull, diff, push
+
+```bash
+nohead schema pull               # writes nohead.schema.yaml
+# edit the file
+nohead schema diff               # what push would change
+nohead schema push --yes         # apply it
+```
+
+`diff` and `push` take another file as an argument (`nohead schema diff cms/schema.yaml`), and `pull --output` writes to one (`-` for stdout). `schema push` without `--yes` shows the plan and changes nothing.
+
+`schema diff` prints one line per change:
+
+```text
++ field blog-posts.summary (long_text)
+~ field authors.name: required true
+~ field blog-posts.heading -> title (heading stays an alias for 6 months)
+! field products.price: text -> decimal (field migration)
+· field blog-posts.legacy_id is not in the file (left alone)
+```
+
+`+` adds, `~` changes, `!` is a field migration and `·` is something only in the project. For each migration, `diff` also runs a preview and reports how many records would convert and how many can't (`--no-preview` skips it). With `--exit-code`, it exits with `1` when push would change anything. That is also the exit code for an error from the API, such as a revoked key; with `--json`, an error is the one printed to stderr.
+
+## The file
+
+```yaml
+collections:
+  authors:
+    fields:
+      name:
+        type: text
+        required: true
+      bio: long_text
+  blog-posts:
+    description: Articles for the blog
+    public_search: true
+    fields:
+      title:
+        type: text
+        required: true
+        max_length: 120
+      slug:
+        type: text
+        format: slug
+        required: true
+      category:
+        type: enum
+        options: [news, guides]
+      author:
+        type: relation
+        collection: authors
+      tags:
+        type: text
+        multiple: true
+        filterable: true
+      cover:
+        type: asset
+        name: Cover image
+        accepted_types: ["image/*"]
+```
+
+- Collections are keyed by slug and fields by key, with fields in the order editors see them. A field that is only a type can be written as one: `bio: long_text`.
+- A field takes `type`, `name`, `required`, `multiple` and its type's [configuration](/guides/content-modelling#field-types) as plain keys: `max_length`, `options`, `format`, `unique`, `include_time`, `time_zone`, `accepted_types`, `description`, and the search settings `searchable`, `filterable` and `sortable`.
+- A relation names its target collection by slug: `collection: authors`.
+- `public_search: true` includes a collection in [public search](/guides/search-tokens).
+- A collection takes `name` and `description`. Names left out are the key's default: `blog-posts` is "Blog Posts" and `cover_image` "Cover Image". `schema pull` writes a name only when it differs, and leaves out `unique` on slugs, which are always unique.
+
+The file describes each collection and field in full: a name, description or option you remove from it is removed from the project on the next push.
+
+## What push does
+
+- **It never deletes.** Collections and fields that aren't in the file are left alone, so a file can cover only part of a project. Delete them in the web app or with `nohead collections delete` and `nohead fields delete`; deleted ones can be restored.
+- **It keeps the file's order.** New fields are added, then the collection's fields are put in the file's order. A field the file leaves out stays after the field it follows now.
+- **Renames need `renamed_from`.** A new key in the file is a new field. To rename a field and keep its values, say where it came from: the old key keeps working for six months, so clients have time to move. Once pushed, `renamed_from` can be removed; `schema pull` never writes it.
+
+  ```yaml
+  title:
+    type: text
+    renamed_from: heading
+  ```
+
+- **Migrations need `--allow-migrations`.** A new type, `multiple` on or off, or a date's time on or off rewrites record values, so push refuses it unless you pass `--allow-migrations`. Push previews every migration before changing anything, and stops if any record can't convert, unless you pass `--clear-invalid` to clear those values. It runs migrations last, one at a time, and waits for each.
+- **Tighter rules are checked first.** Making a field required, or options such as a lower `max_length`, are checked against every record before anything changes. If records would break the rule, push stops and names the field. Fix those records, or migrate the field with a backfill: `nohead fields migrate blog-posts title --required --backfill Untitled`.
+
+Push applies changes one at a time through the API, so if one is refused partway (a new required field in a collection that already has records, say), the earlier ones stay. Fix the file and push again: it picks up from where the project is. Add a reason to the schema history with `--note`:
+
+```bash
+nohead --note "Add summaries" schema push --yes
+```
+
+## In CI
+
+Keep `nohead.schema.yaml` in the repository and let CI apply it once a change is merged. A GitHub Actions job could look like this, with the CLI's version pinned so that upgrading it is a change you make:
+
+```yaml
+on:
+  pull_request:
+    paths: [nohead.schema.yaml]
+  push:
+    branches: [main]
+    paths: [nohead.schema.yaml]
+
+jobs:
+  schema:
+    runs-on: ubuntu-latest
+    env:
+      NOHEAD_API_KEY: ${{ secrets.NOHEAD_API_KEY }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+      - run: npx --yes nohead@0.1 schema diff
+      - if: github.event_name == 'push'
+        run: npx --yes nohead@0.1 schema push --yes
+```
+
+GitHub doesn't give workflows for pull requests from forks the repository's secrets, so on those the diff step fails without a key (exit code `2`).
+
+Leave `--allow-migrations` out of CI, and run migrations by hand after reviewing their preview. A scheduled `nohead schema diff --exit-code` tells you when someone changed the schema in the web app without updating the file. Add `--json` for one JSON document on stdout instead of text.
+
+## Copy a project
+
+`nohead export` and `nohead import` move a whole project: its schema, records, drafts and assets. Export with `--include-files` to bring the files along; without them, asset values are left out of the imported records.
+
+```bash
+nohead export --output backup --include-files
+NOHEAD_API_KEY=$OTHER_PROJECT_KEY nohead import backup
+```
+
+The export's `schema.yaml` is the same format as `nohead.schema.yaml`. Import applies it the way push does, but never runs migrations: it stops if a field in the project has another type than in the export, so import into an empty project. Records start a new history there, and an interrupted import can be run again within 24 hours without duplicating records.

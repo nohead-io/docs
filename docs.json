@@ -32,7 +32,7 @@
           },
           {
             "group": "Integrate",
-            "pages": ["guides/sdks", "guides/webhooks", "guides/errors-and-retries", "guides/mcp"]
+            "pages": ["guides/sdks", "guides/webhooks", "guides/errors-and-retries", "guides/schema-as-code", "guides/coding-agents", "guides/mcp"]
           }
         ]
       },
