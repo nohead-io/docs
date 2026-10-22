@@ -31,7 +31,7 @@
           },
           {
             "group": "Search",
-            "pages": ["guides/search", "guides/search-tokens"]
+            "pages": ["guides/api-search", "guides/public-search"]
           },
           {
             "group": "Integrate",
