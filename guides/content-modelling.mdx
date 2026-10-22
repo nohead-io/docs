@@ -102,13 +102,10 @@ An image in a rich text document is one of the project's assets, by ID, with its
 
 In the web app, the editor's **Image** button chooses an asset or uploads one, and images can be pasted or dropped in.
 
-To render a document, expand the field: `expanded` then lists the assets its images show, in order, with their dimensions. Then ask for each image's URL at the size your page needs:
+To render a document, expand the field: `expanded` then lists the assets its images show, in order, with their dimensions and `image_url`. Write the size your page needs into each image's URL ([Images](/guides/images)), with no further request:
 
 ```bash
 curl "$NOHEAD_API_URL/v1/collections/blog-posts/records?expand=body" \
-  -H "Authorization: Bearer $NOHEAD_API_KEY"
-
-curl "$NOHEAD_API_URL/v1/assets/ast_01J9ZQ3F8X5W2K7M4N6P0R1S2T/image-url?width=1200&format=webp" \
   -H "Authorization: Bearer $NOHEAD_API_KEY"
 ```
 

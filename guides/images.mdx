@@ -48,7 +48,7 @@ export default function noheadLoader({ src, width, quality }) {
 
 Then `<Image src={asset.image_url} width={1200} height={630} alt={asset.alt} />` gets a `srcset` of renditions. Astro's image services and Nuxt Image's providers build their URLs the same way.
 
-If you'd rather not build URLs, `GET /v1/assets/{asset_id}/image-url` returns one for a `width`, `height`, `fit`, `format` and `quality`.
+There is no API call for renditions: write the options into the URL, in your code or your framework's loader.
 
 ## Limits
 
