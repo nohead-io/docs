@@ -23,8 +23,16 @@
             "pages": ["index", "quickstart"]
           },
           {
-            "group": "Concepts",
-            "pages": ["guides/content-modelling", "guides/images", "guides/search-tokens", "guides/sdks", "guides/mcp"]
+            "group": "Content",
+            "pages": ["guides/content-modelling", "guides/publishing", "guides/history", "guides/field-migrations", "guides/images"]
+          },
+          {
+            "group": "Search",
+            "pages": ["guides/search", "guides/search-tokens"]
+          },
+          {
+            "group": "Integrate",
+            "pages": ["guides/sdks", "guides/webhooks", "guides/errors-and-retries", "guides/mcp"]
           }
         ]
       },

@@ -1,0 +1,124 @@
+---
+title: Field migrations
+description: Change a field's type, turn lists on or off, or tighten its rules, with a preview of every record before anything changes.
+---
+
+Most field changes never touch your content: records store values by field ID, so renaming a field or loosening a rule saves at once. A change that rewrites existing values is a **field migration**. You preview what it does to every record, then it runs in the background and changes them all in one go.
+
+## Edits and migrations
+
+| Change | How |
+| --- | --- |
+| Name, key, help text, search settings, a date's time zone | Plain edit |
+| A looser rule: a higher `max_length`, more enum options, `required` off | Plain edit |
+| A tighter rule every record already meets | Plain edit |
+| A tighter rule some records break, such as a lower `max_length` or a removed enum option | Migration that clears the values that break it |
+| Making a field required while some records have no value | Migration with a backfill: a value for those records |
+| Another type, `multiple` on or off, a date's time on or off (`include_time`) | Migration |
+
+An edit that would leave records invalid is refused with `requires_migration` (or `requires_backfill`), pointing you to a migration.
+
+## Which values convert
+
+- Any type converts to `json`, and `json` to any type whose values it already holds.
+- Numbers, booleans, dates and enum values convert to `text` and `long_text`.
+- `text` and `long_text` convert to each other, and to `integer`, `decimal`, `boolean` (`true` or `false`), `date` and `enum` when the value fits, and to `rich_text`, with a paragraph per block of text between blank lines.
+- `integer` converts to `decimal`, and `decimal` to `integer` when the value is a whole number.
+
+Other type changes are refused (`incompatible_type`). Turning `multiple` on makes each value a list of one. Turning it off keeps lists of one value; longer lists can't convert. Adding a date's time makes each date midnight in the field's time zone (UTC without one); removing it keeps the day each moment falls on, in the time zone you choose (by default the field's, else UTC).
+
+## Preview
+
+A preview checks every record, deleted ones included, and writes nothing. It gives:
+
+- `conversion`: `safe` (every value converts, with the same meaning), `convertible` (every value converts, in another form) or `conditional` (some values may not convert);
+- how many records end up `unchanged`, `converted`, `backfilled`, `cleared` or `invalid`;
+- up to 10 sample records with their values before and after, invalid ones first.
+
+A migration with invalid records doesn't start. Fix those records, give a backfill for records without a value, or choose to clear the values that can't convert. Deleted records are converted too, so restoring one never brings back a value of the old type, but they are never backfilled. A migration to a `unique` field is refused with `duplicate_values` while converted values or the backfill would be shared.
+
+## In the web app
+
+Open the collection's **Schema** tab and configure the field:
+
+- Pick another **Type**, or turn **Include time** on or off, and the **Migrate field** dialog opens. Choose the new settings, then **Preview**.
+- Turning **Multiple values** off opens the preview straight away. Turning it on skips the preview, since every value converts: the migration starts when you save.
+- When **Required** can't be turned on because records have no value, choose **Fill empty values…** and enter a **Value for records without one**.
+
+The preview shows the counts and a few examples. Check **Clear values that cannot be converted** to clear them, then start the migration (**Migrate 12 records**, for example). A banner on the collection follows it, with **Cancel migration**.
+
+## Through the API
+
+Find the field's ID (`GET /v1/collections/{collection_id}/fields`), then preview the change with `dry_run=true`:
+
+```bash
+curl -X POST "$NOHEAD_API_URL/v1/collections/products/migrations?dry_run=true" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"field_id": "fld_01J9ZQ3F8X5W2K7M4N6P0R1S2T", "type": "decimal"}'
+```
+
+Without `dry_run`, the API checks every record again and refuses with `422` if any is invalid. Otherwise it answers `202` with a migration (`mig_…`) whose `status` goes from `pending` to `running` to `complete`, `failed` or `cancelled`: follow it with `GET /v1/migrations/{migration_id}`.
+
+The body names only what changes: `type`, `multiple`, `required` or `configuration` (the complete new one; with a new type and none given, only the help text and search settings carry over). `backfill` fills in records without a value, `on_invalid: "clear"` clears values that can't convert, and `time_zone` says whose day a moment becomes when a date loses its time. A dry run shows record values, so it needs `records:read` as well as `schema:write`. The [API reference](/api-reference/overview) has every parameter.
+
+<CodeGroup>
+
+```ts TypeScript
+const preview = await nohead.migrations.create("products", {
+  field_id: "fld_01J9ZQ3F8X",
+  type: "decimal",
+  dry_run: true,
+})
+console.log(preview.conversion, preview.records)
+
+let migration = await nohead.migrations.create("products", {
+  field_id: "fld_01J9ZQ3F8X",
+  type: "decimal",
+})
+while (migration.status === "pending" || migration.status === "running") {
+  await new Promise((resolve) => setTimeout(resolve, 1000))
+  migration = await nohead.migrations.get(migration.id)
+}
+```
+
+```python Python
+import time
+
+preview = nohead.migrations.create(
+    "products", field_id="fld_01J9ZQ3F8X", type="decimal", dry_run=True
+)
+print(preview.conversion, preview.records)
+
+migration = nohead.migrations.create("products", field_id="fld_01J9ZQ3F8X", type="decimal")
+while migration.status in ("pending", "running"):
+    time.sleep(1)
+    migration = nohead.migrations.get(migration.id)
+```
+
+```ruby Ruby
+preview = nohead.migrations.create("products", field_id: "fld_01J9ZQ3F8X", type: "decimal", dry_run: true)
+puts preview.conversion
+
+migration = nohead.migrations.create("products", field_id: "fld_01J9ZQ3F8X", type: "decimal")
+while %w[pending running].include?(migration.status)
+  sleep 1
+  migration = nohead.migrations.get(migration.id)
+end
+```
+
+</CodeGroup>
+
+## While it runs
+
+- From the start, the collection's fields can't change: schema writes are refused with `409` (`migration_in_progress`). While a migration is `pending`, waiting for others to finish, records can still be edited; a new value that can't convert fails it (or is cleared, with `on_invalid: "clear"`).
+- Once it is `running`, record writes are refused with `409` too. Reads are never affected: clients see the old values until the migration completes, then every new value at once.
+- Drafts' values for the field are converted as well; a value that can't be is dropped from its draft. Scheduled publishes and merges that come due while it runs are made once it finishes.
+
+Cancel a migration with **Cancel migration**, `nohead migrations cancel` or `POST /v1/migrations/{migration_id}/cancel`. A pending one stops at once; a running one is rolled back entirely at its next batch, with `cancel_requested_at` set until then. A migration that fails changes nothing either, and its `failure.message` says why.
+
+## Results and history
+
+A completed migration's `records` counts each outcome. Each record whose value changed gets a `migrate` revision, so its old value stays in its history (**Migrated** in the web app). The collection's schema history, on its **History** tab or at `GET /v1/collections/{collection_id}/schema-changes`, has a `migrate_field` change (the migration's `schema_change_id`), and `GET /v1/collections/{collection_id}/migrations` lists its migrations, newest first. Add a reason with the `Nohead-Change-Note` header.
+
+A completed migration sends one `field.migrated` [webhook](/guides/sdks#verify-webhooks) event, not a `record.updated` per record, so a site that rebuilds on record changes should listen for `field.migrated` too.

@@ -59,6 +59,25 @@ So that any URL stays cheap to serve:
 - SVG images have no `image_url`: download them as they are (`GET /v1/assets/{asset_id}/download-url`).
 - Each rendition is cached for a year. Requests from one address are rate limited, generously enough for pages full of images.
 
+## Where an asset is used
+
+Before you delete or replace an image or file, check which records use it:
+
+```bash
+curl "$NOHEAD_API_URL/v1/assets/ast_01J9ZQ3F8X/usage" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY"
+```
+
+It counts the records that use the asset in an asset field or as an image in a rich text field, in their content or in their pending draft, since merging the draft needs the asset. Deleted records, fields and collections don't count, and neither does history. The response has:
+
+- `records`: how many records use it.
+- `published`: how many of them are published with it in their content, which is what your sites show.
+- `uses`: the 10 most recently updated of them, each with its `record` and the keys of the `fields` that use the asset.
+
+It needs `records:read` as well as `assets:read`, and published-only keys get `403`. In the SDKs, it is `assets.usage`.
+
+In the web app, open an asset on the **Assets** page: **Used in** lists the records that use it. Deleting an asset that records use asks first.
+
 ## Deleted and purged images
 
 Knowing an image's URL is all it takes to see it, as with any public image. A deleted image's URLs keep working until it is purged (30 days later, or sooner with `POST /v1/assets/{asset_id}/purge`). A purge removes every rendition from the CDN within a minute or so; browsers keep what they cached.

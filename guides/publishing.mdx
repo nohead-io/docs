@@ -1,0 +1,147 @@
+---
+title: Drafts and publishing
+description: Publish and unpublish records, hold changes back in a draft, schedule both, and read only published content from your site.
+---
+
+Records start unpublished. A record is live when it has a `published_at`, and what is live is its current content: an edit to a published record reaches your site at once. To hold changes back until they are ready, put them in a draft.
+
+## Publish and unpublish
+
+In the web app, open a record and choose **Publish** or **Unpublish**. Through the API, publishing is the record's `publication`:
+
+```bash
+curl -X POST "$NOHEAD_API_URL/v1/records/rec_01J9ZQ3F8X/publication" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY"
+```
+
+`DELETE` on the same URL unpublishes, and `GET` says since when the record is live, the live revision and who published it.
+
+<CodeGroup>
+
+```ts TypeScript
+await nohead.records.publish(id)
+const live = await nohead.records.publication(id) // published_at, revision, published_by
+await nohead.records.unpublish(id)
+```
+
+```python Python
+nohead.records.publish(record_id)
+live = nohead.records.publication(record_id)  # published_at, revision, published_by
+nohead.records.unpublish(record_id)
+```
+
+```ruby Ruby
+nohead.records.publish(id)
+live = nohead.records.publication(id) # published_at, revision, published_by
+nohead.records.unpublish(id)
+```
+
+</CodeGroup>
+
+Each is a `publish` or `unpublish` revision in the record's [history](/guides/history), and takes a change note and `If-Match` like any record write. Publishing a published record, or unpublishing an unpublished one, changes nothing. Unpublishing keeps the content, and publishing again sets a new `published_at`.
+
+To publish or unpublish up to 100 records at once, `POST /v1/collections/{collection_id}/record-batches` with `action: "publish"` or `"unpublish"`. Each record is changed as if by its own request, and one that fails doesn't stop the others.
+
+In the web app, Editors and every role above can publish; Viewers can't. API keys publish with `records:write`.
+
+## Hold changes back in a draft
+
+A draft holds changes to a record until they are merged into it, while the record keeps its current content. In the web app, edit a published record and choose **Save as draft** from the save menu; the record then shows its pending changes, with **Publish changes**, **Schedule changes** and **Discard changes**. On an unpublished record the same button reads **Apply changes**.
+
+<CodeGroup>
+
+```ts TypeScript
+const draft = await nohead.drafts.create(id, { data: { title: "Hello, revised" } })
+await nohead.drafts.update(draft.id, { data: { summary: "Now with more detail" } })
+const preview = await nohead.drafts.get(draft.id) // data as the record would read
+await nohead.drafts.merge(draft.id, { changeNote: "Spring update" })
+```
+
+```python Python
+draft = nohead.drafts.create(record_id, data={"title": "Hello, revised"})
+nohead.drafts.update(draft.id, data={"summary": "Now with more detail"})
+preview = nohead.drafts.get(draft.id)  # data as the record would read
+nohead.drafts.merge(draft.id, change_note="Spring update")
+```
+
+```ruby Ruby
+draft = nohead.drafts.create(id, data: { title: "Hello, revised" })
+nohead.drafts.update(draft.id, data: { summary: "Now with more detail" })
+preview = nohead.drafts.get(draft.id) # data as the record would read
+nohead.drafts.merge(draft.id, change_note: "Spring update")
+```
+
+</CodeGroup>
+
+- **One draft per record.** Starting a second is `409` with detail code `draft_exists` and the existing `draft_id`.
+- **Previews.** A draft's `data` is the record as it would read after the merge, and `GET /v1/drafts/{draft_id}` takes `expand`, so a preview route on your site can render it. `changed_fields` lists what it changes.
+- **Merging changes content only.** A live record stays live and keeps its `published_at`; an unpublished one stays unpublished. The merge is one `merge` revision that names the draft and everyone who edited it. Webhooks get `record.updated` with the `draft_id`.
+- **Publishing never merges.** Publishing a live record that has a draft is `409` with detail code `draft_pending`. Publishing an unpublished record makes its current content live and keeps the draft.
+- **Edits made since win.** Fields the record changed after the draft started keep their values at the merge, unless the draft changes them too. The merge is validated again, unique values included (`422`).
+- **Bring back an earlier version for review.** `from_revision` starts the draft from that revision's values instead of the record's current ones.
+
+Discarding a draft (`DELETE /v1/drafts/{draft_id}`) leaves the record unchanged.
+
+## Schedule publishing
+
+A record's schedule publishes it at `publish_at` and unpublishes it at `unpublish_at`, within a minute of each time. In the web app, choose **Schedule**, set **Publish at** and **Unpublish at**, and choose **Save schedule**.
+
+```bash
+curl -X PUT "$NOHEAD_API_URL/v1/records/rec_01J9ZQ3F8X/schedule" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"publish_at": "2026-11-02T08:00:00Z", "unpublish_at": "2026-11-30T23:00:00Z"}'
+```
+
+The request sets the whole schedule: a time you leave out is cleared, and `DELETE` cancels both. Times must be in the future. `publish_at` needs an unpublished record, and `unpublish_at` a published one or a `publish_at` before it. Publishing by hand clears `publish_at`, unpublishing by hand clears `unpublish_at`, and deleting the record clears both.
+
+A scheduled change is a revision of its own, attributed to the system and made `via: scheduler`, with the same webhooks as a change by hand. One that can't be made when it is due is dropped: its time is cleared, the schedule's `last_error` says why, and a `record.schedule_failed` event goes to the activity log and to webhooks that subscribe to it.
+
+## Schedule a draft
+
+A draft merges on its own at `merge_at` (**Schedule changes** in the web app). That is how you schedule changes to a live page, such as new prices from Monday. A merge that can't be made leaves the draft as it is, with `schedule.last_error`, and sends `draft.schedule_failed`.
+
+<CodeGroup>
+
+```ts TypeScript
+await nohead.records.schedule(id, { publish_at: "2026-11-02T08:00:00Z" })
+await nohead.drafts.schedule("drf_01J9ZQ3F8X", { merge_at: "2026-11-02T08:00:00Z" })
+
+for await (const change of nohead.records.scheduledChanges("posts")) {
+  console.log(change.action, change.at, change.record_id) // publish, unpublish or merge
+}
+```
+
+```python Python
+nohead.records.schedule(record_id, publish_at="2026-11-02T08:00:00Z")
+nohead.drafts.schedule("drf_01J9ZQ3F8X", merge_at="2026-11-02T08:00:00Z")
+
+for change in nohead.records.scheduled_changes("posts"):
+    print(change.action, change.at, change.record_id)  # publish, unpublish or merge
+```
+
+```ruby Ruby
+nohead.records.schedule(id, publish_at: "2026-11-02T08:00:00Z")
+nohead.drafts.schedule("drf_01J9ZQ3F8X", merge_at: "2026-11-02T08:00:00Z")
+
+nohead.records.scheduled_changes("posts").each do |change|
+  puts "#{change.action} #{change.at} #{change.record_id}" # publish, unpublish or merge
+end
+```
+
+</CodeGroup>
+
+`GET /v1/collections/{collection_id}/scheduled-changes` lists every pending change of a collection's records, soonest first.
+
+## Published-only API keys
+
+A key with **Published records only** on (a `nohead_pk_` key) reads what your site shows, and nothing else. New keys in the web app have it on by default. Such a key:
+
+- lists, reads, counts and searches published records only, and finds an unpublished or deleted record as `404`
+- leaves unpublished records out of `expanded` relations, and reads only the assets that published records use
+- gets `403` for drafts, schedules, publications, record history and schema history
+- holds read scopes only (`records:read`, `schema:read`, `assets:read`, `search:read`)
+
+Use one for your site's build or server, so a draft or an unpublished record can never reach a page. With it you don't need a `published_at` filter; a full-access key lists unpublished records too, unless you filter with `filter[published_at][exists]=true`. Keep the key on your server like any API key; for search from the browser, use a [search token](/guides/search-tokens).
+
+To rebuild pages when content goes live, subscribe a webhook to `record.published`, `record.unpublished` and `record.updated` (which merges send): see [Webhooks](/guides/webhooks). Every endpoint is in the [API reference](/api-reference/overview).

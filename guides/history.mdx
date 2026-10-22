@@ -1,0 +1,170 @@
+---
+title: Revisions and history
+description: See who changed a record, when, through what and why, compare any two versions, revert, and redact values that should never have been stored.
+---
+
+Every change to a record is a revision. Revisions are numbered per record from 1, numbers are never reused, and the current one is the record's `revision` (and its `ETag`). Changes add revisions and never edit old ones: only redaction, the plan's retention and purges of deleted data remove anything from history.
+
+In the web app, open a record's **History** tab. Through the API, reading history needs `records:read`, and reverting `records:write`.
+
+## What a revision records
+
+Each revision has:
+
+- `operation`: `create`, `update`, `publish`, `unpublish`, `delete`, `restore`, `revert`, `migrate` or `merge`
+- `actor`: the person or API key that made the change (`type` is `user`, `api_key` or `system`), with its name
+- `via`: the client it came through: `ui`, `api`, `cli`, `sdk`, `mcp`, `system` or `scheduler`
+- `note`: the change note, if one was sent
+- `changed_fields`: the keys of the fields (and `published_at` or `deleted_at`) it changed
+- `draft`: for a `merge`, the draft it merged, with who started it and who edited it
+- `reverted_to_revision`: for a `revert`, the revision it went back to
+
+A single revision also has `data`, the record's values as of that revision, and `changes`, each with `before` and `after`. Changes name a field by its current key and its stable `field_id`, so history stays readable after a field is renamed.
+
+## List and read revisions
+
+Lists are newest first. Filter by `operation`, by `actor_id` (a `usr_` or `key_` ID) or by a `created_at` range:
+
+```bash
+curl -g "$NOHEAD_API_URL/v1/records/rec_01J9ZQ3F8X/revisions?filter[operation]=publish" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY"
+```
+
+<CodeGroup>
+
+```ts TypeScript
+for await (const revision of nohead.records.revisions.list(id)) {
+  console.log(revision.revision, revision.operation, revision.actor.name, revision.via, revision.note)
+}
+const third = await nohead.records.revisions.get(id, 3) // data and changes
+const fromWebhook = await nohead.revisions.get("rev_01J9ZQ3F8X")
+```
+
+```python Python
+for revision in nohead.records.revisions.list(record_id):
+    print(revision.revision, revision.operation, revision.actor.name, revision.via, revision.note)
+third = nohead.records.revisions.get(record_id, 3)  # data and changes
+from_webhook = nohead.revisions.get("rev_01J9ZQ3F8X")
+```
+
+```ruby Ruby
+nohead.records.revisions.list(id).each do |revision|
+  puts [revision.revision, revision.operation, revision.actor.name, revision.via, revision.note].join(" ")
+end
+third = nohead.records.revisions.get(id, 3) # data and changes
+from_webhook = nohead.revisions.get("rev_01J9ZQ3F8X")
+```
+
+</CodeGroup>
+
+Webhooks and the activity log name a revision by its `rev_` ID (`revision_id`); `GET /v1/revisions/{revision_id}` reads it. History stays readable while a record is deleted.
+
+## Compare two revisions
+
+`GET /v1/records/{record_id}/diff?from=3&to=7` returns the `changes` between any two revisions, field values and `published_at` alike. In the web app, open a revision and pick **Compare with #7**.
+
+<CodeGroup>
+
+```ts TypeScript
+const diff = await nohead.records.diff(id, { from: 3, to: 7 })
+for (const change of diff.changes) console.log(change.field ?? change.attribute, change.before, change.after)
+```
+
+```python Python
+diff = nohead.records.diff(record_id, from_revision=3, to_revision=7)
+for change in diff.changes:
+    print(change.field or change.attribute, change.before, change.after)
+```
+
+```ruby Ruby
+diff = nohead.records.diff(id, from: 3, to: 7)
+diff.changes.each { |change| puts "#{change.field || change.attribute}: #{change.before} -> #{change.after}" }
+```
+
+</CodeGroup>
+
+## Revert
+
+Reverting writes a new `revert` revision with an earlier revision's values; nothing in between is lost. In the web app, open a revision, choose **Revert to this version**, check the changes and choose **Revert**. Through the API, preview first with `dry_run`, which writes nothing:
+
+<CodeGroup>
+
+```ts TypeScript
+const preview = await nohead.records.revisions.revert(id, 3, { dry_run: true })
+console.log(preview.changes)
+await nohead.records.revisions.revert(id, 3, {}, { changeNote: "Undo the broken import" })
+```
+
+```python Python
+preview = nohead.records.revisions.revert(record_id, 3, dry_run=True)
+print(preview.changes)
+nohead.records.revisions.revert(record_id, 3, change_note="Undo the broken import")
+```
+
+```ruby Ruby
+preview = nohead.records.revisions.revert(id, 3, dry_run: true)
+puts preview.changes
+nohead.records.revisions.revert(id, 3, change_note: "Undo the broken import")
+```
+
+</CodeGroup>
+
+The old values are mapped onto the current schema:
+
+- A field whose type changed since gets its old value converted, as a field migration would. A value that can't be converted fails the revert (`422`), and a field whose old and new types have no conversion keeps its current value.
+- Fields added since, and fields whose old value was redacted, keep their current values. Deleted fields don't come back.
+- The result is validated like any update, and whether the record is published doesn't change. Reverting a live record changes what is live.
+
+A deleted record must be restored before it can be reverted (`409`). Send `If-Match` to revert only if nobody changed the record since you looked. To review an old version before it goes live, start a [draft](/guides/publishing#hold-changes-back-in-a-draft) from it with `from_revision` instead.
+
+## Change notes and attribution
+
+Every change is attributed to the person or API key that made it. Give each tool, agent and CI job a key of its own, so history tells them apart. To say why, send `Nohead-Change-Note` when you create, update, publish, unpublish, delete, restore or revert a record, change records in a batch, merge a draft, or change a schema (fields, collections, field migrations). The note is percent-encoded UTF-8, as `encodeURIComponent` encodes it, at most 500 characters once decoded; plain ASCII can be sent as it is.
+
+```bash
+curl -X PATCH "$NOHEAD_API_URL/v1/records/rec_01J9ZQ3F8X" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Nohead-Change-Note: Fix%20the%20price%20of%20the%20large%20size" \
+  -d '{"data": {"price": 24}}'
+```
+
+The SDKs encode it for you:
+
+<CodeGroup>
+
+```ts TypeScript
+await nohead.records.update(id, { data: { price: 24 } }, { changeNote: "Fix the price of the large size" })
+```
+
+```python Python
+nohead.records.update(record_id, data={"price": 24}, change_note="Fix the price of the large size")
+```
+
+```ruby Ruby
+nohead.records.update(id, data: { price: 24 }, change_note: "Fix the price of the large size")
+```
+
+</CodeGroup>
+
+The SDKs also name themselves in `Nohead-Client`, so their changes show `via: sdk`. Changes made by a schedule show `actor.type: system` and `via: scheduler`. The [MCP server](/guides/mcp) requires a note on every change.
+
+## Redact a field's past values
+
+When a value should never have been stored, such as personal data or a secret, owners and admins can remove it from history in the web app. On the record's **History** tab, choose **Redact…**, pick the **Field** and the **Values to remove** (every past value, or the value set in one revision), check the preview, type the field's key and choose **Redact permanently**.
+
+- Each removed value reads `{"$redacted": true}` wherever it appears in revision snapshots and changes, and those revisions list the field in `redacted_fields`.
+- Copies in stored webhook payloads are removed too.
+- The current value is never touched. If it is the problem, change the record first, then redact.
+- Reverting to a redacted revision keeps the field's current value.
+- Redaction can't be undone, and it is recorded in the activity log as `record.redacted`.
+
+Redaction is not part of the API: API keys can't redact.
+
+## How long history is kept
+
+How long revisions are kept depends on the organization's [plan](https://nohead.io/pricing). Once a day, older revisions are removed, but every record keeps its first revision and its last 10. A record's `history_pruned_through` is the highest revision number removed (`null` while nothing was), and the **History** tab says which revisions were removed. For 30 days after a move to a plan that keeps less, nothing is removed.
+
+History doesn't outlive deletion: when a deleted record is purged, its revisions go with it, and when a deleted field is purged, its values are removed from every revision.
+
+Published-only API keys can't read history (`403`), since it holds unpublished content. Every endpoint is in the [API reference](/api-reference/overview).
