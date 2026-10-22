@@ -10,13 +10,13 @@ Every image you upload has an `image_url`: the whole image, served from a CDN. I
 An asset that is a ready JPEG, PNG, GIF, WebP or AVIF image has an `image_url` (it is `null` for other files):
 
 ```text
-https://images.nohead.io/insecure/plain/projects/<project>/assets/<asset>
+https://images.nohead.io/plain/<project>/<asset>
 ```
 
-Write processing options between `/insecure/` and `/plain/`, and a format after `@`:
+Write processing options before `/plain/`, and a format after `@`:
 
 ```text
-https://images.nohead.io/insecure/rs:fill:1200:630/g:sm/plain/projects/<project>/assets/<asset>@webp
+https://images.nohead.io/rs:fill:1200:630/g:sm/plain/<project>/<asset>@webp
 ```
 
 That is a 1200×630 crop, around the most interesting part of the image, as WebP. Assets also have a `preview_url`, a small WebP that fits in 640×640, for thumbnails.
