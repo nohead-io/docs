@@ -15,7 +15,7 @@ curl -X POST "$NOHEAD_API_URL/v1/records/rec_01J9ZQ3F8X/publication" \
   -H "Authorization: Bearer $NOHEAD_API_KEY"
 ```
 
-`DELETE` on the same URL unpublishes, and `GET` says since when the record is live, the live revision and who published it.
+`DELETE` on the same URL unpublishes, and `GET` says since when the record is live, the live revision and who published it (`404` with detail code `not_published` for a record that isn't live).
 
 <CodeGroup>
 
@@ -145,4 +145,4 @@ A key with **Published records only** on (a `nohead_pk_` key) reads what your si
 
 Use one for your site's build or server, so a draft or an unpublished record can never reach a page. With it you don't need a `published_at` filter; a full-access key lists unpublished records too, unless you filter with `filter[published_at][exists]=true`. Keep the key on your server like any API key; for search from the browser, use [public search](/guides/public-search).
 
-To rebuild pages when content goes live, subscribe a webhook to `record.published`, `record.unpublished` and `record.updated` (which merges send): see [Webhooks](/guides/webhooks). Every endpoint is in the [API reference](/api-reference/overview).
+To rebuild pages when what is live changes, subscribe a webhook to `record.*` (merges send `record.updated`, reverts `record.reverted`) and `field.migrated`: see [Webhooks](/guides/webhooks). Every endpoint is in the [API reference](/api-reference/overview).

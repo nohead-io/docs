@@ -23,6 +23,7 @@ A token is public: in a site, it goes in your page source. Every field of the pu
 Each collection has its own index. Its name shows on the collection's **Search** tab, under **Public search index name**, while the collection is included in public search. Through the API, it is the `index` of the collection's search index:
 
 ```bash
+# An API key with schema:read
 curl "$NOHEAD_API_URL/v1/collections/blog-posts/search-index" \
   -H "Authorization: Bearer $NOHEAD_API_KEY"
 ```
@@ -31,11 +32,11 @@ Index names are opaque and never change, so you can keep them in your code or co
 
 ## Create a token
 
-In the web app, open your project's **Search tokens** page, choose **New search token** and name it after the site or app that will use it. Copy the token from the list. Make one per site or app, so deleting one stops only that site's searches.
+In the web app, open your project's **Search tokens** page, choose **New search token** and name it after the site or app that will use it. Copy the token from the list. Make one per site or app, so deleting one stops only that site's searches. A project can have 25 tokens.
 
 ## Search
 
-Send searches to `https://search.nohead.io`, the search URL for every token (a token's `search_url` in the API):
+Send searches to `https://search.nohead.io`, the search URL for every token (a token's `search_url` in the API). It lets searches through and nothing else, and limits how many requests one address can make:
 
 ```javascript
 const response = await fetch("https://search.nohead.io/multi-search", {
@@ -54,18 +55,20 @@ for (const hit of results[0].hits) console.log(hit.data.title)
 
 Hits look like records:
 
-- `id` (`rec_…`), `status`, and `published_at`, `created_at` and `updated_at` as Unix seconds
-- field values under `data`, by field key: rich text as plain text, JSON as a string
+- `id` (`rec_…`), `status` (always `published`), and `published_at`, `created_at` and `updated_at` as Unix seconds
+- field values under `data`, by field key: dates as Unix seconds, rich text as plain text, JSON as a string, assets and relations as IDs
 
 Several collections at once take one query each, or a federated search across them (`federation: {}` in the request).
 
 ## Filter and sort
 
-Fields take part in searches by their [search settings](/guides/content-modelling): words match `searchable` fields, and `filterable` and `sortable` fields can be used in filters and sorts. Name them under `data`:
+Fields take part in searches by their [search settings](/guides/content-modelling#filtering-and-search), as in every search: words match `searchable` fields, and `filterable` and `sortable` fields can be used in filters and sorts. Name them under `data`:
 
 ```javascript
 { indexUid: index, q: "soup", filter: 'data.cuisine = "french"', sort: ["published_at:desc"] }
 ```
+
+Dates are Unix seconds here too: records from October 2026 on are `'data.starts_on >= 1790812800'`.
 
 ## InstantSearch
 

@@ -55,7 +55,7 @@ end
 
 ## What words match
 
-With an API key, words match the collection's `searchable` fields. Text, long text, rich text and enum fields are searchable unless you turn it off. Members searching in the web app match all of a collection's text fields. You choose how each field takes part on the collection's **Search** tab, or in the field's options: see [Filtering and search](/guides/content-modelling#filtering-and-search).
+Words match the collection's `searchable` fields, in every search: with an API key, by members in the web app, and in [public search](/guides/public-search). Text, long text, rich text and enum fields are searchable unless you turn it off. You choose how each field takes part on the collection's **Search** tab, or in the field's options: see [Filtering and search](/guides/content-modelling#filtering-and-search).
 
 ## Filter and sort
 
@@ -127,16 +127,16 @@ Indexes follow record and schema changes on their own. `GET /v1/collections/{col
 - `status`: `building` until the index is first built, `ready`, `stale` from a change that needs a rebuild until the rebuild has run, or `failed` if the last rebuild failed (it is retried).
 - `documents`: how many records it holds (for a published-only key, how many are published).
 - `last_built_at` and `rebuild_requested_at`.
-- `index`: the index's name in the search engine, which [public search](/guides/public-search#index-names) search by. API searches don't need it.
+- `index`: the index's name in the search engine, which [public search](/guides/public-search#index-names) searches by. API searches don't need it.
 
-The collection's **Search** tab shows the same status, with a **Rebuild index** button. You rarely need it.
+The collection's **Search** tab shows the same status, with a **Rebuild index** button (`POST /v1/collections/{collection_id}/search-index/rebuild`, `schema:write`). You rarely need it.
 
 ## When search answers 409
 
 Search answers `409 conflict` while the index can't serve a request yet. The error's detail `code` says why:
 
 - `index_building`: a new collection's index is being built for the first time.
-- `rebuilding`: you filtered or sorted on a field you just made `filterable` or `sortable`, or searched words while the index is rebuilt for a field's new key. The engine knows the field once the rebuild that adds it has run; meanwhile the index is `stale`.
+- `rebuilding`: you filtered or sorted on a field you just made `filterable` or `sortable`, or searched words while none of the collection's searchable fields is in the index yet (its only one was just renamed or made searchable, say). The engine knows the field once the rebuild that adds it has run; meanwhile the index is `stale`.
 
 Retry once the index status is `ready`. If the search service itself is unavailable, search answers `503`; reading records works as usual.
 

@@ -30,9 +30,9 @@ Every error the API returns has the same shape, and any write can be made safe t
 | 400 | `invalid_request` | `unknown_parameter`, `invalid`, `reused` |
 | 401 | `authentication_error` | |
 | 402 | `plan_limit_exceeded` | `plan_limit` |
-| 403 | `authorization_error` | `not_permitted` |
+| 403 | `authorization_error` | `not_permitted` (for `expand`) |
 | 404 | `not_found` | |
-| 409 | `conflict` | `deleted`, `in_progress`, `draft_exists`, `migration_in_progress`, `upload_incomplete` |
+| 409 | `conflict` | `deleted`, `in_progress`, `draft_exists`, `draft_pending`, `migration_in_progress`, `upload_incomplete` |
 | 412 | `precondition_failed` | `revision_mismatch` |
 | 422 | `validation_error` | `required`, `unknown_field`, `invalid_type`, `invalid_format`, `taken` |
 | 429 | `rate_limited` | `rate_limit` |
@@ -41,10 +41,10 @@ Every error the API returns has the same shape, and any write can be made safe t
 
 - **400**: the request is malformed, such as JSON that doesn't parse, a sort or cursor the API doesn't know, or a body key the operation doesn't take (`unknown_parameter`, naming the key). Fix the request: retrying it unchanged fails the same way.
 - **401**: the API key is missing, invalid, revoked or expired.
-- **402**: the change would go over a hard limit of your organization's plan, such as its number of records. The detail names the limit in `field`, with the current `usage` and the `limit`.
-- **403**: the key may see the resource but not do this, for example when it lacks a scope (the message names it) or is published-only.
+- **402**: the change would go over a hard limit of your organization's plan, such as its number of projects, collections, records, members or webhooks, or its storage. The detail names the limit in `field`, with the current `usage` and the `limit`.
+- **403**: the key may see the resource but not do this, for example when it lacks a scope (the message names it; there is no detail code) or is published-only. An `expand` that embeds what the key can't read is `not_permitted`.
 - **404**: the resource doesn't exist, or the key can't see it, such as another project's. The two look the same on purpose.
-- **409**: the request conflicts with the resource's state. A deleted resource must be restored first (`deleted`); a record has one draft at most (`draft_exists`); a collection is being migrated (`migration_in_progress`). Retrying helps only once the state changes; `in_progress` is the exception (see below).
+- **409**: the request conflicts with the resource's state. A deleted resource must be restored first (`deleted`); a record has one draft at most (`draft_exists`), and a live record with a pending draft can't be published until the draft is merged (`draft_pending`); a collection is being migrated (`migration_in_progress`). Retrying helps only once the state changes; `in_progress` is the exception (see below).
 - **422**: the values don't pass validation. For a record, each detail's `field` is the field's key in `data`; unknown keys in `data` are `unknown_field`, and a value another record already has in a unique field is `taken`, with that record's `record_id`.
 - **500** is an unexpected failure in the API, and **503** means a service such as search is briefly unavailable. Retry both with backoff.
 
@@ -161,4 +161,4 @@ If someone changed the record since revision 6, nothing is written and the API a
 
 Reload the record, then merge your change into it or ask the person editing what to keep. Don't retry the same request: it fails the same way.
 
-`If-Match` works on record writes (update, delete, restore, publish, unpublish, revert) and on a draft's update, discard and merge, where the revision is the draft's. In the SDKs, pass the record you read as `ifMatch` (`if_match`): see [Concurrent edits](/guides/sdks#concurrent-edits).
+`If-Match` works on record writes (a create with `upsert_on`, which may update, and update, delete, restore, publish, unpublish, revert) and on a draft's update, discard and merge, where the revision is the draft's. In the SDKs, pass the record you read as `ifMatch` (`if_match`): see [Concurrent edits](/guides/sdks#concurrent-edits).

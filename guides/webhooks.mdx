@@ -98,8 +98,8 @@ Each request's body is one JSON event:
 The record above is shortened; events carry the whole record.
 
 - `actor` is who made the change (a user, an API key, or the system), and `via` the client it came through (`ui`, `api`, `cli`, `sdk`, `mcp`, `system` or `scheduler`). An integration that writes back can skip changes made with its own API key.
-- Record events carry the record as the change left it, with the `revision` it made and the revision's ID. Events without a revision (`record.scheduled`, `record.unscheduled`, `record.schedule_failed`, `record.redacted`) carry the record as it is now, and `record` is `null` once the record is purged.
-- Draft events carry the draft as it is now (`null` once merged or discarded), collection and field events the collection and the schema change, and asset events the asset.
+- Record events carry the record as the change left it, with the `revision` it made and the revision's ID. Events without a revision (`record.scheduled`, `record.unscheduled`, `record.schedule_failed`, `record.redacted`) carry the record as it is now. Once a record is purged, every event about it has `record: null`.
+- Draft events carry the draft as it is now (`null` once merged or discarded), collection and field events the collection and the schema change, and asset events the asset (only its `id` once it is purged, as in `asset.purged`).
 
 The payload is rendered each time it is sent, so values redacted in the meantime show as redacted, even on a retry. Fetch the resource from the API when you need its current state.
 
@@ -118,7 +118,7 @@ Answer quickly and do slow work afterwards, in a queue or a background job.
 
 Choose **Deliveries** on a webhook to see its deliveries for the last 30 days: **Delivered**, **Retrying** or **Failed**, with each attempt's status code, error, duration and the start of your response, and the payload. **Retry now** sends a delivery again at once; on a delivered one, **Send again** does the same.
 
-Through the API, `GET /v1/webhooks/{webhook_id}/deliveries` lists them (newest first, with `filter[status]`), and `POST /v1/webhook-deliveries/{delivery_id}/retry` sends one again:
+Through the API, `GET /v1/webhooks/{webhook_id}/deliveries` lists them (newest first; `filter[status]` takes `pending`, `succeeded` or `failed`, which the web app shows as **Retrying**, **Delivered** and **Failed**), and `POST /v1/webhook-deliveries/{delivery_id}/retry` sends one again:
 
 <CodeGroup>
 
@@ -154,7 +154,7 @@ There is no automatic disabling: a failing endpoint keeps getting new events, an
 
 Deliveries are signed per [Standard Webhooks](https://www.standardwebhooks.com), so its libraries verify them too. Always verify before you act on an event.
 
-With an SDK, `unwrap` checks the signature and the timestamp and returns the typed event: see [Verify webhooks](/guides/sdks#verify-webhooks). Pass it the raw body, before any JSON parsing, since parsing and serializing again changes the bytes.
+With an SDK, `unwrap` (`unwrapWebhook` in TypeScript) checks the signature and the timestamp and returns the typed event: see [Verify webhooks](/guides/sdks#verify-webhooks). Pass it the raw body, before any JSON parsing, since parsing and serializing again changes the bytes.
 
 To verify by hand:
 

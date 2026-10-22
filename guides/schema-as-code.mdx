@@ -13,7 +13,7 @@ echo "$NOHEAD_API_KEY" | nohead login
 
 The CLI needs Node 26 or newer.
 
-Pulling needs a project API key with `schema:read`. Pushing, and previewing migrations in `diff`, need `schema:write` too, on a key with **Published records only** off; previews also need `records:read`. In CI, set `NOHEAD_API_KEY` instead of logging in.
+Pulling needs a project API key with `schema:read`. Pushing needs `schema:write` and `records:read` too, on a key with **Published records only** off: push checks migrations and stricter field settings against the records first. Previewing migrations in `diff` needs the same. In CI, set `NOHEAD_API_KEY` instead of logging in.
 
 ## Pull, diff, push
 
@@ -24,7 +24,7 @@ nohead schema diff               # what push would change
 nohead schema push --yes         # apply it
 ```
 
-`diff` and `push` take another file as an argument (`nohead schema diff cms/schema.yaml`), and `pull --output` writes to one (`-` for stdout). `schema push` without `--yes` shows the plan and changes nothing.
+`diff` and `push` take another file as an argument (`nohead schema diff cms/schema.yaml`), and `pull --output` writes to one (`-` for stdout). `schema push` without `--yes` shows the plan, changes nothing and exits with `2` (or `0` when there is nothing to change).
 
 `schema diff` prints one line per change:
 
@@ -36,7 +36,7 @@ nohead schema push --yes         # apply it
 · field blog-posts.legacy_id is not in the file (left alone)
 ```
 
-`+` adds, `~` changes, `!` is a field migration and `·` is something only in the project. For each migration, `diff` also runs a preview and reports how many records would convert and how many can't (`--no-preview` skips it). With `--exit-code`, it exits with `1` when push would change anything. That is also the exit code for an error from the API, such as a revoked key; with `--json`, an error is the one printed to stderr.
+`+` adds, `~` changes, `!` is a field migration and `·` is something only in the project. For each migration, `diff` also runs a preview and reports how many records would convert and how many can't (`--no-preview` skips it). With `--exit-code`, it exits with `1` when push would change anything. That is also the exit code for an error from the API, such as a revoked key. With `--json`, stderr then says which: `{"error": {"type": "schema_differs", …}}` for a difference, any other `type` for an error.
 
 ## The file
 
@@ -77,12 +77,12 @@ collections:
 ```
 
 - Collections are keyed by slug and fields by key, with fields in the order editors see them. A field that is only a type can be written as one: `bio: long_text`.
-- A field takes `type`, `name`, `required`, `multiple` and its type's [configuration](/guides/content-modelling#field-types) as plain keys: `max_length`, `options`, `format`, `unique`, `include_time`, `time_zone`, `accepted_types`, `description`, and the search settings `searchable`, `filterable` and `sortable`.
+- A field takes `type`, `name`, `required`, `multiple` and its type's [configuration](/guides/content-modelling#field-types) as plain keys: `min_length`, `max_length`, `min`, `max`, `options`, `format`, `unique`, `include_time`, `time_zone`, `accepted_types`, `description`, and the search settings `searchable`, `filterable` and `sortable`.
 - A relation names its target collection by slug: `collection: authors`.
 - `public_search: true` includes a collection in [public search](/guides/public-search).
 - A collection takes `name` and `description`. Names left out are the key's default: `blog-posts` is "Blog Posts" and `cover_image` "Cover Image". `schema pull` writes a name only when it differs, and leaves out `unique` on slugs, which are always unique.
 
-The file describes each collection and field in full: a name, description or option you remove from it is removed from the project on the next push.
+The file describes each collection and field in full: a description or option you remove from it is removed from the project on the next push, and a name you remove goes back to the key's default.
 
 ## What push does
 
@@ -138,11 +138,11 @@ Leave `--allow-migrations` out of CI, and run migrations by hand after reviewing
 
 ## Copy a project
 
-`nohead export` and `nohead import` move a whole project: its schema, records, drafts and assets. Export with `--include-files` to bring the files along; without them, asset values are left out of the imported records.
+`nohead export` and `nohead import` move a whole project: its schema, records, drafts and assets. Export with `--include-files` to bring the files along; without them, asset values are left out of the imported records. Export needs a key with **Published records only** off and `schema:read`, `records:read` and `assets:read`; import needs `schema:write`, `records:write` and `assets:write` as well.
 
 ```bash
 nohead export --output backup --include-files
 NOHEAD_API_KEY=$OTHER_PROJECT_KEY nohead import backup
 ```
 
-The export's `schema.yaml` is the same format as `nohead.schema.yaml`. Import applies it the way push does, but never runs migrations: it stops if a field in the project has another type than in the export, so import into an empty project. Records start a new history there, and an interrupted import can be run again within 24 hours without duplicating records.
+The export's `schema.yaml` is the same format as `nohead.schema.yaml`. Import applies it the way push does, but never runs migrations: it stops if a field in the project has another type than in the export (or differs in `multiple`, or in a date's time), so import into an empty project. Records start a new history there, and an interrupted import can be run again within 24 hours without duplicating records.

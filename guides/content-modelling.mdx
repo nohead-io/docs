@@ -20,7 +20,7 @@ A **field** has:
 | | Rule |
 | --- | --- |
 | Collection slug | Starts with a letter; lowercase letters, digits, `-` and `_`; at most 63 characters. Unique in the project. |
-| Field key | Starts with a letter; lowercase letters, digits and `_` (snake_case); at most 63 characters. Unique in the collection. |
+| Field key | Starts with a letter; lowercase letters, digits and `_` (snake_case); at most 63 characters. Unique in the collection, and a renamed field's old key stays taken while it still works (six months). |
 
 These field keys are reserved, for records' own attributes and a few kept for later: `id`, `object`, `collection`, `data`, `status`, `published_at`, `created_at`, `updated_at`, `deleted`, `deleted_at`, `purge_after`, `revision`, `schema_version`.
 
@@ -30,7 +30,7 @@ These field keys are reserved, for records' own attributes and a few kept for la
 | --- | --- | --- |
 | `text` | A string, up to 10,000 characters | `min_length`, `max_length`, `format`, `unique` (see [Formats and unique values](#formats-and-unique-values)) |
 | `long_text` | A string, up to 100,000 characters | `min_length`, `max_length` |
-| `rich_text` | A rich text document: `{"type": "doc", "content": [...]}`, compatible with ProseMirror and Tiptap, which can show [images](#images-in-rich-text) of the project's assets | |
+| `rich_text` | A rich text document: `{"type": "doc", "content": [...]}`, compatible with ProseMirror and Tiptap, which can show [images](#images-in-rich-text) of the project's assets, up to 1 MB | |
 | `integer` | A whole number within ±9,007,199,254,740,991, which every JSON client represents exactly | `min`, `max`, `unique` |
 | `decimal` | A number | `min`, `max` |
 | `date` | A calendar date, `2026-10-09`, returned exactly as written. With `include_time`, a moment: ISO 8601 with an offset, stored in UTC | `include_time`, `time_zone` (see [Dates](#dates)) |
@@ -71,7 +71,7 @@ With `include_time: true` the field holds a moment, such as an event's start. Se
 - in UTC (`2026-10-09T17:00:00Z`), by default;
 - with the offset of the field's `time_zone` (an IANA name such as `Europe/Copenhagen`), daylight saving included, when the field has one: `2026-10-09T19:00:00+02:00`, and `2026-12-01T19:00:00+01:00` in winter. Your site prints the local time without knowing the zone, and the editor shows and takes times in that zone, whoever is editing.
 
-Changing `time_zone` never rewrites values: the moments stay, and only how they are written changes. Turning `include_time` on or off does rewrite them, so it runs as a [field migration](#changing-a-collection). Removing the time takes a `time_zone` whose day each moment falls on (by default the field's own, else UTC), and adding it makes each date midnight in the field's zone.
+Changing `time_zone` never rewrites values: the moments stay, and only how they are written changes. Turning `include_time` on or off does rewrite them, so it runs as a [field migration](/guides/field-migrations). Removing the time takes a `time_zone` whose day each moment falls on (by default the field's own, else UTC), and adding it makes each date midnight in the field's zone.
 
 ## Images in rich text
 
@@ -116,7 +116,7 @@ A published-only key can read the images that published records show, and nothin
 
 A relation field points at records in another collection of the same project, set by `target_collection_id`. An asset field points at an uploaded file.
 
-An asset field takes any file unless you limit it with `accepted_types`: MIME types or `type/*` wildcards, such as `["image/*", "application/pdf"]`. In the web app, these are the field's **Allowed files** (images, videos, audio, PDFs). The limit applies to newly written values: files already in records are kept, and a new file of another type is refused (`type_not_accepted`). To list only the assets a field takes, pass its types to `GET /v1/projects/{project_id}/assets`: one as `filter[content_type]`, several as `filter[content_type][in]` (comma-separated). In the SDKs, pass them as a list: `assets.list({ content_type })`.
+An asset field takes any file unless you limit it with `accepted_types`: MIME types or `type/*` wildcards, such as `["image/*", "application/pdf"]`. In the web app, these are the field's **Allowed files** (images, videos, audio, PDFs). The limit applies to newly written values: files already in records are kept, and a new file of another type is refused (`type_not_accepted`). To list only the assets a field takes, pass its types to `GET /v1/projects/{project_id}/assets`: one as `filter[content_type]`, several as `filter[content_type][in]` (comma-separated). In the SDKs, pass `content_type` as a list.
 
 Records store only the IDs. To get the related records or assets in the same response, pass `expand` with up to five relation, asset or rich text field keys (for rich text, the assets its images show):
 
@@ -141,17 +141,17 @@ Record lists filter on field values with `filter[<key>]=value` (equal), or with 
 
 Values are read as the field's type, so `"5"` is not the integer 5. Dates take `today`, and dates with a time also `now`: `filter[starts_on][gte]=today` lists upcoming events. A plain date's `today` is the day in UTC. A day given for a date with a time covers that day in the field's time zone (UTC without one), so `filter[starts][eq]=2026-10-09` is everything on 9 October there. A date with a time matches the same moment written with any offset. Record lists also filter on `created_at`, `updated_at` and `published_at`, for example `filter[updated_at][gt]=2026-10-01T00:00:00Z` for an incremental sync.
 
-Record lists sort by `created_at` (the default, newest first), `updated_at`, `published_at` (unpublished records first), `id`, or a text, number, date, boolean or enum field with one value: `sort=price`, or `sort=-published_on` for descending. Records with no value for the field come last either way, and text sorts by character code.
+Record lists sort by `created_at` (the default, newest first), `updated_at`, `published_at` (unpublished records sort earliest), or a text, number, date, boolean or enum field with one value: `sort=price`, or `sort=-published_on` for descending. Records with no value for the field come last either way, and text sorts by character code.
 
-Every collection is indexed for full-text search, and anyone who can read a collection can search it: members in the web app, API keys through the API, and sites and apps with a [search token](/guides/public-search), for collections included in public search. The `searchable`, `filterable` and `sortable` options choose how each field takes part: search words match `searchable` fields, and filters and sorts need `filterable` and `sortable` ones. API searches take the same filter operators, and `filter[published_at][exists]` (`true` for published records, `false` for unpublished ones). `searchable` decides relevance, not privacy: whoever can search a collection can also read its records.
+Every collection is indexed for full-text search, and anyone who can read a collection can search it: members in the web app, API keys with `search:read` through the [API](/guides/api-search), and sites and apps with a [search token](/guides/public-search), for collections included in public search. The `searchable`, `filterable` and `sortable` options choose how each field takes part, in every search: words match `searchable` fields, and filters and sorts need `filterable` and `sortable` ones. API searches take the same filter operators, and `filter[published_at][exists]` (`true` for published records, `false` for unpublished ones). `searchable` decides relevance, not privacy: whoever can search a collection can also read its records.
 
 ## Changing a collection
 
-You can change a collection's name and description at any time. Adding fields, renaming them and changing their options is safe: record data is stored by field ID, so it never moves.
+You can change a collection's name and description at any time. Adding fields, renaming them and loosening their options is safe: record data is stored by field ID, so it never moves.
 
 - **Renaming a field's key** keeps its values. Records come back under the new key, and requests that use the old key keep working for six months, so your code has time to switch.
-- **Changing a field's type, making it multiple, or adding or removing a date's time** rewrites stored values, so it runs as a **field migration**. You can preview how many records convert cleanly before you start, and the collection is read-only while the migration runs.
-- **Tightening a field** (making it required, lowering a maximum, removing enum options) is refused while existing records would break the new rule. Fix those records first, or run a field migration that fills in a value for them.
-- **Deleting a field or collection** is a soft delete, and can be undone.
+- **Changing a field's type, making it multiple, or adding or removing a date's time** rewrites stored values, so it runs as a [field migration](/guides/field-migrations). You can preview how many records convert cleanly before you start, and the collection is read-only while the migration runs.
+- **Tightening a field** (making it required, lowering a maximum, removing enum options) is refused while existing records would break the new rule. Fix those records first, or run a [field migration](/guides/field-migrations) that clears the values that break it or fills in records without a value.
+- **Deleting a field or collection** is a soft delete, and can be undone for 30 days (until its `purge_after`).
 
 Each schema change bumps the collection's schema version, and each record carries the `schema_version` it was last written with.
