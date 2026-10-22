@@ -281,24 +281,27 @@ Files go straight to storage, never through the API. `assets.upload` does the wh
 
 ```ts TypeScript
 import { openAsBlob } from "node:fs"
+import { imageUrl } from "@nohead/sdk/images"
 
 const asset = await nohead.assets.upload(await openAsBlob("cover.jpg"), {
   filename: "cover.jpg",
 })
 await nohead.records.update(id, { data: { cover: asset.id } })
-const { url } = await nohead.assets.imageUrl(asset.id, { width: 1200, format: "webp" })
+const url = imageUrl(asset, { width: 1200, format: "webp" }) // no request
 ```
 
 ```python Python
+from nohead.images import image_url
+
 asset = nohead.assets.upload("cover.jpg")  # a path, bytes or a binary file
 nohead.records.update(record_id, data={"cover": asset.id})
-url = nohead.assets.image_url(asset.id, width=1200, format="webp").url
+url = image_url(asset, width=1200, format="webp")  # no request
 ```
 
 ```ruby Ruby
 asset = nohead.assets.upload("cover.jpg") # a path or an IO
 nohead.records.update(id, data: { cover: asset.id })
-url = nohead.assets.image_url(asset.id, width: 1200, format: "webp").url
+url = Nohead::Images.url(asset, width: 1200, format: "webp") # no request
 ```
 
 </CodeGroup>
