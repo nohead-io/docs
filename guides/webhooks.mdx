@@ -1,0 +1,193 @@
+---
+title: Webhooks
+description: Get a signed HTTP request when records, drafts, assets or the schema change, and verify it before you act on it.
+---
+
+A webhook sends a signed `POST` to your URL whenever something you subscribed to happens in a project: a record is published, a field changes, an asset is deleted. Use it to rebuild a site, clear a cache or sync another system, instead of polling the API.
+
+## Create a webhook
+
+In the web app, open your project's **Webhooks** page and choose **New webhook**. Enter the **URL**, an optional **Description**, and the **Events** to send: turn on **All events**, or tick a whole group (such as all records, `record.*`) or single event types. Choose **Create webhook**, then copy the **Signing secret**. It is shown only once.
+
+Through the API, create one with an API key that has the `webhooks:write` scope. The response holds the `secret`, and it is the only one that does:
+
+```bash
+curl -X POST "$NOHEAD_API_URL/v1/projects/$PROJECT_ID/webhooks" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com/webhooks/nohead",
+    "event_types": ["record.published", "record.unpublished"],
+    "description": "Rebuild the website"
+  }'
+```
+
+`$PROJECT_ID` is your key's project (`prj_…`): `GET /v1/me` returns it as `api_key.project_id`. The SDKs fill it in for you:
+
+<CodeGroup>
+
+```ts TypeScript
+const webhook = await nohead.webhooks.create({
+  url: "https://example.com/webhooks/nohead",
+  event_types: ["record.published", "record.unpublished"],
+  description: "Rebuild the website",
+})
+console.log(webhook.secret) // whsec_…, shown only now
+```
+
+```python Python
+webhook = nohead.webhooks.create(
+    url="https://example.com/webhooks/nohead",
+    event_types=["record.published", "record.unpublished"],
+    description="Rebuild the website",
+)
+print(webhook.secret)  # whsec_..., shown only now
+```
+
+```ruby Ruby
+webhook = nohead.webhooks.create(
+  url: "https://example.com/webhooks/nohead",
+  event_types: ["record.published", "record.unpublished"],
+  description: "Rebuild the website"
+)
+puts webhook.secret # whsec_..., shown only now
+```
+
+</CodeGroup>
+
+The URL must be `https`, without a username or password, and on the public internet: addresses on private networks are refused. How many webhooks you can have depends on your organization's plan.
+
+To check your endpoint, use **Send test event** from the webhook's menu, or `POST /v1/webhooks/{webhook_id}/test`. It sends a `webhook.test` event to that webhook only.
+
+## Event types
+
+Event types are the activity log's, by resource:
+
+| Resource | Event types |
+|---|---|
+| Records | `record.created`, `updated`, `published`, `unpublished`, `deleted`, `restored`, `reverted`, `redacted`, `scheduled`, `unscheduled`, `schedule_failed` |
+| Drafts | `draft.created`, `updated`, `discarded`, `scheduled`, `unscheduled`, `schedule_failed` |
+| Collections | `collection.created`, `updated`, `deleted`, `restored`, `fields_reordered` |
+| Fields | `field.created`, `updated`, `deleted`, `restored`, `migrated`, `alias_removed` |
+| Assets | `asset.created`, `updated`, `deleted`, `restored`, `purged` |
+
+A subscription lists event types, a resource's wildcard (`record.*`) or `*` for everything. Wildcards include event types added later.
+
+## The payload
+
+Each request's body is one JSON event:
+
+```json
+{
+  "id": "evt_01J9ZQ3F8X5W2K7M4N6P0R1S2T",
+  "object": "event",
+  "type": "record.published",
+  "created_at": "2026-10-22T09:30:00.000Z",
+  "project_id": "prj_01J9ZQ3F8X5W2K7M4N6P0R1S2T",
+  "actor": { "type": "api_key", "id": "key_01J9ZQ3F8X5W2K7M4N6P0R1S2T", "name": "Importer" },
+  "via": "sdk",
+  "data": {
+    "record": { "id": "rec_01J9ZQ3F8X5W2K7M4N6P0R1S2T", "object": "record", "collection": "blog-posts", "revision": 4, "data": { "title": "Hello" } },
+    "revision": 4,
+    "revision_id": "rev_01J9ZQ3F8X5W2K7M4N6P0R1S2T"
+  }
+}
+```
+
+The record above is shortened; events carry the whole record.
+
+- `actor` is who made the change (a user, an API key, or the system), and `via` the client it came through (`ui`, `api`, `cli`, `sdk`, `mcp`, `system` or `scheduler`). An integration that writes back can skip changes made with its own API key.
+- Record events carry the record as the change left it, with the `revision` it made and the revision's ID. Events without a revision (`record.scheduled`, `record.unscheduled`, `record.schedule_failed`, `record.redacted`) carry the record as it is now, and `record` is `null` once the record is purged.
+- Draft events carry the draft as it is now (`null` once merged or discarded), collection and field events the collection and the schema change, and asset events the asset.
+
+The payload is rendered each time it is sent, so values redacted in the meantime show as redacted, even on a retry. Fetch the resource from the API when you need its current state.
+
+## Delivery
+
+Every request has `Content-Type: application/json` and three headers: `webhook-id` (the event's ID), `webhook-timestamp` and `webhook-signature`.
+
+- **Success** is any `2xx` response within 10 seconds. Any other status, a timeout or a connection error is a failed attempt. Redirects aren't followed, so a `3xx` fails too.
+- **Retries** follow a failed attempt after 5 seconds, 5 minutes, 30 minutes, 2 hours, 5 hours, 10 hours and 10 hours. After 8 attempts, about a day, the delivery fails.
+- **At least once.** The same event can arrive more than once, for example when your endpoint was slow to answer. Deduplicate by `webhook-id`, which stays the same on every attempt.
+- **No ordering.** A retried event can arrive after later ones. Compare `created_at`, or a record's `revision`, to tell which change is newer.
+
+Answer quickly and do slow work afterwards, in a queue or a background job.
+
+## Delivery history and retries
+
+Choose **Deliveries** on a webhook to see its deliveries for the last 30 days: **Delivered**, **Retrying** or **Failed**, with each attempt's status code, error, duration and the start of your response, and the payload. **Retry now** sends a delivery again at once; on a delivered one, **Send again** does the same.
+
+Through the API, `GET /v1/webhooks/{webhook_id}/deliveries` lists them (newest first, with `filter[status]`), and `POST /v1/webhook-deliveries/{delivery_id}/retry` sends one again:
+
+<CodeGroup>
+
+```ts TypeScript
+const webhookId = "wh_01J9ZQ3F8X5W2K7M4N6P0R1S2T"
+for await (const delivery of nohead.webhooks.deliveries.list(webhookId, { status: "failed" })) {
+  await nohead.webhooks.deliveries.retry(delivery.id)
+}
+```
+
+```python Python
+webhook_id = "wh_01J9ZQ3F8X5W2K7M4N6P0R1S2T"
+for delivery in nohead.webhooks.deliveries.list(webhook_id, status="failed"):
+    nohead.webhooks.deliveries.retry(delivery.id)
+```
+
+```ruby Ruby
+webhook_id = "wh_01J9ZQ3F8X5W2K7M4N6P0R1S2T"
+nohead.webhooks.deliveries.list(webhook_id, status: "failed").each do |delivery|
+  nohead.webhooks.deliveries.retry(delivery.id)
+end
+```
+
+</CodeGroup>
+
+## Disabling and deleting
+
+There is no automatic disabling: a failing endpoint keeps getting new events, and each one fails on its own after its retries. To pause a webhook, choose **Disable** from its menu (or set `enabled` to `false`). A disabled webhook gets no new events, events from while it was off are not sent later, and its pending retries fail.
+
+**Delete** stops a webhook the same way. A deleted webhook can be restored for 30 days, with its settings, secrets and delivery history (`POST /v1/webhooks/{webhook_id}/restore`).
+
+## Verify signatures
+
+Deliveries are signed per [Standard Webhooks](https://www.standardwebhooks.com), so its libraries verify them too. Always verify before you act on an event.
+
+With an SDK, `unwrap` checks the signature and the timestamp and returns the typed event: see [Verify webhooks](/guides/sdks#verify-webhooks). Pass it the raw body, before any JSON parsing, since parsing and serializing again changes the bytes.
+
+To verify by hand:
+
+1. Build the signed string: `{webhook-id}.{webhook-timestamp}.{raw body}`.
+2. Compute its HMAC-SHA256, keyed with the base64-decoded part of your secret after `whsec_`, and base64-encode it.
+3. `webhook-signature` holds one or more space-separated signatures, each `v1,<base64>`. Accept the request if any of them equals yours, compared in constant time.
+4. Reject the request if `webhook-timestamp` (Unix seconds, new on each attempt) is more than five minutes from your clock.
+
+In Node, without the SDK:
+
+```javascript
+import { createHmac, timingSafeEqual } from "node:crypto"
+
+// headers: lowercase names, as Node gives them. body: the raw body, as a string.
+export function verifyNoheadWebhook(secret, headers, body) {
+  const id = headers["webhook-id"]
+  const timestamp = headers["webhook-timestamp"]
+  const signatures = headers["webhook-signature"]
+  if (!id || !timestamp || !signatures) return false
+  const age = Math.abs(Date.now() / 1000 - Number(timestamp))
+  if (!(age <= 300)) return false
+
+  const key = Buffer.from(secret.slice("whsec_".length), "base64")
+  const digest = createHmac("sha256", key).update(`${id}.${timestamp}.${body}`).digest("base64")
+  const expected = Buffer.from(`v1,${digest}`)
+  return signatures.split(" ").some((signature) => {
+    const given = Buffer.from(signature)
+    return given.length === expected.length && timingSafeEqual(given, expected)
+  })
+}
+```
+
+## Rotate the secret
+
+Rotate a webhook's secret through the API, for example when it may have leaked. `POST /v1/webhooks/{webhook_id}/secrets` (`rotateSecret` in TypeScript, `rotate_secret` in Python and Ruby) returns the new secret, shown only then.
+
+For 24 hours after a rotation, each delivery carries a signature for the old secret and one for the new, so you can switch your receiver to the new secret without rejecting any. To stop signing with the old one sooner, find its ID with `GET /v1/webhooks/{webhook_id}/secrets` and retire it with `DELETE /v1/webhook-secrets/{secret_id}`. The newest secret can't be retired: rotate again instead.

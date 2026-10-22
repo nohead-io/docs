@@ -1,0 +1,163 @@
+---
+title: Errors and retries
+description: Read the API's errors, retry without writing twice, stay within rate limits and keep concurrent edits from overwriting each other.
+---
+
+Every error the API returns has the same shape, and any write can be made safe to retry. This guide covers what each error means, which ones to retry, and how. The SDKs do most of it for you: see [Retries and idempotency](/guides/sdks#retries-and-idempotency).
+
+## The error envelope
+
+```json
+{
+  "error": {
+    "type": "validation_error",
+    "message": "Record validation failed",
+    "request_id": "req_01J9ZQ3F8X5W2K7M4N6P0R1S2T",
+    "details": [{ "field": "title", "code": "required", "message": "is required" }]
+  }
+}
+```
+
+- `type` names the kind of error (see the table below). Branch on it and on `code`; `message` is meant for people.
+- `details` is there when the error is about something specific: each has a machine-readable `code`, usually the `field` or parameter it is about, and a `message`. Some codes add more: `usage` and `limit`, `current_revision`, or the `record_id` that already has a value.
+- `request_id` is also in the `X-Request-Id` header of every response, errors or not. Log it, and include it when you ask for support.
+
+## Statuses and types
+
+| Status | `type` | Common `code`s in `details` |
+|---|---|---|
+| 400 | `invalid_request` | `unknown_parameter`, `invalid`, `reused` |
+| 401 | `authentication_error` | |
+| 402 | `plan_limit_exceeded` | `plan_limit` |
+| 403 | `authorization_error` | `not_permitted` |
+| 404 | `not_found` | |
+| 409 | `conflict` | `deleted`, `in_progress`, `draft_exists`, `migration_in_progress`, `upload_incomplete` |
+| 412 | `precondition_failed` | `revision_mismatch` |
+| 422 | `validation_error` | `required`, `unknown_field`, `invalid_type`, `invalid_format`, `taken` |
+| 429 | `rate_limited` | `rate_limit` |
+| 500 | `internal_error` | |
+| 503 | `service_unavailable` | |
+
+- **400**: the request is malformed, such as JSON that doesn't parse, a sort or cursor the API doesn't know, or a body key the operation doesn't take (`unknown_parameter`, naming the key). Fix the request: retrying it unchanged fails the same way.
+- **401**: the API key is missing, invalid, revoked or expired.
+- **402**: the change would go over a hard limit of your organization's plan, such as its number of records. The detail names the limit in `field`, with the current `usage` and the `limit`.
+- **403**: the key may see the resource but not do this, for example when it lacks a scope (the message names it) or is published-only.
+- **404**: the resource doesn't exist, or the key can't see it, such as another project's. The two look the same on purpose.
+- **409**: the request conflicts with the resource's state. A deleted resource must be restored first (`deleted`); a record has one draft at most (`draft_exists`); a collection is being migrated (`migration_in_progress`). Retrying helps only once the state changes; `in_progress` is the exception (see below).
+- **422**: the values don't pass validation. For a record, each detail's `field` is the field's key in `data`; unknown keys in `data` are `unknown_field`, and a value another record already has in a unique field is `taken`, with that record's `record_id`.
+- **500** is an unexpected failure in the API, and **503** means a service such as search is briefly unavailable. Retry both with backoff.
+
+## Retry safely with Idempotency-Key
+
+A request can fail after the API has done the work, when the response is lost on the way back. Send an `Idempotency-Key` header on any `POST`, `PUT`, `PATCH` or `DELETE`, and you can retry it without doing it twice:
+
+```bash
+curl -X POST "$NOHEAD_API_URL/v1/collections/blog-posts/records" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: 8f14e45f-ceea-467a-9575-0f1a3f2c1d2e" \
+  -d '{"data": {"title": "Hello"}}'
+```
+
+- The key is 1 to 255 printable ASCII characters; a UUID is a good choice. Keys are scoped to the API key that sends them.
+- The first response below `500` is stored for 24 hours, validation errors included. A retry with the same key and the same request (method, path, query string and body bytes) gets that response again, with its original `ETag` and `Location` headers and `Idempotent-Replayed: true`. Nothing runs a second time.
+- The same key with a different request is refused: `400`, detail code `reused`. Send the same bytes when you retry, and use a new key for a new request.
+- A retry while the first request is still running gets `409`, detail code `in_progress`. Wait and retry. A request that hasn't finished after 5 minutes is treated as abandoned, and the key can be used again.
+- A `5xx` response doesn't keep the key, so retrying runs the request again.
+
+The SDKs send a key with every write, the same on each of their retries. For a job that may run twice, pass your own key, as in [the SDK guide](/guides/sdks#retries-and-idempotency).
+
+## Rate limits
+
+Every authenticated response carries the current window:
+
+| Header | Meaning |
+|---|---|
+| `RateLimit-Limit` | Requests allowed in the window |
+| `RateLimit-Remaining` | Requests left |
+| `RateLimit-Reset` | Seconds until the window resets |
+
+An API key's limit is per minute and depends on its organization's plan. A published-only key is public, so it is counted per client IP address: one visitor can't use up everyone else's. Requests with an invalid key are limited per IP address too.
+
+Over the limit, the API answers `429 rate_limited` with `Retry-After`, in seconds. The request was neither performed nor counted, so wait that long and send it again (with the same `Idempotency-Key`, for a write).
+
+## What the SDKs retry
+
+The SDKs retry a failed request twice by default, with exponential backoff:
+
+- connection errors and timeouts
+- `429`, waiting for `Retry-After` when it is at most 60 seconds; a longer wait raises (or throws) `RateLimitError` at once
+- `500`, `502`, `503` and `504`
+- `409` with detail code `in_progress`
+
+Other errors are raised as their `type`'s class. Change the number of retries when you create the client:
+
+<CodeGroup>
+
+```ts TypeScript
+import { Nohead, RateLimitError } from "@nohead/sdk"
+
+const nohead = new Nohead({ maxRetries: 5 })
+
+try {
+  await nohead.records.publish(id)
+} catch (error) {
+  if (error instanceof RateLimitError) {
+    console.log(`Retry in ${error.retryAfter} s (request ${error.requestId})`)
+  } else throw error
+}
+```
+
+```python Python
+from nohead import Nohead, RateLimitError
+
+nohead = Nohead(max_retries=5)
+
+try:
+    nohead.records.publish(record_id)
+except RateLimitError as error:
+    print(f"Retry in {error.retry_after} s (request {error.request_id})")
+```
+
+```ruby Ruby
+nohead = Nohead::Client.new(max_retries: 5)
+
+begin
+  nohead.records.publish(id)
+rescue Nohead::RateLimitError => e
+  puts "Retry in #{e.retry_after} s (request #{e.request_id})"
+end
+```
+
+</CodeGroup>
+
+## Concurrent edits
+
+Without a check, the last write wins: your update can overwrite a change someone made after you read the record. Both writes are kept in its history, but the record shows the last. To prevent that, use the record's revision.
+
+Record and draft responses carry the revision as an `ETag`, such as `"7"`. Send it back as `If-Match` when you change the record:
+
+```bash
+curl -X PATCH "$NOHEAD_API_URL/v1/records/rec_01J9ZQ3F8X5W2K7M4N6P0R1S2T" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H 'If-Match: "6"' \
+  -d '{"data": {"title": "Hello again"}}'
+```
+
+If someone changed the record since revision 6, nothing is written and the API answers `412`:
+
+```json
+{
+  "error": {
+    "type": "precondition_failed",
+    "message": "Record has changed since revision 6",
+    "request_id": "req_01J9ZQ3F8X5W2K7M4N6P0R1S2T",
+    "details": [{ "code": "revision_mismatch", "message": "Current revision is 7", "current_revision": 7 }]
+  }
+}
+```
+
+Reload the record, then merge your change into it or ask the person editing what to keep. Don't retry the same request: it fails the same way.
+
+`If-Match` works on record writes (update, delete, restore, publish, unpublish, revert) and on a draft's update, discard and merge, where the revision is the draft's. In the SDKs, pass the record you read as `ifMatch` (`if_match`): see [Concurrent edits](/guides/sdks#concurrent-edits).
