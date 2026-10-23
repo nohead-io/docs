@@ -38,7 +38,7 @@ bearer_token_env_var = "NOHEAD_API_KEY"
 }
 ```
 
-```json VS Code
+```json Copilot
 {
   "inputs": [
     {
@@ -60,7 +60,7 @@ bearer_token_env_var = "NOHEAD_API_KEY"
 
 </CodeGroup>
 
-Codex reads `~/.codex/config.toml`. Cursor reads `.cursor/mcp.json` in the project, or `~/.cursor/mcp.json` for every project; it doesn't load an env file for remote servers, so set `NOHEAD_API_KEY` in your shell profile. VS Code reads `.vscode/mcp.json` in the workspace.
+Codex reads `~/.codex/config.toml`. Cursor reads `.cursor/mcp.json` in the project, or `~/.cursor/mcp.json` for every project; it doesn't load an env file for remote servers, so set `NOHEAD_API_KEY` in your shell profile. Copilot in VS Code reads `.vscode/mcp.json` in the workspace.
 
 Other clients name these fields differently (some want `"type": "http"`, some take the header as a separate setting): check your client's documentation for remote servers, and send the key as `Authorization: Bearer <key>`.
 
