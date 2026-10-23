@@ -287,9 +287,10 @@ Files go straight to storage, never through the API. `assets.upload` does the wh
 import { openAsBlob } from "node:fs"
 import { imageUrl } from "@nohead/sdk/images"
 
-// Give the Blob its type: Node's openAsBlob leaves it empty.
-const file = await openAsBlob("cover.jpg", { type: "image/jpeg" })
-const asset = await nohead.assets.upload(file, { filename: "cover.jpg" })
+// Typed by the filename (cover.jpg: image/jpeg) when the Blob has no type.
+const asset = await nohead.assets.upload(await openAsBlob("cover.jpg"), {
+  filename: "cover.jpg",
+})
 await nohead.records.update(id, { data: { cover: asset.id } })
 const url = imageUrl(asset, { width: 1200, format: "webp" }) // no request
 ```
