@@ -102,7 +102,7 @@ The file describes each collection and field in full: a description or option yo
 Push applies changes one at a time through the API, so if one is refused partway (a new required field in a collection that already has records, say), the earlier ones stay. Fix the file and push again: it picks up from where the project is. Add a reason to the schema history with `--note`:
 
 ```bash
-nohead --note "Add summaries" schema push --yes
+nohead schema push --yes --note "Add summaries"
 ```
 
 ## In CI
