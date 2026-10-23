@@ -51,4 +51,6 @@ Every authenticated response carries `RateLimit-Limit`, `RateLimit-Remaining` an
 
 ## Plan limits
 
-A request that would go over a hard limit of the organization's plan, such as its number of records or collections (or file storage, on Free), is refused with `402 plan_limit_exceeded`. The error's detail names the limit in `field`, with the current `usage` and the `limit`. Over a soft limit, such as monthly API requests, requests still succeed and carry a `Nohead-Usage-Warning` header: `api_requests=100234/100000`.
+A request that would go over a hard limit of the organization's plan, such as its number of records or collections (or file storage, on Free), is refused with `402 plan_limit_exceeded`. The error's detail names the limit in `field`, with the current `usage` and the `limit`. Over a soft limit, such as file storage on paid plans, requests still succeed and carry a `Nohead-Usage-Warning` header: `asset_storage_bytes=53687091300/53687091200`.
+
+Monthly API requests are a hard limit on Free (`429` until the next month) and a soft one on paid plans: see [API requests](/guides/api-requests).

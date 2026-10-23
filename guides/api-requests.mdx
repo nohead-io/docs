@@ -1,0 +1,69 @@
+---
+title: API requests
+icon: gauge
+description: What counts as an API request, what happens when the month's run out, and how to make the most of them.
+---
+
+Every plan includes a number of API requests a month, shared by all of the organization's projects. The [pricing page](https://nohead.io/pricing) lists each plan's, and the organization's **Usage** page in the web app shows how many it has used this month.
+
+## What counts
+
+An API request is any request made with one of the organization's API keys: from your sites and apps, scripts, the CLI, the [SDKs](/guides/sdks), and AI agents through the [MCP server](/guides/mcp). Each counts once, whatever it returns, unless it was [rate limited](/guides/errors-and-retries#rate-limits) or refused because the month's requests were used.
+
+These don't count:
+
+- Working in the web app: editing, publishing, uploading, managing the team.
+- Loading [images](/guides/images) through their `image_url`, resized or not.
+- [Public search](/guides/public-search), which runs with a search token instead of an API key.
+
+The month is the calendar month in UTC. On the first, the count starts again from zero.
+
+## When the month's requests are used
+
+### On Free
+
+Requests made with the organization's API keys are refused until the first of the next month. The API answers `429 rate_limited`, with a `plan_limit` detail and `Retry-After` set to the seconds until then:
+
+```json
+{
+  "error": {
+    "type": "rate_limited",
+    "message": "Your Free plan allows 100,000 API requests a month; upgrade, or wait until next month",
+    "request_id": "req_01J9ZQ3F8X5W2K7M4N6P0R1S2T",
+    "details": [
+      {
+        "field": "api_requests",
+        "code": "plan_limit",
+        "message": "100,000 of 100,000 used this month",
+        "usage": 100000,
+        "limit": 100000
+      }
+    ]
+  }
+}
+```
+
+The SDKs don't wait that long: they raise (or throw) `RateLimitError` at once, as for any `Retry-After` over 60 seconds.
+
+Upgrading lifts it straight away. Nothing is deleted, and the web app, images and public search keep working.
+
+### On paid plans
+
+Nothing is refused. Responses carry a `Nohead-Usage-Warning` header with the month's usage and the plan's limit, `api_requests=2000312/2000000`, until the month ends.
+
+Going over now and then, for a launch, a traffic spike or a big import, is fine. If it happens most months, upgrade the plan, or on Business [get in touch](mailto:hello@nohead.io) for limits that fit your traffic.
+
+### Emails to owners
+
+The organization's owners get an email on Free when 80% of the month's requests are used and when they all are, and on paid plans when the plan's included requests are used. Each goes out at most once a month.
+
+## Making the most of your API requests
+
+Most sites need far fewer requests than they make. In rough order of impact:
+
+- **Fetch content when your site builds, or cache it.** A page that calls the API on every view makes a request for every visitor. Fetch at build time, or cache responses on your server or CDN, and refresh them when content changes.
+- **Refresh on webhooks, not on a timer.** A [webhook](/guides/webhooks) tells you when a record is published or changed, so you fetch only then. Polling every minute is over 40,000 requests a month for each thing you poll, changed or not.
+- **Keep API calls out of the browser.** With a published-only key in browser code, every visitor's requests count. Fetch on your server and cache instead. For search as you type, use [public search](/guides/public-search), which doesn't count.
+- **Get more from each request.** List up to 100 records a page (`limit=100`) instead of fetching them one by one, and embed related records and assets with `expand` instead of fetching them separately.
+- **Change many records at once.** **Change many records** (`POST /v1/collections/{collection_id}/record-batches`) publishes, updates or deletes up to 100 records in one request.
+- **Watch for loops.** A script or agent that retries without stopping can use a month's requests in hours. The **Usage** page shows the month so far, and `RateLimit-Remaining` on every response shows the current minute's.

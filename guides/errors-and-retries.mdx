@@ -35,7 +35,7 @@ Every error the API returns has the same shape, and any write can be made safe t
 | 409 | `conflict` | `deleted`, `in_progress`, `draft_exists`, `draft_pending`, `migration_in_progress`, `upload_incomplete` |
 | 412 | `precondition_failed` | `revision_mismatch` |
 | 422 | `validation_error` | `required`, `unknown_field`, `invalid_type`, `invalid_format`, `taken` |
-| 429 | `rate_limited` | `rate_limit` |
+| 429 | `rate_limited` | `rate_limit`, `plan_limit` |
 | 500 | `internal_error` | |
 | 503 | `service_unavailable` | |
 
@@ -81,6 +81,8 @@ Every authenticated response carries the current window:
 An API key's limit is per minute and depends on its organization's plan. A published-only key is public, so it is counted per client IP address: one visitor can't use up everyone else's. Requests with an invalid key are limited per IP address too.
 
 Over the limit, the API answers `429 rate_limited` with `Retry-After`, in seconds. The request was neither performed nor counted, so wait that long and send it again (with the same `Idempotency-Key`, for a write).
+
+A `429` with a `plan_limit` detail is different: on Free, the organization has used the month's API requests, and `Retry-After` runs to the start of the next month. See [API requests](/guides/api-requests).
 
 ## What the SDKs retry
 
