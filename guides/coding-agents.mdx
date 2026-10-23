@@ -67,7 +67,7 @@ Keep your collections and fields in a `nohead.schema.yaml` file in your reposito
 ## Change content safely
 
 ```bash
-nohead --note "Fix the price typo" records update rec_01J9ZQ3F8X --set price:=12 --if-revision 3
+nohead records update rec_01J9ZQ3F8X --set price:=12 --if-revision 3 --note "Fix the price typo"
 nohead drafts create rec_01J9ZQ3F8X --set title="Spring menu"
 nohead records revert rec_01J9ZQ3F8X 2 --dry-run
 ```
