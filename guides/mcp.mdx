@@ -12,6 +12,8 @@ Coding agents and CI jobs with a shell are usually better served by the `nohead`
 
 The server speaks Streamable HTTP at `https://mcp.nohead.io/mcp`. Authenticate with a project API key as the bearer token. Give the agent a key of its own, with only the scopes it needs, so its changes are attributed to it in history. New keys are published-only by default: an agent that changes content needs a key with **Published records only** off and `records:write`.
 
+Codex and Cursor read the key from the `NOHEAD_API_KEY` environment variable, and VS Code asks for it once and stores it, so none of their config files holds the key itself, and a project's `.cursor/mcp.json` or `.vscode/mcp.json` can be committed. Claude Code saves the key in its own settings, outside the project, when you run its command: run it with `NOHEAD_API_KEY` set.
+
 <CodeGroup>
 
 ```bash Claude Code
@@ -19,12 +21,38 @@ claude mcp add --transport http nohead https://mcp.nohead.io/mcp \
   --header "Authorization: Bearer $NOHEAD_API_KEY"
 ```
 
-```json JSON config
+```toml Codex
+[mcp_servers.nohead]
+url = "https://mcp.nohead.io/mcp"
+bearer_token_env_var = "NOHEAD_API_KEY"
+```
+
+```json Cursor
 {
   "mcpServers": {
     "nohead": {
       "url": "https://mcp.nohead.io/mcp",
-      "headers": { "Authorization": "Bearer <your API key>" }
+      "headers": { "Authorization": "Bearer ${env:NOHEAD_API_KEY}" }
+    }
+  }
+}
+```
+
+```json Copilot
+{
+  "inputs": [
+    {
+      "id": "nohead-key",
+      "type": "promptString",
+      "description": "Nohead API key",
+      "password": true
+    }
+  ],
+  "servers": {
+    "nohead": {
+      "type": "http",
+      "url": "https://mcp.nohead.io/mcp",
+      "headers": { "Authorization": "Bearer ${input:nohead-key}" }
     }
   }
 }
@@ -32,7 +60,9 @@ claude mcp add --transport http nohead https://mcp.nohead.io/mcp \
 
 </CodeGroup>
 
-Clients that take a JSON config name these fields differently (some want `"type": "http"` as well): check your client's documentation for remote servers.
+Codex reads `~/.codex/config.toml`. Cursor reads `.cursor/mcp.json` in the project, or `~/.cursor/mcp.json` for every project; it doesn't load an env file for remote servers, so set `NOHEAD_API_KEY` in your shell profile. Copilot in VS Code reads `.vscode/mcp.json` in the workspace.
+
+Other clients name these fields differently (some want `"type": "http"`, some take the header as a separate setting): check your client's documentation for remote servers, and send the key as `Authorization: Bearer <key>`.
 
 Chat apps that only connect through a sign-in (OAuth), such as Claude.ai connectors, aren't supported.
 
