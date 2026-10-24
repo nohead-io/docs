@@ -1,5 +1,5 @@
 ---
-title: Images
+title: Images and files
 icon: image
 description: Resize, crop and convert images by writing options into their URLs, with no API call per size, and play or download any other file as uploaded.
 ---
@@ -68,11 +68,15 @@ So that any URL stays cheap to serve:
 
 ## Video, audio and other files
 
-Every uploaded asset also has a `file_url`, which downloads the file as you uploaded it under its filename, and video and audio have a `media_url`, which plays it in the browser. Both are open URLs on a CDN, like image URLs, and never expire:
+Every asset also has a `file_url` once its upload completes, which downloads the file as you uploaded it under its filename, and video and audio have a `media_url`, which plays it in the browser (it is `null` for other files). Both are open URLs on a CDN, like image URLs, and never expire:
 
 ```jsx
-<video src={asset.media_url} controls preload="metadata" playsInline />
-<audio src={asset.media_url} controls />
+{asset.media_url && asset.content_type.startsWith("video/") && (
+  <video src={asset.media_url} controls preload="metadata" playsInline />
+)}
+{asset.media_url && asset.content_type.startsWith("audio/") && (
+  <audio src={asset.media_url} controls />
+)}
 <a href={asset.file_url}>Download {asset.filename}</a>
 ```
 
