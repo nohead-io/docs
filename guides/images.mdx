@@ -76,9 +76,8 @@ Every uploaded asset also has a `file_url`, which downloads the file as you uplo
 <a href={asset.file_url}>Download {asset.filename}</a>
 ```
 
-- Video and audio play as uploaded, with seeking. Upload them in a format browsers play, such as MP4 (H.264 with AAC audio) for video and MP3 or AAC for audio. Each file must fit your plan's upload limit.
-- A file uploaded as video or audio must be one: completing an upload whose content doesn't match its declared type fails, as it does for images.
-- A `media_url` never renders anything but video and audio: any other file there downloads, like at its `file_url`.
+- Video and audio play as uploaded, with seeking. MP4, QuickTime, M4A, 3GP, WebM, Matroska, MP3, AAC, FLAC, WAV and Ogg files get a `media_url`; other types only download. Browsers play MP4 (H.264 with AAC audio), WebM, MP3, AAC and WAV everywhere, so prefer those. Each file must fit your plan's upload limit.
+- A file uploaded as one of those types must be one: completing an upload whose content doesn't match its declared type fails, as it does for images.
 
 ## Where an asset is used
 
