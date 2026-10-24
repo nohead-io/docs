@@ -32,7 +32,7 @@ Every error the API returns has the same shape, and any write can be made safe t
 | 402 | `plan_limit_exceeded` | `plan_limit` |
 | 403 | `authorization_error` | `not_permitted` (for `expand`) |
 | 404 | `not_found` | |
-| 409 | `conflict` | `deleted`, `in_progress`, `draft_exists`, `draft_pending`, `migration_in_progress`, `upload_incomplete` |
+| 409 | `conflict` | `deleted`, `in_progress`, `draft_exists`, `draft_pending`, `migration_in_progress` |
 | 412 | `precondition_failed` | `revision_mismatch` |
 | 422 | `validation_error` | `required`, `unknown_field`, `invalid_type`, `invalid_format`, `taken` |
 | 429 | `rate_limited` | `rate_limit`, `plan_limit` |
