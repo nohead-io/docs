@@ -70,6 +70,38 @@ Fields take part in searches by their [search settings](/guides/content-modellin
 
 Dates are Unix seconds here too: `'data.starts_on >= 1790812800'` finds records from 1 October 2026 (00:00 UTC) on.
 
+## Facets
+
+Facets count the hits per value of a `filterable` field, for filter lists such as "French (12)". Ask for them with `facets`:
+
+```javascript
+{ indexUid: index, q: "soup", facets: ["data.cuisine", "data.servings"] }
+```
+
+Each result then has a `facetDistribution`, counted over the hits that match the query and filters, and a `facetStats` with the lowest and highest value of number and date fields, for range sliders:
+
+```json
+{
+  "facetDistribution": { "data.cuisine": { "french": 12, "italian": 8 }, "data.servings": { "2": 9, "4": 11 } },
+  "facetStats": { "data.servings": { "min": 2, "max": 4 } }
+}
+```
+
+- **Fields that facet well** have a few values shared by many records: enums, booleans, and short text such as a brand or a city. Fields with several values count each value once per record, so tags work as facets.
+- **Relations and assets count by ID** (`rec_…`, `ast_…`). To show names, look them up, or keep an enum or text field next to the relation.
+- **Up to 100 values** are returned per facet, and only for published records, like hits.
+
+To find values within a facet as someone types (InstantSearch's `refinementList` with `searchable: true`), search them:
+
+```javascript
+await fetch(`https://search.nohead.io/indexes/${index}/facet-search`, {
+  method: "POST",
+  headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+  body: JSON.stringify({ facetName: "data.cuisine", facetQuery: "ita" }),
+})
+// { "facetHits": [{ "value": "italian", "count": 8 }], ... }
+```
+
 ## InstantSearch
 
 ```javascript
