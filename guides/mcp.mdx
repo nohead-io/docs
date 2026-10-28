@@ -10,7 +10,7 @@ Coding agents and CI jobs with a shell are usually better served by the `nohead`
 
 ## Connect
 
-The server speaks Streamable HTTP at `https://mcp.nohead.io/mcp`. Authenticate with a project API key as the bearer token. Give the agent a key of its own, with only the scopes it needs, so its changes are attributed to it in history. New keys are published-only by default: an agent that changes content needs a key with **Published records only** off and `records:write`.
+The server speaks Streamable HTTP at `https://mcp.nohead.io/mcp`. Authenticate with a project API key as the bearer token. Give the agent a key of its own, with only the scopes it needs, so its changes are attributed to it in history. New keys are published-only by default: an agent that changes content needs a key with **Published records only** off and `schema:read`, `records:read` and `records:write`, plus `search:read` to search. The server offers only the tools a key's scopes allow, and an agent starts by reading the schema.
 
 Codex and Cursor read the key from the `NOHEAD_API_KEY` environment variable, and VS Code asks for it once and stores it, so none of their config files holds the key itself, and a project's `.cursor/mcp.json` or `.vscode/mcp.json` can be committed. Claude Code saves the key in its own settings, outside the project, when you run its command: run it with `NOHEAD_API_KEY` set.
 

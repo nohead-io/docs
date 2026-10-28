@@ -72,6 +72,8 @@ Event types are the activity log's, by resource:
 | Fields | `field.created`, `updated`, `deleted`, `restored`, `migrated`, `alias_removed` |
 | Assets | `asset.created`, `updated`, `deleted`, `restored`, `purged` |
 
+Merging a draft sends `record.updated`, with the merged draft's `draft_id`, since it changes the record's content.
+
 A subscription lists event types, a resource's wildcard (`record.*`) or `*` for everything. Wildcards include event types added later.
 
 ## The payload

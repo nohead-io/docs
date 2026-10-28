@@ -40,7 +40,7 @@ These field keys are reserved, for records' own attributes and a few kept for la
 | `relation` | A record ID (`rec_...`) in the target collection | `target_collection_id` (required) |
 | `json` | Any JSON value, up to 1 MB | |
 
-Every type also accepts a `description` (up to 500 characters) shown to editors.
+Every type's configuration also takes a `description` (**Help text** in the web app, up to 500 characters) shown to editors, and the search options `searchable`, `filterable` and `sortable` ([Filtering and search](#filtering-and-search)).
 
 Values are never converted between types: `"5"` is not an integer and `1` is not a boolean. With **multiple** on, the value is a list of distinct values of the field's type, such as a list of tags or photos; a repeated value is refused (`duplicate_value`).
 
@@ -60,7 +60,7 @@ A `text` field can have a `format`, and values that don't match it are refused w
 
 `text` and `integer` fields with one value can be `unique`: no two records of the collection have the same value. Emails compare ignoring capitals, records without a value don't count, and a deleted record frees its values. A value another record has is refused with `taken`, and the error names that record's `record_id`. Turning `unique` on, in place or with a field migration (such as turning a text field into a slug), is refused while records would share a value (`duplicate_values`, naming them); fix them first.
 
-A slug for your URLs is a text field with `format: slug`, and in the editor it is the **Slug** field type. It is always unique (the field has `unique: true`), and editors type it themselves. Look a record up by slug with `filter[slug]=hello-world`. For slugs that only need to be unique within a section, like `intro` under several versions, use plain text.
+A slug for your URLs is a text field with `format: slug`. In the web app's **Type** list, **Slug**, **URL** and **Email** are types of their own: text fields with that format. A slug is always unique (the field has `unique: true`), and editors type it themselves. Look a record up by slug with `filter[slug]=hello-world`. For slugs that only need to be unique within a section, like `intro` under several versions, use plain text.
 
 ## Dates
 
@@ -103,7 +103,7 @@ An image in a rich text document is one of the project's assets, by ID, with its
 
 In the web app, the editor's **Image** button chooses an asset or uploads one, and images can be pasted or dropped in.
 
-To render a document, expand the field: `expanded` then lists the assets its images show, in order, with their dimensions and `image_url`. Write the size your page needs into each image's URL ([Images](/guides/images)), with no further request:
+To render a document, expand the field, which needs the key's `assets:read` scope: `expanded` then lists the assets its images show, in order, with their dimensions and `image_url`. Write the size your page needs into each image's URL ([Images](/guides/images)), with no further request:
 
 ```bash
 curl "$NOHEAD_API_URL/v1/collections/blog-posts/records?expand=body" \
@@ -118,7 +118,7 @@ A relation field points at records in another collection of the same project, se
 
 An asset field takes any file unless you limit it with `accepted_types`: MIME types or `type/*` wildcards, such as `["image/*", "application/pdf"]`. In the web app, these are the field's **Allowed files** (images, videos, audio, PDFs). The limit applies to newly written values: files already in records are kept, and a new file of another type is refused (`type_not_accepted`). To list only the assets a field takes, pass its types to `GET /v1/projects/{project_id}/assets`: one as `filter[content_type]`, several as `filter[content_type][in]` (comma-separated). In the SDKs, pass `content_type` as a list.
 
-Records store only the IDs. To get the related records or assets in the same response, pass `expand` with up to five relation, asset or rich text field keys (for rich text, the assets its images show):
+Records store only the IDs. To get the related records or assets in the same response, pass `expand` with up to five relation, asset or rich text field keys (for rich text, the assets its images show). Expanding asset and rich text fields needs `assets:read`, relations `records:read`:
 
 ```bash
 curl "$NOHEAD_API_URL/v1/collections/blog-posts/records?expand=author,cover_image" \
@@ -143,14 +143,14 @@ Values are read as the field's type, so `"5"` is not the integer 5. Dates take `
 
 Record lists sort by `created_at` (the default, newest first), `updated_at`, `published_at` (unpublished records sort earliest), or a text, number, date, boolean or enum field with one value: `sort=price`, or `sort=-published_on` for descending. Records with no value for the field come last either way, and text sorts by character code.
 
-Every collection is indexed for full-text search, and anyone who can read a collection can search it: members in the web app, API keys with `search:read` through the [API](/guides/api-search), and sites and apps with a [search token](/guides/public-search), for collections included in public search. The `searchable`, `filterable` and `sortable` options choose how each field takes part, in every search: words match `searchable` fields, and filters and sorts need `filterable` and `sortable` ones. API searches take the same filter operators, and `filter[published_at][exists]` (`true` for published records, `false` for unpublished ones). `searchable` decides relevance, not privacy: whoever can search a collection can also read its records.
+Every collection is indexed for full-text search. Members search in the web app, API keys with `search:read` through the [API](/guides/api-search), and sites and apps with a [search token](/guides/public-search), which searches only collections with **Include in public search** on. The `searchable`, `filterable` and `sortable` options choose how each field takes part, in every search: words match `searchable` fields, and filters and sorts need `filterable` and `sortable` ones. API searches take the same filter operators, and `filter[published_at][exists]` (`true` for published records, `false` for unpublished ones). `searchable` decides relevance, not privacy: whoever can search a collection can also read its records.
 
 ## Changing a collection
 
 You can change a collection's name and description at any time. Adding fields, renaming them and loosening their options is safe: record data is stored by field ID, so it never moves.
 
 - **Renaming a field's key** keeps its values. Records come back under the new key, and requests that use the old key keep working for six months, so your code has time to switch.
-- **Changing a field's type, making it multiple, or adding or removing a date's time** rewrites stored values, so it runs as a [field migration](/guides/field-migrations). You can preview how many records convert cleanly before you start, and the collection is read-only while the migration runs.
+- **Changing a field's type, making it multiple, or adding or removing a date's time** rewrites stored values, so it runs as a [field migration](/guides/field-migrations). You can preview how many records convert cleanly before you start, and while it runs the collection's fields can't change, and its records can't either once it is running.
 - **Tightening a field** (making it required, lowering a maximum, removing enum options) is refused while existing records would break the new rule. Fix those records first, or run a [field migration](/guides/field-migrations) that clears the values that break it or fills in records without a value.
 - **Deleting a field or collection** is a soft delete, and can be undone for 30 days (until its `purge_after`).
 

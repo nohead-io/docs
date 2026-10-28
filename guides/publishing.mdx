@@ -41,13 +41,13 @@ nohead.records.unpublish(id)
 
 Each is a `publish` or `unpublish` revision in the record's [history](/guides/history), and takes a change note and `If-Match` like any record write. Publishing a published record, or unpublishing an unpublished one, changes nothing. Unpublishing keeps the content, and publishing again sets a new `published_at`.
 
-To publish or unpublish up to 100 records at once, `POST /v1/collections/{collection_id}/record-batches` with `action: "publish"` or `"unpublish"`. Each record is changed as if by its own request, and one that fails doesn't stop the others.
+To publish or unpublish up to 100 records at once, `POST /v1/collections/{collection_id}/record-batches` with `action: "publish"` or `"unpublish"` and their `record_ids`. Each record is changed as if by its own request, and one that fails doesn't stop the others.
 
 In the web app, Editors and every role above can publish; Viewers can't. API keys publish with `records:write`.
 
 ## Hold changes back in a draft
 
-A draft holds changes to a record until they are merged into it, while the record keeps its current content. In the web app, edit a published record and choose **Save as draft** from the save menu; the record then shows its pending changes, with **Publish changes**, **Schedule changes** and **Discard changes**. On an unpublished record the same button reads **Apply changes**.
+A draft holds changes to a record until they are merged into it, while the record keeps its current content. In the web app, edit a published record and choose **Save as draft** from the save menu; the record then shows its pending changes, with **Publish changes**, **Schedule changes** and **Discard changes**. On an unpublished record, **Publish changes** reads **Apply changes**.
 
 <CodeGroup>
 
@@ -108,7 +108,7 @@ A draft merges on its own at `merge_at` (**Schedule changes** in the web app). T
 await nohead.records.schedule(id, { publish_at: "2026-11-02T08:00:00Z" })
 await nohead.drafts.schedule("drf_01J9ZQ3F8X", { merge_at: "2026-11-02T08:00:00Z" })
 
-for await (const change of nohead.records.scheduledChanges("posts")) {
+for await (const change of nohead.records.scheduledChanges("blog-posts")) {
   console.log(change.action, change.at, change.record_id) // publish, unpublish or merge
 }
 ```
@@ -117,7 +117,7 @@ for await (const change of nohead.records.scheduledChanges("posts")) {
 nohead.records.schedule(record_id, publish_at="2026-11-02T08:00:00Z")
 nohead.drafts.schedule("drf_01J9ZQ3F8X", merge_at="2026-11-02T08:00:00Z")
 
-for change in nohead.records.scheduled_changes("posts"):
+for change in nohead.records.scheduled_changes("blog-posts"):
     print(change.action, change.at, change.record_id)  # publish, unpublish or merge
 ```
 
@@ -125,7 +125,7 @@ for change in nohead.records.scheduled_changes("posts"):
 nohead.records.schedule(id, publish_at: "2026-11-02T08:00:00Z")
 nohead.drafts.schedule("drf_01J9ZQ3F8X", merge_at: "2026-11-02T08:00:00Z")
 
-nohead.records.scheduled_changes("posts").each do |change|
+nohead.records.scheduled_changes("blog-posts").each do |change|
   puts "#{change.action} #{change.at} #{change.record_id}" # publish, unpublish or merge
 end
 ```

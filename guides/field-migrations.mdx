@@ -61,7 +61,7 @@ curl -X POST "$NOHEAD_API_URL/v1/collections/products/migrations?dry_run=true" \
 
 Without `dry_run`, the API checks every record again and refuses with `422` if any is invalid. Otherwise it answers `202` with a migration (`mig_…`) whose `status` goes from `pending` to `running` to `complete`, `failed` or `cancelled`: follow it with `GET /v1/migrations/{migration_id}`.
 
-The body names only what changes: `type`, `multiple`, `required` or `configuration` (the complete new one; with a new type and none given, only the help text and search settings carry over). `backfill` fills in records without a value, `on_invalid: "clear"` clears values that can't convert, and `time_zone` says whose day a moment becomes when a date loses its time. A dry run shows record values, so it needs `records:read` as well as `schema:write`. The [API reference](/api-reference/overview) has every parameter.
+The body names only what changes: `type`, `multiple`, `required` or `configuration` (the complete new one; with a new type and none given, only the help text and search settings carry over). `backfill` fills in records without a value, `on_invalid: "clear"` clears values that can't convert, and `time_zone` says whose day a moment becomes when a date loses its time. A dry run shows record values, so it needs `records:read` as well as `schema:write`. Add a reason with the `Nohead-Change-Note` header. The [API reference](/api-reference/overview) has every parameter.
 
 <CodeGroup>
 
@@ -124,10 +124,10 @@ nohead fields migrate products category --required --backfill general
 - Once it is `running`, record writes are refused with `409` too. Reads are never affected: clients see the old values until the migration completes, then every new value at once.
 - Drafts' values for the field are converted as well; a value that can't be is dropped from its draft. Scheduled publishes and merges that come due while it runs are made once it finishes.
 
-Cancel a migration with **Cancel migration**, `nohead migrations cancel` or `POST /v1/migrations/{migration_id}/cancel`. A pending one stops at once; a running one is rolled back entirely at its next batch, with `cancel_requested_at` set until then. A migration that fails changes nothing either, and its `failure.message` says why.
+Cancel a migration with **Cancel migration**, `nohead migrations cancel mig_…` or `POST /v1/migrations/{migration_id}/cancel`. A pending one stops at once; a running one is rolled back entirely at its next batch, with `cancel_requested_at` set until then. A migration that fails changes nothing either, and its `failure.message` says why.
 
 ## Results and history
 
-A completed migration's `records` counts each outcome. Each record whose value changed gets a `migrate` revision, so its old value stays in its history (**Migrated** in the web app). The collection's schema history, on its **History** tab or at `GET /v1/collections/{collection_id}/schema-changes`, has a `migrate_field` change (the migration's `schema_change_id`), and `GET /v1/collections/{collection_id}/migrations` lists its migrations, newest first. Add a reason with the `Nohead-Change-Note` header.
+A completed migration's `records` counts each outcome. Each record whose value changed gets a `migrate` revision, so its old value stays in its history (**Migrated** in the web app). The collection's schema history, on its **History** tab or at `GET /v1/collections/{collection_id}/schema-changes`, has a `migrate_field` change (the migration's `schema_change_id`), and `GET /v1/collections/{collection_id}/migrations` lists its migrations, newest first.
 
 A completed migration sends one `field.migrated` [webhook](/guides/webhooks) event, not a `record.updated` per record, so a site that rebuilds on record changes should listen for `field.migrated` too.

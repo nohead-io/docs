@@ -41,9 +41,7 @@ Send `Idempotency-Key` on any `POST`, `PUT`, `PATCH` or `DELETE` to make retryin
 
 ## History
 
-Every change to a record is a revision, attributed to the person or API key that made it; record revisions can be listed, diffed and reverted, and collections keep a schema history. Send `Nohead-Change-Note` to record why a change was made. Changes that rewrite existing values, such as a field's type, are explicit, previewable field migrations.
-
-How long revisions are kept depends on the organization's plan. Older ones are removed, but every record keeps its first revision and its last 10. A record's `history_pruned_through` is the revision up to which history was removed (`null` while nothing was).
+Every change to a record is a revision, attributed to the person or API key that made it. Send `Nohead-Change-Note` to record why a change was made. A record's `history_pruned_through` is the revision up to which older history was removed (`null` while nothing was). [Revisions and history](/guides/history) covers listing, diffing and reverting revisions, and how long they are kept.
 
 ## Rate limits
 
