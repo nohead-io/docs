@@ -41,7 +41,7 @@ Send `Idempotency-Key` on any `POST`, `PUT`, `PATCH` or `DELETE` to make retryin
 
 ## History
 
-Send `Nohead-Change-Note` to record why a change was made. A record's `history_pruned_through` is the revision up to which older history was removed (`null` while nothing was). [Revisions and history](/guides/history) covers listing, diffing and reverting revisions, and how long they are kept.
+Every change to a record is a revision, attributed to the person or API key that made it. Send `Nohead-Change-Note` to record why a change was made. A record's `history_pruned_through` is the revision up to which older history was removed (`null` while nothing was). [Revisions and history](/guides/history) covers listing, diffing and reverting revisions, and how long they are kept.
 
 ## Rate limits
 
