@@ -1,0 +1,108 @@
+---
+title: Reading content
+icon: file-text
+description: List, filter, sort and page through records, embed related ones, count them, and keep a copy in sync.
+---
+
+Sites and apps read records with an API key that has the **Read records** scope (`records:read`). A published-only key, the default for a new key, sees only published records, so your live site needs no filter for it; see [Drafts and publishing](/guides/publishing). With an API key, a collection's slug works wherever its ID does.
+
+## List records
+
+`GET /v1/collections/{collection_id}/records` returns a page of records, newest first. Pass `limit` (1 to 100, 20 by default) and, for the next page, the `next_cursor` from `meta`; it is `null` on the last page. The SDKs' list methods also loop over every page for you:
+
+<CodeGroup>
+
+```bash curl
+curl "$NOHEAD_API_URL/v1/collections/blog-posts/records?limit=100" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY"
+```
+
+```ts TypeScript
+for await (const post of nohead.records.list("blog-posts", { sort: "-published_at" })) {
+  console.log(post.data.title)
+}
+```
+
+```python Python
+for post in nohead.records.list("blog-posts", sort="-published_at"):
+    print(post.data["title"])
+```
+
+```ruby Ruby
+nohead.records.list("blog-posts", sort: "-published_at").each do |post|
+  puts post.data["title"]
+end
+```
+
+</CodeGroup>
+
+Fetch one record with `GET /v1/records/{record_id}`. To find a record by its slug, filter the list: `filter[slug]=hello-world` returns at most one, since slugs are unique.
+
+## Filter
+
+Filter on field values with `filter[<key>]=value` (equal), or with an operator, `filter[<key>][<operator>]=value`, for `text`, `long_text`, `integer`, `decimal`, `boolean`, `date`, `enum`, `asset` and `relation` fields. Filters combine with AND:
+
+| Operator | Matches | Example |
+| --- | --- | --- |
+| `eq` (or none) | equal; for a multiple field, lists that contain the value | `filter[category]=shoes` |
+| `ne` | not equal, including records with no value | `filter[category][ne]=sale` |
+| `gt`, `gte`, `lt`, `lte` | greater or less than, for integer, decimal and date fields with one value | `filter[price][lt]=50` |
+| `in` | any of up to 100 comma-separated values (`\,` for a comma inside one) | `filter[category][in]=shoes,bags` |
+| `exists` | `true`: has a value, `false`: has none | `filter[cover][exists]=false` |
+
+Values are read as the field's type, so `"5"` is not the integer 5. Dates take `today`, and dates with a time also `now`: `filter[starts_on][gte]=today` lists upcoming events. A plain date's `today` is the day in UTC. A day given for a date with a time covers that day in the field's time zone (UTC without one), so `filter[starts][eq]=2026-10-09` is everything on 9 October there. A date with a time matches the same moment written with any offset.
+
+Lists also filter on `created_at`, `updated_at` and `published_at`: `filter[published_at][exists]=false` lists unpublished records, for a key that sees them.
+
+With curl, pass `-g` so the brackets reach the API as they are:
+
+```bash
+curl -g "$NOHEAD_API_URL/v1/collections/products/records?filter[category][in]=shoes,bags&filter[price][lt]=50" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY"
+```
+
+## Sort
+
+Sort by `created_at` (the default, newest first), `updated_at`, `published_at` (unpublished records sort earliest), or a text, number, date, boolean or enum field with one value: `sort=price`, or `sort=-published_on` for descending. Records with no value for the field come last either way, and text sorts by character code.
+
+## Embed related records and assets
+
+Records store only the IDs of related records and assets. To get them in the same response, pass `expand` with up to five relation, asset or rich text field keys (for rich text, the assets its images show). Embedding needs permission to read what is embedded: `records:read` for relations, and `assets:read` for asset and rich text fields (`403` otherwise).
+
+```bash
+curl "$NOHEAD_API_URL/v1/collections/blog-posts/records?expand=author,cover_image" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY"
+```
+
+Each record then has an `expanded` object keyed by field key. A related record or asset that no longer exists is `null` for a single-value field and left out of the list for a multiple one. With a published-only key, related unpublished records are left out too. To render rich text with its images, see [Images in rich text](/guides/content-modelling#images-in-rich-text).
+
+## Count
+
+`GET /v1/collections/{collection_id}/records/count` answers how many records match, with the same filters as the list, without fetching them:
+
+<CodeGroup>
+
+```bash curl
+curl "$NOHEAD_API_URL/v1/collections/blog-posts/records/count?filter[category]=news" \
+  -g -H "Authorization: Bearer $NOHEAD_API_KEY"
+```
+
+```ts TypeScript
+const { count } = await nohead.records.count("blog-posts", { filter: { category: "news" } })
+```
+
+```python Python
+count = nohead.records.count("blog-posts", filter={"category": "news"}).count
+```
+
+```ruby Ruby
+count = nohead.records.count("blog-posts", filter: { category: "news" }).count
+```
+
+</CodeGroup>
+
+## Keep a copy in sync
+
+To copy content into your own store, list what changed since your last run with `filter[updated_at][gt]=` and the time you last synced, sorted by `updated_at`. Deleted records aren't in lists: `filter[deleted]=true` lists them instead (each has its `deleted_at`), with a key that isn't published-only. A deleted record can be restored for 30 days, after which it is gone for good.
+
+For changes as they happen instead of on a schedule, subscribe to [webhooks](/guides/webhooks): a site that rebuilds on `record.published`, `record.updated` and `record.deleted` stays current without polling.

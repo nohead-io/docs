@@ -4,19 +4,19 @@ icon: braces
 description: How every endpoint authenticates, pages, fails and retries.
 ---
 
-Every endpoint in this reference is generated from the API's OpenAPI 3.1 contract, the same document the API is tested against. Download it from the API at `/openapi.json`; coding agents can start from `/llms.txt`, a plain-text map of every endpoint.
+Every endpoint in this reference is generated from the API's OpenAPI 3.1 contract, the same document the API is tested against. Download it from the API at `https://api.nohead.io/openapi.json`; coding agents can start from `/llms.txt`, a plain-text map of every endpoint.
 
 ## Authentication
 
-Send `Authorization: Bearer <token>`. Servers, CI and agents use a project API key (`nohead_sk_...`, or `nohead_pk_...` for a published-only key; created in the web app under **API keys**) with scopes such as `records:read`. Organizations, projects, members, billing and API keys are managed in the web app, signed in, so this reference leaves them out: it covers everything an API key can call.
+Requests go to `https://api.nohead.io`. Send `Authorization: Bearer <token>`. Servers, CI and agents use a project API key (`nohead_sk_...`, or `nohead_pk_...` for a published-only key; created in the web app under **API keys**) with scopes such as `records:read` ([API keys](/guides/api-keys)). Organizations, projects, members, billing and API keys are managed in the web app, signed in, so this reference leaves them out: it covers everything an API key can call.
 
 ## IDs
 
-Every object has an `object` type, and every resource with an identity of its own an opaque, prefixed `id` (`col_`, `fld_`, `rec_`, `ast_`, ...). With an API key, collections can also be addressed by slug: `/v1/collections/blog-posts/records` works like `/v1/collections/col_…/records`, since the key belongs to one project. Timestamps are ISO 8601 in UTC.
+Every object has an `object` type, and every resource with an identity of its own an opaque, prefixed `id` (`col_`, `fld_`, `rec_`, `ast_`, ...). With an API key, collections can also be addressed by slug: `/v1/collections/blog-posts/records` works like `/v1/collections/col_…/records`, since the key belongs to one project. Project endpoints take the key's project ID (`prj_…`): `GET /v1/me` returns it as `api_key.project_id`, and the project's **Settings** page shows it. Timestamps are ISO 8601 in UTC.
 
 ## Lists
 
-Lists return `{ "data": [...], "meta": { "next_cursor", "has_more" } }`. Pass `limit` (1 to 100) and `cursor` to page, and `sort` (prefix `-` for descending).
+Lists return `{ "data": [...], "meta": { "next_cursor", "has_more" } }`. Pass `limit` (1 to 100) and `cursor` to page, and `sort` (prefix `-` for descending). [Reading content](/guides/reading-content) covers filtering, sorting and embedding records.
 
 ## Errors
 

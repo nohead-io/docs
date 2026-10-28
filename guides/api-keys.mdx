@@ -1,0 +1,42 @@
+---
+title: API keys
+icon: key-round
+description: Create a key for each site, server or agent, give it only the scopes it needs, and revoke it when it's done.
+---
+
+Every request to the API carries a project API key as a bearer token: `Authorization: Bearer nohead_pk_…`. A key belongs to one project and can do only what its scopes allow. Everything it changes is attributed to it in history and the activity log, so give each site, server, CI job and agent a key of its own.
+
+## Create a key
+
+On the project's **API keys** page, choose **New API key**, give it a name and choose its scopes. The key is shown once: store it in your app's environment or secret manager, as `NOHEAD_API_KEY`. Developers, admins and owners can create keys, and a key never gets a scope its creator's role doesn't have (`not_grantable`). A project has at most 25 keys that aren't revoked.
+
+**Published records only** is on by default. A published-only key, for your live site or app, sees published records only: no unpublished or deleted records and no history. It can take only the read scopes below, and it is rate-limited per client IP address, since it may sit in browser code. Its token starts `nohead_pk_`; every other key's starts `nohead_sk_`. Turn it off for a key that writes, or that reads drafts for a preview.
+
+## Scopes
+
+| Scope | In the web app | Published-only keys |
+|---|---|---|
+| `records:read` | Read records | ✓ |
+| `records:write` | Write and publish records | |
+| `schema:read` | Read schema | ✓ |
+| `schema:write` | Change schema | |
+| `assets:read` | Read assets (and embed them in records) | ✓ |
+| `assets:write` | Upload assets | |
+| `search:read` | Search | ✓ |
+| `webhooks:read` | Read webhooks and their payloads | |
+| `webhooks:write` | Manage webhooks (receives content) | |
+| `audit:read` | Read the audit log | |
+
+A request without the scope it needs is refused with `403`, and the message names the scope. `GET /v1/me` shows a key's project, scopes and whether it is published-only. Webhook payloads carry content, unpublished records included, so treat the webhook scopes like `records:read` on everything.
+
+## Keep keys safe
+
+- Give each key the fewest scopes that work: a site reads with `records:read`, plus `assets:read` to embed images.
+- Keep keys that aren't published-only on servers: never in browser code or a mobile app.
+- For search in the browser, use a [search token](/guides/public-search) instead of an API key.
+
+## Rename and revoke
+
+The **API keys** page shows when each key was **Last used**, to the minute. Rename a key or revoke it from its menu: **Revoke key** stops it at once, and can't be undone. To replace a key, create the new one, switch your app to it, then revoke the old one.
+
+Keys keep working when the person who made them leaves the organization or changes role, so nothing breaks unannounced. The organization's **Members** page lists them under **Access to review**, with the invitations those people sent, to revoke them in one go.

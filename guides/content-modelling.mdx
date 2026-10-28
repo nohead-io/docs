@@ -40,7 +40,7 @@ These field keys are reserved, for records' own attributes and a few kept for la
 | `relation` | A record ID (`rec_...`) in the target collection | `target_collection_id` (required) |
 | `json` | Any JSON value, up to 1 MB | |
 
-Every type's configuration also takes a `description` (**Help text** in the web app, up to 500 characters) shown to editors, and the search options `searchable`, `filterable` and `sortable` ([Filtering and search](#filtering-and-search)).
+Every type's configuration also takes a `description` (**Help text** in the web app, up to 500 characters) shown to editors, and the search options `searchable`, `filterable` and `sortable` ([Search options](#search-options)).
 
 Values are never converted between types: `"5"` is not an integer and `1` is not a boolean. With **multiple** on, the value is a list of distinct values of the field's type, such as a list of tags or photos; a repeated value is refused (`duplicate_value`).
 
@@ -118,30 +118,11 @@ A relation field points at records in another collection of the same project, se
 
 An asset field takes any file unless you limit it with `accepted_types`: MIME types or `type/*` wildcards, such as `["image/*", "application/pdf"]`. In the web app, these are the field's **Allowed files** (images, videos, audio, PDFs). The limit applies to newly written values: files already in records are kept, and a new file of another type is refused (`type_not_accepted`). To list only the assets a field takes, pass its types to `GET /v1/projects/{project_id}/assets`: one as `filter[content_type]`, several as `filter[content_type][in]` (comma-separated). In the SDKs, pass `content_type` as a list.
 
-Records store only the IDs. To get the related records or assets in the same response, pass `expand` with up to five relation, asset or rich text field keys (for rich text, the assets its images show). Expanding asset and rich text fields needs `assets:read`, relations `records:read`:
+Records store only the IDs. [Reading content](/guides/reading-content#embed-related-records-and-assets) embeds the related records and assets in the same response with `expand`.
 
-```bash
-curl "$NOHEAD_API_URL/v1/collections/blog-posts/records?expand=author,cover_image" \
-  -H "Authorization: Bearer $NOHEAD_API_KEY"
-```
+## Search options
 
-Each record then has an `expanded` object keyed by field key. A related record or asset that no longer exists is `null` for a single-value field and left out of the list for a multiple one. With a published-only key, related unpublished records are left out too.
-
-## Filtering and search
-
-Record lists filter on field values with `filter[<key>]=value` (equal), or with an operator, `filter[<key>][<operator>]=value`, for `text`, `long_text`, `integer`, `decimal`, `boolean`, `date`, `enum`, `asset` and `relation` fields. Filters combine with AND:
-
-| Operator | Matches | Example |
-| --- | --- | --- |
-| `eq` (or none) | equal; for a multiple field, lists that contain the value | `filter[category]=shoes` |
-| `ne` | not equal, including records with no value | `filter[category][ne]=sale` |
-| `gt`, `gte`, `lt`, `lte` | greater or less than, for integer, decimal and date fields with one value | `filter[price][lt]=50` |
-| `in` | any of up to 100 comma-separated values (`\,` for a comma inside one) | `filter[category][in]=shoes,bags` |
-| `exists` | `true`: has a value, `false`: has none | `filter[cover][exists]=false` |
-
-Values are read as the field's type, so `"5"` is not the integer 5. Dates take `today`, and dates with a time also `now`: `filter[starts_on][gte]=today` lists upcoming events. A plain date's `today` is the day in UTC. A day given for a date with a time covers that day in the field's time zone (UTC without one), so `filter[starts][eq]=2026-10-09` is everything on 9 October there. A date with a time matches the same moment written with any offset. Record lists also filter on `created_at`, `updated_at` and `published_at`, for example `filter[updated_at][gt]=2026-10-01T00:00:00Z` for an incremental sync.
-
-Record lists sort by `created_at` (the default, newest first), `updated_at`, `published_at` (unpublished records sort earliest), or a text, number, date, boolean or enum field with one value: `sort=price`, or `sort=-published_on` for descending. Records with no value for the field come last either way, and text sorts by character code.
+To filter and sort records, see [Reading content](/guides/reading-content#filter).
 
 Every collection is indexed for full-text search. Members search in the web app, API keys with `search:read` through the [API](/guides/api-search), and sites and apps with a [search token](/guides/public-search), which searches only collections with **Include in public search** on. The `searchable`, `filterable` and `sortable` options choose how each field takes part, in every search: words match `searchable` fields, and filters and sorts need `filterable` and `sortable` ones. API searches take the same filter operators, and `filter[published_at][exists]` (`true` for published records, `false` for unpublished ones). `searchable` decides relevance, not privacy: whoever can search a collection can also read its records.
 
