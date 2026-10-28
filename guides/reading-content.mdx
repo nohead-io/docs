@@ -36,7 +36,7 @@ end
 
 </CodeGroup>
 
-Fetch one record with `GET /v1/records/{record_id}`. To find a record by its slug, filter the list: `filter[slug]=hello-world` returns at most one, since slugs are unique.
+Fetch one record with `GET /v1/records/{record_id}`. To find a record by its slug, filter the list on the slug field's key, such as `filter[slug]=hello-world`: it returns at most one record, since slugs are unique.
 
 ## Filter
 
@@ -83,8 +83,8 @@ Each record then has an `expanded` object keyed by field key. A related record o
 <CodeGroup>
 
 ```bash curl
-curl "$NOHEAD_API_URL/v1/collections/blog-posts/records/count?filter[category]=news" \
-  -g -H "Authorization: Bearer $NOHEAD_API_KEY"
+curl -g "$NOHEAD_API_URL/v1/collections/blog-posts/records/count?filter[category]=news" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY"
 ```
 
 ```ts TypeScript
@@ -103,6 +103,6 @@ count = nohead.records.count("blog-posts", filter: { category: "news" }).count
 
 ## Keep a copy in sync
 
-To copy content into your own store, list what changed since your last run with `filter[updated_at][gt]=` and the time you last synced, sorted by `updated_at`. Deleted records aren't in lists: `filter[deleted]=true` lists them instead (each has its `deleted_at`), with a key that isn't published-only. A deleted record can be restored for 30 days, after which it is gone for good.
+To copy content into your own store, list what changed since your last run with `filter[updated_at][gt]=` and the time you last synced, sorted by `updated_at`. Deleted records aren't in lists: add `filter[deleted]=true` to the same query to list those deleted since then, with a key that isn't published-only. A deleted record can be restored for 30 days and is then purged, so run the sync at least that often; a restored record comes back in the first query.
 
 For changes as they happen instead of on a schedule, subscribe to [webhooks](/guides/webhooks): a site that rebuilds on `record.published`, `record.updated` and `record.deleted` stays current without polling.
