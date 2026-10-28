@@ -55,7 +55,7 @@ end
 
 ## What words match
 
-Words match the collection's `searchable` fields, in every search: with an API key, by members in the web app, and in [public search](/guides/public-search). Text, long text, rich text and enum fields are searchable unless you turn it off. You choose how each field takes part on the collection's **Search** tab, or in the field's options: see [Filtering and search](/guides/content-modelling#filtering-and-search).
+Words match the collection's `searchable` fields, in every search: with an API key, by members in the web app, and in [public search](/guides/public-search). Text, long text, rich text and enum fields are searchable unless you turn it off. You choose how each field takes part on the collection's **Search** tab, or in the field's options: see [Filtering and search](/guides/content-modelling#search-options).
 
 ## Filter and sort
 
@@ -114,7 +114,7 @@ results.meta.total_estimate
 
 Pass `limit` (1 to 100, 20 by default) and the `next_cursor` of the previous page as `cursor`. A cursor only works for the search it came from: with other words, filters or sort, it is `400`. Search pages through the first 1,000 hits; narrow the search with words or filters to reach the rest, or list the records instead.
 
-In a collection search, `expand` embeds related records and assets under `expanded`, as in the [records list](/guides/content-modelling#relations-and-assets). Embedding records needs `records:read`, and assets `assets:read`.
+In a collection search, `expand` embeds related records and assets under `expanded`, as in the [records list](/guides/reading-content#embed-related-records-and-assets). Embedding records needs `records:read`, and assets `assets:read`.
 
 ## Published-only keys
 

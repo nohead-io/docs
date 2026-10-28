@@ -23,11 +23,15 @@
         "groups": [
           {
             "group": "Get started",
-            "pages": ["index", "quickstart"]
+            "pages": ["index", "quickstart", "guides/api-keys"]
+          },
+          {
+            "group": "Model",
+            "pages": ["guides/content-modelling", "guides/field-migrations", "guides/schema-as-code"]
           },
           {
             "group": "Content",
-            "pages": ["guides/content-modelling", "guides/publishing", "guides/history", "guides/field-migrations", "guides/images"]
+            "pages": ["guides/reading-content", "guides/publishing", "guides/history", "guides/images"]
           },
           {
             "group": "Search",
@@ -35,7 +39,7 @@
           },
           {
             "group": "Integrate",
-            "pages": ["guides/sdks", "guides/webhooks", "guides/errors-and-retries", "guides/api-requests", "guides/schema-as-code", "guides/coding-agents", "guides/mcp"]
+            "pages": ["guides/sdks", "guides/webhooks", "guides/errors-and-retries", "guides/api-requests", "guides/coding-agents", "guides/mcp"]
           }
         ]
       },

@@ -15,6 +15,12 @@ Every change is a revision, attributed to the person or API key that made it: yo
   <Card title="Model your content" icon="layers" href="/guides/content-modelling">
     Collections, fields and the eleven field types.
   </Card>
+  <Card title="Read your content" icon="file-text" href="/guides/reading-content">
+    List, filter, sort and page through records, with related ones embedded.
+  </Card>
+  <Card title="API keys" icon="key-round" href="/guides/api-keys">
+    A key per site, server or agent, with only the scopes it needs.
+  </Card>
 </CardGroup>
 
 ## How it fits together
@@ -23,6 +29,6 @@ Every change is a revision, attributed to the person or API key that made it: yo
 - **Collections** are your data models, such as blog posts, products or team members. Each has typed **fields**.
 - **Records** are the content itself. They start unpublished and go live when published. Changes to a live record can wait in a **draft** until they are merged into it, now or at a set time.
 - **Assets** are the project's uploaded files, such as images and PDFs. Asset fields point at them.
-- **API keys** belong to a project and carry scopes such as `records:read`. A published-only key never sees unpublished records, which makes it the right key for a live site.
+- **[API keys](/guides/api-keys)** belong to a project and carry scopes such as `records:read`. A published-only key never sees unpublished records, which makes it the right key for a live site.
 
 The API reference in the next tab lists every endpoint an API key can call. It is generated from the same OpenAPI document the API is tested against.

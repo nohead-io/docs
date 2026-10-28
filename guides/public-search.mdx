@@ -64,7 +64,7 @@ Several collections at once take one query each, or a federated search across th
 
 ## Filter and sort
 
-Fields take part in searches by their [search settings](/guides/content-modelling#filtering-and-search), as in every search: words match `searchable` fields, and `filterable` and `sortable` fields can be used in filters and sorts. Name them under `data`:
+Fields take part in searches by their [search settings](/guides/content-modelling#search-options), as in every search: words match `searchable` fields, and `filterable` and `sortable` fields can be used in filters and sorts. Name them under `data`:
 
 ```javascript
 { indexUid: index, q: "soup", filter: 'data.cuisine = "french"', sort: ["published_at:desc"] }
