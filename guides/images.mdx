@@ -6,6 +6,8 @@ description: Resize, crop and convert images by writing options into their URLs,
 
 Every image you upload has an `image_url`: the whole image, served from a CDN. Image URLs are open, so you make any size, crop or format of an image by writing [imgproxy](https://docs.imgproxy.net/usage/processing) processing options into its URL. There is no API call per rendition, and frameworks' image components can build their `srcset` themselves.
 
+Upload files on the **Assets** page, or with the SDKs' `assets.upload` ([SDKs](/guides/sdks#upload-files)).
+
 ## Image URLs
 
 An asset that is a ready JPEG, PNG, GIF, WebP or AVIF image has an `image_url` (it is `null` for other files):
@@ -39,7 +41,7 @@ Options combine in any order: `rs:fill:400:400/g:sm/dpr:2/q:80`. imgproxy's [pro
 
 Image components take a loader that turns a source and a width into a URL. `@nohead/sdk/images` has one for each, with no dependencies; it leaves other images, the site's own, as they are:
 
-- **Next.js:** in a file named by `images.loaderFile` in next.config, `export { nextImageLoader as default } from "@nohead/sdk/images"`. Then `<Image src={asset.image_url} width={1200} height={630} alt={asset.alt} />` gets a `srcset` of renditions.
+- **Next.js:** in a file named by `images.loaderFile` in next.config, `export { nextImageLoader as default } from "@nohead/sdk/images"`. Then `<Image src={asset.image_url} width={1200} height={630} alt={asset.alt ?? ""} />` gets a `srcset` of renditions.
 - **Astro:** in a module named by `image.service.entrypoint` in astro.config, `export { astroImageService as default } from "@nohead/sdk/images"`.
 - **Nuxt Image:** in a provider file in nuxt.config's `image.providers`, `export { nuxtImageProvider as default } from "@nohead/sdk/images"` (on Nuxt Image 1, `export { getImage } from "@nohead/sdk/images"`).
 
@@ -52,8 +54,6 @@ export default function noheadLoader({ src, width, quality }) {
   return src.replace("/plain/", `/${options.join("/")}/plain/`)
 }
 ```
-
-There is no API call for renditions: write the options into the URL, in your code or your framework's loader.
 
 ## Limits
 

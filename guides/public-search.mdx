@@ -6,6 +6,8 @@ description: Search published records straight against the search engine with a 
 
 Public search finds published records straight in the search engine, with a **search token** instead of an API key: results come back as fast as you type, and the searches don't count toward your API requests. Use it from your site's browser code or from your own backend. Search runs on [Meilisearch](https://www.meilisearch.com), so its clients and [InstantSearch](https://www.algolia.com/doc/guides/building-search-ui/what-is-instantsearch/js/) work as they are.
 
+Your servers can also search with an API key, through [the API](/guides/api-search): that returns full records, with `expand`.
+
 You need three things: the search URL, a token, and the index name of each collection you search.
 
 ## Include collections in public search
@@ -123,5 +125,3 @@ instantsearch({ indexName: index, searchClient })
 ## Rename or delete a token
 
 Rename a token or delete it from its menu on the **Search tokens** page. A renamed token stays the same. A deleted one fails at once, and your other tokens keep working. To stop searches of one collection, remove it from public search instead. While a project or organization is scheduled for deletion its tokens stop working, and they work again if it is restored.
-
-Your servers can also search through the API with an API key: `GET /v1/collections/{collection_id}/search` and `GET /v1/projects/{project_id}/search` return full records, with `expand`, and unpublished ones too unless the key is published-only.

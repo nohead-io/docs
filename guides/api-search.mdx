@@ -129,7 +129,7 @@ Indexes follow record and schema changes on their own. `GET /v1/collections/{col
 - `last_built_at` and `rebuild_requested_at`.
 - `index`: the index's name in the search engine, which [public search](/guides/public-search#index-names) searches by. API searches don't need it.
 
-The collection's **Search** tab shows the same status, with a **Rebuild index** button (`POST /v1/collections/{collection_id}/search-index/rebuild`, `schema:write`). You rarely need it.
+The collection's **Search** tab shows the same status, with a **Rebuild index** button (`POST /v1/collections/{collection_id}/search-index/rebuild`, `schema:write`). You rarely need it, and it can run 3 times an hour per collection.
 
 ## When search answers 409
 

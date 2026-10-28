@@ -86,7 +86,7 @@ diff.changes.each { |change| puts "#{change.field || change.attribute}: #{change
 
 ## Revert
 
-Reverting writes a new `revert` revision with an earlier revision's values; nothing in between is lost. In the web app, open a revision, choose **Revert to this version**, check the changes and choose **Revert**. Through the API, preview first with `dry_run`, which writes nothing:
+Reverting writes a new `revert` revision with an earlier revision's values; nothing in between is lost. In the web app, open a revision, choose **Revert to this revision**, check the changes and choose **Revert record**. Through the API, preview first with `dry_run`, which writes nothing:
 
 <CodeGroup>
 
@@ -158,7 +158,7 @@ When a value should never have been stored, such as personal data or a secret, o
 - Copies in stored webhook payloads are removed too.
 - The current value is never touched. If it is the problem, change the record first, then redact.
 - Reverting to a redacted revision keeps the field's current value.
-- Redaction can't be undone, and it is recorded in the activity log as `record.redacted`.
+- Redaction can't be undone. It is recorded in the activity log, and sent to webhooks, as `record.redacted`.
 
 Redaction is not part of the API: API keys can't redact.
 

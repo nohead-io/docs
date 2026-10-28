@@ -178,7 +178,7 @@ Failed requests are retried twice by default:
 - `500`, `502`, `503` and `504`
 - `409` with detail code `in_progress`: the same write, still running
 
-Each attempt times out after 60 seconds. Set `timeout` and `maxRetries` (`max_retries`) on the client or for one call to change them. [What the SDKs retry](/guides/errors-and-retries#what-the-sdks-retry) has the details.
+Each attempt times out after 60 seconds. Set `timeout` and `maxRetries` (`max_retries`) on the client or for one call to change them. [Errors and retries](/guides/errors-and-retries) covers what each error means.
 
 Every write carries an `Idempotency-Key` that stays the same across its retries, so a retry after a lost response never writes twice.
 
@@ -271,7 +271,7 @@ except ValidationError as error:
 begin
   nohead.records.create("posts", data: {})
 rescue Nohead::ValidationError => e
-  e.details.each { |detail| puts "#{detail['field']}: #{detail.message}" }
+  e.details.each { |detail| puts "#{detail.field}: #{detail.message}" }
 end
 ```
 
@@ -353,9 +353,7 @@ end
 
 </CodeGroup>
 
-Event types are the same as the activity log's, such as `record.published`, `record.restored` or `field.updated`, and a webhook subscribes to types or wildcards (`record.*`, `*`). Each event says who made the change (`actor`) and through which client (`via`). Rotating a webhook's secret keeps the old one signing for 24 hours, so you can switch the receiver to the new one without rejecting deliveries.
-
-The same event can arrive twice: deduplicate by the `webhook-id` header.
+The same event can arrive twice: deduplicate by the `webhook-id` header. [Webhooks](/guides/webhooks) covers the event types, the payload and rotating the secret.
 
 ## Versions
 

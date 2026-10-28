@@ -42,7 +42,7 @@ npm install -g @nohead/cli   # or run it without installing: npx nohead
 nohead whoami                # reads NOHEAD_API_KEY
 ```
 
-The CLI needs Node 26 or newer. In CI, pin its version (`npx nohead@0.1`), so an upgrade is a change you choose.
+The CLI needs Node 26 or newer. In CI, pin its version (`npx nohead@0.3`, the current minor version), so an upgrade is a change you choose.
 
 On your own machine, `echo "$NOHEAD_API_KEY" | nohead login` saves the key in a profile instead.
 
@@ -75,7 +75,7 @@ nohead records revert rec_01J9ZQ3F8X 2 --dry-run
 - **Say why.** `--note` is kept with the revision, the merge or the schema change it makes, and shown in history next to the key's name and the client it came through, such as the CLI. Through the API, send the `Nohead-Change-Note` header; in the SDKs, pass `changeNote` (TypeScript) or `change_note` (Python, Ruby).
 - **Don't overwrite newer edits.** `--if-revision` refuses the change with `412` if someone changed the record since the revision the agent read. Read it again, and apply the change again.
 - **Propose, don't publish.** A draft holds changes until a person reviews them and merges them in the editor (**Publish changes**, or **Apply changes** for an unpublished record), or with `nohead drafts merge`.
-- **Sync without duplicates.** Through the API or an SDK, creating a record with `upsert_on`, the key of a `unique` field such as a slug, updates the record that already has that value instead of adding another, so a sync job can run again and again.
+- **Sync without duplicates.** Through the API, an SDK or the MCP server's `create_record`, creating a record with `upsert_on`, the key of a `unique` field such as a slug, updates the record that already has that value instead of adding another, so a sync job can run again and again.
 - **Undo.** Every change is a revision you can revert, `--dry-run` previews a revert, and deleted records, fields, collections and assets can be restored for 30 days.
 
 ## Point the agent at the API

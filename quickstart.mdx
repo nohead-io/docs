@@ -15,7 +15,7 @@ description: Create a project, publish a record and fetch it from your code.
     Open the collection, choose **New record**, fill in its fields and choose **Create and publish** from the **Create** button's menu. Records start unpublished; only published records are visible to published-only keys.
   </Step>
   <Step title="Create an API key">
-    Under **API keys**, choose **New API key** and give it the **Read records** scope (`records:read`). Leave **Published records only** on (the default) for a key your live site uses, so unpublished records never reach it; turn it off for a key that writes. A published-only key starts `nohead_pk_`, and a full-access one `nohead_sk_`.
+    Under **API keys**, choose **New API key** and give it the **Read records** scope (`records:read`). Leave **Published records only** on (the default) for a key your live site uses, so unpublished records never reach it; turn it off for a key that writes. A published-only key starts `nohead_pk_`, and any other key `nohead_sk_`.
 
     The key is shown once. Store it somewhere safe, for example as `NOHEAD_API_KEY` in your app's environment, next to the API's address:
 
@@ -25,12 +25,12 @@ description: Create a project, publish a record and fetch it from your code.
     ```
   </Step>
   <Step title="Fetch your content">
-    List the collection's published records. With an API key, you can use the collection's slug instead of its ID.
+    List the collection's records: a published-only key sees only the published ones. With an API key, you can use the collection's slug instead of its ID.
 
     <CodeGroup>
 
     ```bash curl
-    curl -g "$NOHEAD_API_URL/v1/collections/blog-posts/records?filter[published_at][exists]=true" \
+    curl "$NOHEAD_API_URL/v1/collections/blog-posts/records" \
       -H "Authorization: Bearer $NOHEAD_API_KEY"
     ```
 
@@ -38,21 +38,21 @@ description: Create a project, publish a record and fetch it from your code.
     import { Nohead } from "@nohead/sdk"
 
     const nohead = new Nohead() // NOHEAD_API_KEY
-    const page = await nohead.records.list("blog-posts", { filter: { published_at: { exists: true } } })
+    const page = await nohead.records.list("blog-posts")
     ```
 
     ```python Python
     from nohead import Nohead
 
     nohead = Nohead()  # NOHEAD_API_KEY
-    page = nohead.records.list("blog-posts", filter={"published_at": {"exists": True}})
+    page = nohead.records.list("blog-posts")
     ```
 
     ```ruby Ruby
     require "nohead"
 
     nohead = Nohead::Client.new # NOHEAD_API_KEY
-    page = nohead.records.list("blog-posts", filter: { published_at: { exists: true } })
+    page = nohead.records.list("blog-posts")
     ```
 
     </CodeGroup>
@@ -95,5 +95,5 @@ Lists return the records under `data`, with a cursor for the next page under `me
 
 - Pass `limit` (1 to 100) and `cursor` to page through long lists, and `sort` (for example `-published_at`) to order them.
 - Filter on a field with `filter[<key>]=value`, for example `filter[tags]=news` (on a field with several values, it matches records whose list includes the value).
-- Embed assets or related records with `expand`, for example `expand=cover_image`. Asset fields need the key's **Read assets** scope (`assets:read`) too.
+- Embed assets or related records with `expand`, for example `expand=cover_image`. Asset and rich text fields need the key's **Read assets** scope (`assets:read`) too.
 - Fetch one record with `GET /v1/records/{record_id}`.

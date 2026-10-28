@@ -32,7 +32,7 @@ Every error the API returns has the same shape, and any write can be made safe t
 | 402 | `plan_limit_exceeded` | `plan_limit` |
 | 403 | `authorization_error` | `not_permitted` (for `expand`) |
 | 404 | `not_found` | |
-| 409 | `conflict` | `deleted`, `in_progress`, `draft_exists`, `draft_pending`, `migration_in_progress` |
+| 409 | `conflict` | `deleted`, `in_progress`, `draft_exists`, `draft_pending`, `migration_in_progress`, and for search `index_building` and `rebuilding` ([API search](/guides/api-search#when-search-answers-409)) |
 | 412 | `precondition_failed` | `revision_mismatch` |
 | 422 | `validation_error` | `required`, `unknown_field`, `invalid_type`, `invalid_format`, `taken` |
 | 429 | `rate_limited` | `rate_limit`, `plan_limit` |
@@ -41,7 +41,7 @@ Every error the API returns has the same shape, and any write can be made safe t
 
 - **400**: the request is malformed, such as JSON that doesn't parse, a sort or cursor the API doesn't know, or a body key the operation doesn't take (`unknown_parameter`, naming the key). Fix the request: retrying it unchanged fails the same way.
 - **401**: the API key is missing, invalid, revoked or expired.
-- **402**: the change would go over a hard limit of your organization's plan, such as its number of projects, collections, records, members or webhooks, or its storage. The detail names the limit in `field`, with the current `usage` and the `limit`. A file larger than the plan allows (10 MB on Free, 100 MB on paid plans) is refused when its upload starts: the `field` is `byte_size`, `usage` is the file's size and `limit` the largest upload.
+- **402**: the change would go over a hard limit of your organization's plan, such as its number of projects, collections, records, members or webhooks, or, on Free, its storage. The detail names the limit in `field`, with the current `usage` and the `limit`. A file larger than the plan allows (10 MB on Free, 100 MB on paid plans) is refused when its upload starts: the `field` is `byte_size`, `usage` is the file's size and `limit` the largest upload.
 - **403**: the key may see the resource but not do this, for example when it lacks a scope (the message names it; there is no detail code) or is published-only. An `expand` that embeds what the key can't read is `not_permitted`.
 - **404**: the resource doesn't exist, or the key can't see it, such as another project's. The two look the same on purpose.
 - **409**: the request conflicts with the resource's state. A deleted resource must be restored first (`deleted`); a record has one draft at most (`draft_exists`), and a live record with a pending draft can't be published until the draft is merged (`draft_pending`); a collection is being migrated (`migration_in_progress`). Retrying helps only once the state changes; `in_progress` is the exception (see below).
@@ -78,7 +78,7 @@ Every authenticated response carries the current window:
 | `RateLimit-Remaining` | Requests left |
 | `RateLimit-Reset` | Seconds until the window resets |
 
-An API key's limit is per minute and depends on its organization's plan. A published-only key is public, so it is counted per client IP address: one visitor can't use up everyone else's. Requests with an invalid key are limited per IP address too.
+An API key's limit is per minute and depends on its organization's plan (the [pricing page](https://nohead.io/pricing) lists it). A published-only key is public, so it is counted per client IP address: one visitor can't use up everyone else's. Requests with an invalid key are limited per IP address too.
 
 Over the limit, the API answers `429 rate_limited` with `Retry-After`, in seconds. The request was neither performed nor counted, so wait that long and send it again (with the same `Idempotency-Key`, for a write).
 
@@ -86,14 +86,7 @@ A `429` with a `plan_limit` detail is different: on Free, the organization has u
 
 ## What the SDKs retry
 
-The SDKs retry a failed request twice by default, with exponential backoff:
-
-- connection errors and timeouts
-- `429`, waiting for `Retry-After` when it is at most 60 seconds; a longer wait raises (or throws) `RateLimitError` at once
-- `500`, `502`, `503` and `504`
-- `409` with detail code `in_progress`
-
-Other errors are raised as their `type`'s class. Change the number of retries when you create the client:
+The SDKs retry connection errors, `429`, `5xx` and `in_progress` for you ([Retries and idempotency](/guides/sdks#retries-and-idempotency) has the rules). What reaches your code is raised as its `type`'s class. Change the number of retries when you create the client:
 
 <CodeGroup>
 
