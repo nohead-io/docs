@@ -24,7 +24,7 @@ nohead schema diff               # what push would change
 nohead schema push --yes         # apply it
 ```
 
-`diff` and `push` take another file as an argument (`nohead schema diff cms/schema.yaml`), and `pull --output` writes to one (`-` for stdout). `schema push` without `--yes` shows the plan, changes nothing and exits with `2` (or `0` when there is nothing to change).
+Every flag is in the [CLI reference](/cli/commands/schema). `diff` and `push` take another file as an argument (`nohead schema diff cms/schema.yaml`), and `pull --output` writes to one (`-` for stdout). `schema push` without `--yes` shows the plan, changes nothing and exits with `2` (or `0` when there is nothing to change).
 
 `schema diff` prints one line per change:
 

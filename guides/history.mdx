@@ -27,7 +27,7 @@ A single revision also has `data`, the record's values as of that revision, and 
 Lists are newest first. Filter by `operation`, by `actor_id` (a `usr_` or `key_` ID) or by a `created_at` range:
 
 ```bash
-curl -g "$NOHEAD_API_URL/v1/records/rec_01J9ZQ3F8X/revisions?filter[operation]=publish" \
+curl -g "https://api.nohead.io/v1/records/rec_01J9ZQ3F8X/revisions?filter[operation]=publish" \
   -H "Authorization: Bearer $NOHEAD_API_KEY"
 ```
 
@@ -123,7 +123,7 @@ A deleted record must be restored before it can be reverted (`409`). Send `If-Ma
 Every change is attributed to the person or API key that made it. Give each tool, agent and CI job a key of its own, so history tells them apart. To say why, send `Nohead-Change-Note` when you create, update, publish, unpublish, delete, restore or revert a record, change records in a batch, merge a draft, or change a schema (fields, collections, field migrations). The note is percent-encoded UTF-8, as `encodeURIComponent` encodes it, at most 500 characters once decoded; plain ASCII can be sent as it is.
 
 ```bash
-curl -X PATCH "$NOHEAD_API_URL/v1/records/rec_01J9ZQ3F8X" \
+curl -X PATCH "https://api.nohead.io/v1/records/rec_01J9ZQ3F8X" \
   -H "Authorization: Bearer $NOHEAD_API_KEY" \
   -H "Content-Type: application/json" \
   -H "Nohead-Change-Note: Fix%20the%20price%20of%20the%20large%20size" \

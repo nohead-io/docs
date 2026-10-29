@@ -39,7 +39,7 @@
           },
           {
             "group": "Integrate",
-            "pages": ["guides/sdks", "guides/webhooks", "guides/errors-and-retries", "guides/api-requests", "guides/coding-agents", "guides/mcp"]
+            "pages": ["guides/webhooks", "guides/errors-and-retries", "guides/api-requests", "guides/coding-agents", "guides/mcp"]
           }
         ]
       },
@@ -53,6 +53,28 @@
           {
             "group": "Endpoints",
             "openapi": "openapi.json"
+          }
+        ]
+      },
+      {
+        "tab": "SDKs",
+        "groups": [
+          {
+            "group": "SDKs",
+            "pages": ["sdks/overview", "sdks/typescript", "sdks/python", "sdks/ruby"]
+          }
+        ]
+      },
+      {
+        "tab": "CLI",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": ["cli/overview"]
+          },
+          {
+            "group": "Commands",
+            "pages": ["cli/commands/global-options", "cli/commands/setup", "cli/commands/collections", "cli/commands/fields", "cli/commands/migrations", "cli/commands/schema", "cli/commands/records", "cli/commands/drafts", "cli/commands/assets", "cli/commands/search", "cli/commands/webhooks", "cli/commands/audit", "cli/commands/export-import"]
           }
         ]
       }
@@ -71,5 +93,11 @@
       "x": "https://x.com/nohead_io",
       "github": "https://github.com/nohead-io"
     }
-  }
+  },
+  "redirects": [
+    {
+      "source": "/guides/sdks",
+      "destination": "/sdks/overview"
+    }
+  ]
 }

@@ -10,10 +10,10 @@ Coding agents such as Claude Code, Cursor or Codex, CI jobs and scripts work wit
 
 | Interface | Use it when | Start here |
 |---|---|---|
-| The `nohead` CLI | The agent has a shell: coding agents, CI | `nohead --help`, [Schema as code](/guides/schema-as-code) |
+| The `nohead` CLI | The agent has a shell: coding agents, CI | [CLI reference](/cli/overview), `nohead --help`, [Schema as code](/guides/schema-as-code) |
 | The REST API | Anything that speaks HTTP | `/llms.txt` and `/openapi.json` on the API |
 | The MCP server | The agent has no shell: chat apps, agent frameworks, automation platforms | [MCP server](/guides/mcp) |
-| An SDK | Your application's code | [SDKs](/guides/sdks) |
+| An SDK | Your application's code | [SDKs](/sdks/overview) |
 
 For a coding agent, the CLI is usually the best fit: `--json` output and exit codes cost it less context than a list of tools.
 
@@ -83,7 +83,7 @@ nohead records revert rec_01J9ZQ3F8X 2 --dry-run
 The API serves `/llms.txt`, a plain-text map of every endpoint and the API's conventions, generated from the same contract the API is tested against. It suits an agent's context better than the full contract, `/openapi.json`:
 
 ```bash
-curl "$NOHEAD_API_URL/llms.txt"
+curl "https://api.nohead.io/llms.txt"
 ```
 
 ## A snippet for your AGENTS.md

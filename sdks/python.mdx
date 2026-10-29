@@ -1,0 +1,67 @@
+---
+title: Python
+icon: file-code
+description: "nohead on PyPI, sync and async: install, configure, the async client, and the models it returns."
+---
+
+```bash
+pip install nohead
+```
+
+It needs Python 3.11 or newer. Its dependencies are httpx and Pydantic 2. Use it on servers: API keys are secrets. The [overview](/sdks/overview) covers reading and writing, retries, errors, uploads and webhooks, with examples in every language.
+
+## Configure the client
+
+```python
+import os
+
+from nohead import Nohead
+
+nohead = Nohead(
+    api_key=os.environ["NOHEAD_API_KEY"],  # the default
+    timeout=10.0,  # seconds per attempt
+    max_retries=3,
+)
+```
+
+| Option | Default | |
+|---|---|---|
+| `api_key` | `NOHEAD_API_KEY` | A project [API key](/guides/api-keys). Required. |
+| `base_url` | `https://api.nohead.io` | For a proxy, or a mock server in tests. |
+| `project_id` | the key's project | Looked up once with `GET /v1/me` when omitted. |
+| `max_retries` | `2` | See [retries](/sdks/overview#retries-and-idempotency). |
+| `timeout` | `60.0` | Seconds per attempt. |
+| `headers` | none | Added to every request. |
+| `warnings` | `True` | Warns (`NoheadWarning`) about deprecated operations and plan usage, once each. |
+| `http_client` | a new `httpx.Client` | Bring your own for proxies or custom transports. |
+
+Close the client when you're done with it, or use it as a context manager (`with Nohead() as nohead:`). `nohead.with_options(timeout=5, max_retries=0)` returns a client with other settings that shares the same connections.
+
+## Async
+
+`AsyncNohead` has the same methods: await them, and loop over lists with `async for`.
+
+```python
+from nohead import AsyncNohead
+
+
+async def titles() -> None:
+    async with AsyncNohead() as client:
+        async for record in client.records.list("blog-posts"):
+            print(record.data["title"])
+```
+
+## Models
+
+- **Responses** are Pydantic models, in `nohead.models`. The main ones (`Record`, `Draft`, `Collection`, `Field`, `Asset`, `Webhook`) can also be imported from `nohead`. A record's values are in its `data` dict.
+- **They're lenient on purpose,** because the API adds fields and values without notice: fields the SDK doesn't know yet are kept in `model_extra`, enums are plain strings, and a response that doesn't match the models at all is returned unvalidated with a `NoheadWarning` rather than raised.
+- **Timestamps** are `datetime`s.
+- **Request bodies** are typed with the TypedDicts in `nohead.params`, and filters with those in `nohead.types`, so a type checker catches a misspelled field.
+
+## Images
+
+`nohead.images.image_url` builds an image URL with resizing options: see [Images](/guides/images#frameworks).
+
+## Methods
+
+Every method follows a resource of the API: `records`, `drafts`, `collections`, `fields`, `migrations`, `assets`, `webhooks`, `search`, `audit_events` and more. Each endpoint in the [API reference](/api-reference/overview) shows its call in Python, and the [README](https://github.com/nohead-io/nohead-python#reference) lists them by resource.

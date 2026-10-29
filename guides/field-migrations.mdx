@@ -53,7 +53,7 @@ The preview shows the counts and a few examples. Check **Clear values that canno
 Find the field's ID (`GET /v1/collections/{collection_id}/fields`), then preview the change with `dry_run=true`:
 
 ```bash
-curl -X POST "$NOHEAD_API_URL/v1/collections/products/migrations?dry_run=true" \
+curl -X POST "https://api.nohead.io/v1/collections/products/migrations?dry_run=true" \
   -H "Authorization: Bearer $NOHEAD_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"field_id": "fld_01J9ZQ3F8X5W2K7M4N6P0R1S2T", "type": "decimal"}'

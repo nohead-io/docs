@@ -13,7 +13,7 @@ Sites and apps read records with an API key that has the **Read records** scope 
 <CodeGroup>
 
 ```bash curl
-curl "$NOHEAD_API_URL/v1/collections/blog-posts/records?limit=100" \
+curl "https://api.nohead.io/v1/collections/blog-posts/records?limit=100" \
   -H "Authorization: Bearer $NOHEAD_API_KEY"
 ```
 
@@ -57,7 +57,7 @@ Lists also filter on `created_at`, `updated_at` and `published_at`: `filter[publ
 With curl, pass `-g` so the brackets reach the API as they are:
 
 ```bash
-curl -g "$NOHEAD_API_URL/v1/collections/products/records?filter[category][in]=shoes,bags&filter[price][lt]=50" \
+curl -g "https://api.nohead.io/v1/collections/products/records?filter[category][in]=shoes,bags&filter[price][lt]=50" \
   -H "Authorization: Bearer $NOHEAD_API_KEY"
 ```
 
@@ -70,7 +70,7 @@ Sort by `created_at` (the default, newest first), `updated_at`, `published_at` (
 Records store only the IDs of related records and assets. To get them in the same response, pass `expand` with up to five relation, asset or rich text field keys (for rich text, the assets its images show). Embedding needs permission to read what is embedded: `records:read` for relations, and `assets:read` for asset and rich text fields (`403` otherwise).
 
 ```bash
-curl "$NOHEAD_API_URL/v1/collections/blog-posts/records?expand=author,cover_image" \
+curl "https://api.nohead.io/v1/collections/blog-posts/records?expand=author,cover_image" \
   -H "Authorization: Bearer $NOHEAD_API_KEY"
 ```
 
@@ -83,7 +83,7 @@ Each record then has an `expanded` object keyed by field key. A related record o
 <CodeGroup>
 
 ```bash curl
-curl -g "$NOHEAD_API_URL/v1/collections/blog-posts/records/count?filter[category]=news" \
+curl -g "https://api.nohead.io/v1/collections/blog-posts/records/count?filter[category]=news" \
   -H "Authorization: Bearer $NOHEAD_API_KEY"
 ```
 

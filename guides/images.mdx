@@ -6,7 +6,7 @@ description: Resize, crop and convert images by writing options into their URLs,
 
 Every image you upload has an `image_url`: the whole image, served from a CDN. Image URLs are open, so you make any size, crop or format of an image by writing [imgproxy](https://docs.imgproxy.net/usage/processing) processing options into its URL. There is no API call per rendition, and frameworks' image components can build their `srcset` themselves.
 
-Upload files on the **Assets** page, or with the SDKs' `assets.upload` ([SDKs](/guides/sdks#upload-files)).
+Upload files on the **Assets** page, or with the SDKs' `assets.upload` ([SDKs](/sdks/overview#upload-files)).
 
 ## Image URLs
 
@@ -45,7 +45,7 @@ Image components take a loader that turns a source and a width into a URL. `@noh
 - **Astro:** in a module named by `image.service.entrypoint` in astro.config, `export { astroImageService as default } from "@nohead/sdk/images"`.
 - **Nuxt Image:** in a provider file in nuxt.config's `image.providers`, `export { nuxtImageProvider as default } from "@nohead/sdk/images"` (on Nuxt Image 1, `export { getImage } from "@nohead/sdk/images"`).
 
-In your own code, `imageUrl(asset, { width: 800, fit: "cover", format: "webp" })` writes the options into an asset's URL; Python has `nohead.images.image_url` and Ruby `Nohead::Images.url` ([SDKs](/guides/sdks#upload-files)). Without the SDK, a loader only has to add the options before `/plain/`:
+In your own code, `imageUrl(asset, { width: 800, fit: "cover", format: "webp" })` writes the options into an asset's URL; Python has `nohead.images.image_url` and Ruby `Nohead::Images.url` ([SDKs](/sdks/overview#upload-files)). Without the SDK, a loader only has to add the options before `/plain/`:
 
 ```javascript
 // Next.js, by hand: a file named by images.loaderFile in next.config
@@ -88,7 +88,7 @@ Every asset also has a `file_url` once its upload completes, which downloads the
 Before you delete or replace an image or file, check which records use it:
 
 ```bash
-curl "$NOHEAD_API_URL/v1/assets/ast_01J9ZQ3F8X/usage" \
+curl "https://api.nohead.io/v1/assets/ast_01J9ZQ3F8X/usage" \
   -H "Authorization: Bearer $NOHEAD_API_KEY"
 ```
 

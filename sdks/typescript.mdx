@@ -1,0 +1,70 @@
+---
+title: TypeScript
+icon: file-code
+description: "@nohead/sdk for Node, Bun, Deno and edge runtimes: install, configure, typed record data and raw responses."
+---
+
+```bash
+npm install @nohead/sdk
+```
+
+The package is ESM; Node 22+ can also `require()` it. It runs on Node 22, 24 and 26, Bun, Deno, Cloudflare Workers and other runtimes with `fetch` and Web Crypto. Use it on servers: API keys are secrets. The [overview](/sdks/overview) covers reading and writing, retries, errors, uploads and webhooks, with examples in every language.
+
+## Configure the client
+
+```ts
+import { Nohead } from "@nohead/sdk"
+
+const nohead = new Nohead({
+  apiKey: process.env.NOHEAD_API_KEY, // the default
+  timeout: 10_000, // milliseconds per attempt
+  maxRetries: 3,
+})
+```
+
+| Option | Default | |
+|---|---|---|
+| `apiKey` | `NOHEAD_API_KEY` | A project [API key](/guides/api-keys). Required. |
+| `baseUrl` | `https://api.nohead.io` | For a proxy, or a mock server in tests. |
+| `projectId` | the key's project | Looked up once with `GET /v1/me` when omitted. |
+| `maxRetries` | `2` | See [retries](/sdks/overview#retries-and-idempotency). |
+| `timeout` | `60000` | Milliseconds per attempt. |
+| `fetch` | `globalThis.fetch` | For proxies, instrumentation and tests. |
+| `headers` | `{}` | Added to every request. |
+| `warnings` | `true` | Logs deprecation and plan usage warnings, once each. |
+| `onRetry` | | Called before each retry, with its attempt, delay, URL, status and error. |
+
+API keys belong to a project, so methods like `collections.list()` need no project ID, and collections can be named by ID or slug.
+
+## Typed record data
+
+Describe a collection's fields and pass the type, and a record's `data` is typed:
+
+```ts
+interface Post {
+  title: string
+  author: string
+}
+
+const post = await nohead.records.get<Post>(id) // post.data.title: string
+await nohead.records.update<Post>(id, { data: { title: "Hello again" } })
+```
+
+The type is a promise you make; nothing is checked at runtime. The record type itself is `Nohead.Record<Post>`, also exported as `NoheadRecord`. Field names stay as the API sends them (`published_at`, `data`), so the [API reference](/api-reference/overview) applies as it is.
+
+## Raw responses
+
+`withResponse()` gives the HTTP response with the result, for its headers:
+
+```ts
+const { data, response, requestId } = await nohead.records.get(id).withResponse()
+console.log(data.id, requestId, response.headers.get("RateLimit-Remaining"))
+```
+
+## Images in frameworks
+
+`@nohead/sdk/images` builds image URLs (`imageUrl`) and has loaders for Next.js, Astro and Nuxt Image, with no dependencies: see [Images](/guides/images#frameworks).
+
+## Methods
+
+Every method follows a resource of the API: `records`, `drafts`, `collections`, `fields`, `migrations`, `assets`, `webhooks`, `search`, `auditEvents` and more. Each endpoint in the [API reference](/api-reference/overview) shows its call in TypeScript, and the [README](https://github.com/nohead-io/nohead-typescript#reference) lists them by resource.

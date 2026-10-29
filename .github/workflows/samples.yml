@@ -1,5 +1,6 @@
-# Brings the SDKs' code samples up to date every day: fetches each SDK's
-# samples.json from its main branch, regenerates openapi.json and, when
+# Brings the SDKs' code samples and the CLI reference up to date every day:
+# fetches each SDK's samples.json and the CLI's commands.json from their main
+# branches, regenerates openapi.json and the CLI pages and, when
 # anything changed, checks the site and opens (or updates) a pull request.
 #
 # Two jobs, so the site check (npx mint, with dependencies that have no
@@ -81,9 +82,9 @@ jobs:
           fi
           git switch -C samples/update
           git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-            commit -q -m "Update the SDK code samples"
+            commit -q -m "Update the SDK code samples and CLI reference"
           git push --force origin samples/update
           if [ -z "$(gh pr list -R "$REPO" --head samples/update --state open --json number --jq '.[0].number')" ]; then
-            gh pr create -R "$REPO" --base main --head samples/update --title "Update the SDK code samples" \
-              --body "The SDKs' samples.json changed. This updates sdk-samples/ and the code samples in openapi.json; the site check passed in the run that opened it."
+            gh pr create -R "$REPO" --base main --head samples/update --title "Update the SDK code samples and CLI reference" \
+              --body "The SDKs' samples.json or the CLI's commands.json changed. This updates sdk-samples/, the code samples in openapi.json, cli/commands.json and the CLI reference pages; the site check passed in the run that opened it."
           fi
