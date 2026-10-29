@@ -2,7 +2,7 @@
 
 The guides and API reference at [docs.nohead.io](https://docs.nohead.io), hosted by [Mintlify](https://mintlify.com) on its free plan. Corrections and suggestions are welcome as issues or pull requests.
 
-- `docs.json`: site settings and navigation. New pages must be listed here.
+- `docs.json`: site settings and navigation. New pages must be listed here. The API reference's endpoint groups in it are generated from `openapi.json`'s tags, with an icon each (`scripts/api-navigation.mjs`, which fails if a tag has no icon): don't edit them.
 - `*.mdx`, `guides/*.mdx`: the guides. Plain Markdown where possible; use Mintlify components (`<CodeGroup>`, `<Steps>`, `<Card>`, `<GitHub.Repo>`) sparingly, so moving to another tool stays cheap. Callouts (`<Warning>`, `<Note>`, `<Tip>`) are for what can't be undone or would cost a reader if missed, not for emphasis.
 - `openapi.json`: the API reference source, generated (do not edit). It is the API's published contract plus code samples from the SDKs.
 - `sdk-samples/`: each SDK's `samples.json`, one sample per operation.

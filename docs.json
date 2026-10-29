@@ -17,7 +17,13 @@
     "href": "https://nohead.io"
   },
   "contextual": {
-    "options": ["copy", "view", "claude", "chatgpt", "download-spec"]
+    "options": [
+      "copy",
+      "view",
+      "claude",
+      "chatgpt",
+      "download-spec"
+    ]
   },
   "navigation": {
     "tabs": [
@@ -26,31 +32,57 @@
         "groups": [
           {
             "group": "Get started",
-            "pages": ["index", "quickstart", "guides/api-keys"]
+            "pages": [
+              "index",
+              "quickstart",
+              "guides/api-keys"
+            ]
           },
           {
             "group": "Agents",
-            "pages": ["guides/agents", "guides/coding-agents", "guides/mcp"]
+            "pages": [
+              "guides/agents",
+              "guides/coding-agents",
+              "guides/mcp"
+            ]
           },
           {
             "group": "Model",
-            "pages": ["guides/content-modelling", "guides/field-migrations", "guides/schema-as-code"]
+            "pages": [
+              "guides/content-modelling",
+              "guides/field-migrations",
+              "guides/schema-as-code"
+            ]
           },
           {
             "group": "Content",
-            "pages": ["guides/reading-content", "guides/publishing", "guides/history"]
+            "pages": [
+              "guides/reading-content",
+              "guides/publishing",
+              "guides/history"
+            ]
           },
           {
             "group": "Assets",
-            "pages": ["guides/assets", "guides/images"]
+            "pages": [
+              "guides/assets",
+              "guides/images"
+            ]
           },
           {
             "group": "Search",
-            "pages": ["guides/api-search", "guides/public-search"]
+            "pages": [
+              "guides/api-search",
+              "guides/public-search"
+            ]
           },
           {
             "group": "Integrate",
-            "pages": ["guides/webhooks", "guides/errors-and-retries", "guides/api-requests"]
+            "pages": [
+              "guides/webhooks",
+              "guides/errors-and-retries",
+              "guides/api-requests"
+            ]
           }
         ]
       },
@@ -59,11 +91,180 @@
         "groups": [
           {
             "group": "Overview",
-            "pages": ["api-reference/overview"]
+            "pages": [
+              "api-reference/overview"
+            ]
           },
           {
             "group": "Endpoints",
-            "openapi": "openapi.json"
+            "openapi": "openapi.json",
+            "pages": [
+              {
+                "group": "Records",
+                "icon": "file-text",
+                "pages": [
+                  "GET /v1/collections/{collection_id}/records",
+                  "POST /v1/collections/{collection_id}/records",
+                  "GET /v1/records/{record_id}",
+                  "PATCH /v1/records/{record_id}",
+                  "DELETE /v1/records/{record_id}",
+                  "GET /v1/collections/{collection_id}/records/count",
+                  "POST /v1/collections/{collection_id}/record-batches",
+                  "POST /v1/records/{record_id}/restore"
+                ]
+              },
+              {
+                "group": "Publishing",
+                "icon": "globe",
+                "pages": [
+                  "GET /v1/records/{record_id}/publication",
+                  "POST /v1/records/{record_id}/publication",
+                  "DELETE /v1/records/{record_id}/publication",
+                  "GET /v1/records/{record_id}/schedule",
+                  "PUT /v1/records/{record_id}/schedule",
+                  "DELETE /v1/records/{record_id}/schedule",
+                  "GET /v1/collections/{collection_id}/scheduled-changes"
+                ]
+              },
+              {
+                "group": "Revisions",
+                "icon": "file-clock",
+                "pages": [
+                  "GET /v1/records/{record_id}/revisions",
+                  "GET /v1/records/{record_id}/revisions/{revision}",
+                  "GET /v1/revisions/{revision_id}",
+                  "POST /v1/records/{record_id}/revisions/{revision}/revert",
+                  "GET /v1/records/{record_id}/diff"
+                ]
+              },
+              {
+                "group": "Drafts",
+                "icon": "file-pen",
+                "pages": [
+                  "GET /v1/records/{record_id}/drafts",
+                  "POST /v1/records/{record_id}/drafts",
+                  "GET /v1/collections/{collection_id}/drafts",
+                  "GET /v1/drafts/{draft_id}",
+                  "PATCH /v1/drafts/{draft_id}",
+                  "DELETE /v1/drafts/{draft_id}",
+                  "POST /v1/drafts/{draft_id}/merge",
+                  "PUT /v1/drafts/{draft_id}/schedule",
+                  "DELETE /v1/drafts/{draft_id}/schedule"
+                ]
+              },
+              {
+                "group": "Collections",
+                "icon": "database",
+                "pages": [
+                  "GET /v1/projects/{project_id}/collections",
+                  "POST /v1/projects/{project_id}/collections",
+                  "GET /v1/collections/{collection_id}",
+                  "PATCH /v1/collections/{collection_id}",
+                  "DELETE /v1/collections/{collection_id}",
+                  "POST /v1/collections/{collection_id}/restore"
+                ]
+              },
+              {
+                "group": "Schema changes",
+                "icon": "file-diff",
+                "pages": [
+                  "GET /v1/collections/{collection_id}/schema",
+                  "GET /v1/collections/{collection_id}/schema-changes",
+                  "GET /v1/schema-changes/{schema_change_id}"
+                ]
+              },
+              {
+                "group": "Fields",
+                "icon": "list",
+                "pages": [
+                  "GET /v1/collections/{collection_id}/fields",
+                  "POST /v1/collections/{collection_id}/fields",
+                  "GET /v1/fields/{field_id}",
+                  "PATCH /v1/fields/{field_id}",
+                  "DELETE /v1/fields/{field_id}",
+                  "GET /v1/collections/{collection_id}/field-order",
+                  "PUT /v1/collections/{collection_id}/field-order",
+                  "DELETE /v1/fields/{field_id}/aliases/{alias}",
+                  "POST /v1/fields/{field_id}/restore"
+                ]
+              },
+              {
+                "group": "Field migrations",
+                "icon": "arrow-right-left",
+                "pages": [
+                  "GET /v1/collections/{collection_id}/migrations",
+                  "POST /v1/collections/{collection_id}/migrations",
+                  "GET /v1/migrations/{migration_id}",
+                  "POST /v1/migrations/{migration_id}/cancel"
+                ]
+              },
+              {
+                "group": "Assets",
+                "icon": "image",
+                "pages": [
+                  "GET /v1/projects/{project_id}/assets",
+                  "POST /v1/projects/{project_id}/assets",
+                  "POST /v1/assets/{asset_id}/complete",
+                  "GET /v1/assets/{asset_id}",
+                  "PATCH /v1/assets/{asset_id}",
+                  "DELETE /v1/assets/{asset_id}",
+                  "GET /v1/assets/{asset_id}/usage",
+                  "POST /v1/assets/{asset_id}/restore",
+                  "POST /v1/assets/{asset_id}/purge"
+                ]
+              },
+              {
+                "group": "Search",
+                "icon": "search",
+                "pages": [
+                  "GET /v1/collections/{collection_id}/search",
+                  "GET /v1/projects/{project_id}/search",
+                  "GET /v1/collections/{collection_id}/search-index",
+                  "POST /v1/collections/{collection_id}/search-index/rebuild"
+                ]
+              },
+              {
+                "group": "Webhooks",
+                "icon": "webhook",
+                "pages": [
+                  "GET /v1/projects/{project_id}/webhooks",
+                  "POST /v1/projects/{project_id}/webhooks",
+                  "GET /v1/webhooks/{webhook_id}",
+                  "PATCH /v1/webhooks/{webhook_id}",
+                  "DELETE /v1/webhooks/{webhook_id}",
+                  "POST /v1/webhooks/{webhook_id}/test",
+                  "GET /v1/webhooks/{webhook_id}/secrets",
+                  "POST /v1/webhooks/{webhook_id}/secrets",
+                  "DELETE /v1/webhook-secrets/{secret_id}",
+                  "POST /v1/webhooks/{webhook_id}/restore"
+                ]
+              },
+              {
+                "group": "Webhook deliveries",
+                "icon": "send",
+                "pages": [
+                  "GET /v1/webhooks/{webhook_id}/deliveries",
+                  "GET /v1/webhook-deliveries/{delivery_id}",
+                  "POST /v1/webhook-deliveries/{delivery_id}/retry"
+                ]
+              },
+              {
+                "group": "Audit log",
+                "icon": "history",
+                "pages": [
+                  "GET /v1/projects/{project_id}/audit-events"
+                ]
+              },
+              {
+                "group": "System",
+                "icon": "activity",
+                "pages": [
+                  "GET /v1/health",
+                  "GET /v1/me",
+                  "GET /v1/feature-flags"
+                ]
+              }
+            ]
           }
         ]
       },
@@ -72,7 +273,12 @@
         "groups": [
           {
             "group": "SDKs",
-            "pages": ["sdks/overview", "sdks/typescript", "sdks/python", "sdks/ruby"]
+            "pages": [
+              "sdks/overview",
+              "sdks/typescript",
+              "sdks/python",
+              "sdks/ruby"
+            ]
           }
         ]
       },
@@ -81,7 +287,9 @@
         "groups": [
           {
             "group": "Get started",
-            "pages": ["cli/overview"]
+            "pages": [
+              "cli/overview"
+            ]
           },
           {
             "group": "Commands",
@@ -110,7 +318,12 @@
       "display": "simple"
     },
     "examples": {
-      "languages": ["curl", "typescript", "python", "ruby"]
+      "languages": [
+        "curl",
+        "typescript",
+        "python",
+        "ruby"
+      ]
     }
   },
   "footer": {
