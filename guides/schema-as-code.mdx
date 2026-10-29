@@ -4,7 +4,7 @@ icon: file-code
 description: Keep your collections and fields in a YAML file in your repository, review changes as a diff, and apply them from CI.
 ---
 
-The `nohead` CLI keeps a project's schema in a file, `nohead.schema.yaml`. You change the file, review what it would change, and push it, from your machine or from CI. Push applies the file through the API with the same rules as the web app: it never deletes anything, and changes that rewrite values run as [field migrations](/guides/field-migrations) only when you allow them.
+The `nohead` CLI keeps a project's schema in a file, `nohead.schema.yaml`. You change the file, review what it would change, and push it, from your machine or from CI. Push applies the file through the API under the same rules as the web app. It never deletes anything, and changes that rewrite values run as [field migrations](/guides/field-migrations) only when you allow them.
 
 ```bash
 npm install -g @nohead/cli    # or run it without installing: npx nohead
@@ -144,7 +144,7 @@ A scheduled `nohead schema diff --exit-code` tells you when someone changed the 
 
 ## Copy a project
 
-`nohead export` and `nohead import` move a whole project: its schema, records, drafts and assets. Export with `--include-files` to bring the files along; without them, asset values are left out of the imported records. Export needs a key with **Published records only** off and `schema:read`, `records:read` and `assets:read`; import needs `schema:write`, `records:write` and `assets:write` as well.
+`nohead export` and `nohead import` move a whole project: its schema, records, drafts and assets. Export with `--include-files` to bring the files along; without them, asset values are left out of the imported records. Export needs a key with **Published records only** off and `schema:read` and `records:read`, plus `assets:read` for assets; import needs `schema:write`, `records:write` and `assets:write` as well.
 
 ```bash
 nohead export --output backup --include-files

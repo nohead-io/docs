@@ -28,7 +28,7 @@ echo "$NOHEAD_API_KEY" | nohead login   # or run nohead login and paste it: it i
 nohead whoami                           # the key, its project and scopes
 ```
 
-`login` checks the key and saves it, with its API URL and project, as a profile in a file only you can read. `--profile <name>` saves or uses another one, for example a key per project. In CI and for agents, set `NOHEAD_API_KEY` instead of logging in. `nohead logout` forgets a saved key; the key itself stays valid until you revoke it in the web app.
+`login` checks the key and saves it, with its project, as a profile in a file only you can read. `--profile <name>` saves or uses another one, for example a key per project. In CI and for agents, set `NOHEAD_API_KEY` instead of logging in. `nohead logout` forgets a saved key; the key itself stays valid until you revoke it in the web app.
 
 ## Configuration
 
@@ -50,7 +50,7 @@ Scripts and agents can rely on this:
 - **stderr** carries errors, summaries and diagnostics. With `--json`, errors use the API's error envelope, `{ "error": { "type", "message", "request_id", "details" } }`.
 - **Exit codes:** `0` success, `1` an API error (validation, authentication, not found, a stale revision, import failures), `2` a usage error (bad arguments, no API key, unreadable files), `3` the API or storage unreachable, `4` an unexpected failure in the CLI (`NOHEAD_DEBUG=1` prints the stack).
 - **Retries:** up to 3, reported on stderr. A `429` is retried after its `Retry-After` (up to 60 seconds); network failures and `500`, `502`, `503` and `504` with backoff. Every write carries an `Idempotency-Key`, so a retry never writes twice.
-- Deleting a collection needs `--yes`. Everything else is soft-deleted and can be restored.
+- Deleting a collection and discarding a draft need `--yes`; a discarded draft can't be restored. Everything else is soft-deleted and can be restored.
 
 ## Lists and filters
 

@@ -6,7 +6,7 @@ description: Upload images and files from the web app, the SDKs, the CLI or over
 
 An asset is a file uploaded to a project: an image, a video, audio, a document or any other file. Records use assets through asset fields and images in rich text ([Content modelling](/guides/content-modelling)), and every asset has URLs that serve it: [Images and files](/guides/images) covers those.
 
-Reading assets needs an API key with `assets:read`; uploading, editing and deleting them `assets:write`. In the web app, editors, admins and owners can upload and delete. Published-only keys can't list assets: a site reaches the ones it shows through its records, with [`expand`](/guides/reading-content#embed-related-records-and-assets).
+Reading assets needs an API key with `assets:read`; uploading, editing and deleting them `assets:write`. In the web app, every role but viewers can upload and delete. Published-only keys can't list assets: a site reaches the ones it shows through its records, with [`expand`](/guides/reading-content#embed-related-records-and-assets).
 
 ## Upload
 
