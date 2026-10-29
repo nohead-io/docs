@@ -23,7 +23,7 @@
         "groups": [
           {
             "group": "Get started",
-            "pages": ["index", "quickstart", "guides/api-keys"]
+            "pages": ["index", "quickstart", "guides/sdks", "guides/api-keys"]
           },
           {
             "group": "Model",
@@ -39,7 +39,20 @@
           },
           {
             "group": "Integrate",
-            "pages": ["guides/sdks", "guides/webhooks", "guides/errors-and-retries", "guides/api-requests", "guides/coding-agents", "guides/mcp"]
+            "pages": ["guides/webhooks", "guides/errors-and-retries", "guides/api-requests", "guides/coding-agents", "guides/mcp"]
+          }
+        ]
+      },
+      {
+        "tab": "CLI",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": ["cli/overview"]
+          },
+          {
+            "group": "Commands",
+            "pages": ["cli/commands/global-options", "cli/commands/setup", "cli/commands/collections", "cli/commands/fields", "cli/commands/migrations", "cli/commands/schema", "cli/commands/records", "cli/commands/drafts", "cli/commands/assets", "cli/commands/search", "cli/commands/webhooks", "cli/commands/audit", "cli/commands/export-import"]
           }
         ]
       },

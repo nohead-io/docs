@@ -6,6 +6,7 @@ The guides and API reference at [docs.nohead.io](https://docs.nohead.io), hosted
 - `*.mdx`, `guides/*.mdx`: the guides. Plain Markdown where possible; use Mintlify components (`<Note>`, `<Steps>`, `<CodeGroup>`) sparingly, so moving to another tool stays cheap.
 - `openapi.json`: the API reference source, generated (do not edit). It is the API's published contract plus code samples from the SDKs.
 - `sdk-samples/`: each SDK's `samples.json`, one sample per operation.
+- `cli/`: the CLI's overview (written here) and command reference (`cli/commands/`, generated from `cli/commands.json`, the CLI's own description of its commands: do not edit).
 
 ```bash
 npm run dev          # preview at http://localhost:3333
@@ -21,6 +22,7 @@ The Mintlify CLI is pinned in `package.json` and run with `npx`, with telemetry 
 - **The code samples:** each SDK writes `samples.json` from the calls its contract test checks, so a sample always calls a real method correctly.
   - `npm run samples` fetches them from the SDKs' `main` branches (`NOHEAD_<LANGUAGE>_DIR` reads a local checkout instead) and regenerates `openapi.json`.
   - `samples.yml` does this every day and opens a pull request when anything changed.
+- **The CLI reference:** the CLI writes `commands.json` from its command definitions. `npm run samples` also fetches it (`NOHEAD_CLI_DIR` reads a local checkout) into `cli/commands.json`, and `npm run generate` writes a page per command group from it (`scripts/cli-reference.mjs`, which fails if a new command has no page or a page isn't in `docs.json`).
 - **Code samples for a new SDK:**
   - add it to `scripts/languages.mjs`
   - add its language to `api.examples.languages` in `docs.json`: Mintlify only shows samples in the languages listed there

@@ -29,7 +29,8 @@ jobs:
           node-version: 26
           package-manager-cache: false
       # openapi.json must already have the samples from sdk-samples/.
-      - run: npm run generate && git diff --exit-code openapi.json
+      # openapi.json and the CLI reference are generated: new or changed files mean a stale commit.
+      - run: npm run generate && test -z "$(git status --porcelain -- openapi.json cli)"
       # What would break Mintlify's build of main.
       - run: npm run check
 

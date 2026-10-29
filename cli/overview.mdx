@@ -1,0 +1,89 @@
+---
+title: Overview
+icon: terminal
+description: The nohead CLI for developers, CI and coding agents - install, sign in, configure, and read its output.
+---
+
+`nohead` is the command-line interface for Nohead, for developers, CI and coding agents. It calls the public API through the TypeScript SDK, so it can do what an API key can, and every change it makes is recorded in history as made via the CLI. The [command reference](/cli/commands/global-options) lists every command; `nohead <command> --help` prints the same for one.
+
+## Install
+
+The CLI needs Node 26 or newer.
+
+```bash
+npm install -g @nohead/cli    # or run it without installing: npx nohead
+nohead --version              # the CLI's version, then the SDK's
+```
+
+In CI, pin a version, such as `npx nohead@0.3`, so an upgrade is a change you choose ([releases](https://github.com/nohead-io/nohead-cli/releases)).
+
+## Sign in
+
+Create an [API key](/guides/api-keys) in the web app, then save it:
+
+```bash
+echo "$NOHEAD_API_KEY" | nohead login   # or run nohead login and paste it: it isn't echoed
+nohead whoami                           # the key, its project and scopes
+```
+
+`login` checks the key and saves it, with its API URL and project, as a profile in a file only you can read. `--profile <name>` saves or uses another one, for example a key per project. In CI and for agents, set `NOHEAD_API_KEY` instead of logging in. `nohead logout` forgets a saved key; the key itself stays valid until you revoke it in the web app.
+
+## Configuration
+
+Flags win over environment variables, which win over the saved profile.
+
+| Setting | Flag | Environment |
+|---|---|---|
+| API key | none | `NOHEAD_API_KEY` |
+| API base URL | `--api-url <url>` | `NOHEAD_API_URL` (default `https://api.nohead.io`) |
+| Project | `--project <id>` | `NOHEAD_PROJECT` (default: the API key's project) |
+| Profile | `--profile <name>` | `NOHEAD_PROFILE` (default `default`) |
+| Change note | `--note <text>` | none: kept with record revisions, merges and schema changes |
+| Idempotency | `--idempotency-key <key>` | none: the same key and request return the first result for 24 hours |
+
+## Output and exit codes
+
+Scripts and agents can rely on this:
+
+- **stdout** carries only results. With `--json`, exactly one JSON document, the API's representation; `records export` writes JSON Lines.
+- **stderr** carries errors, summaries and diagnostics. With `--json`, errors use the API's error envelope, `{ "error": { "type", "message", "request_id", "details" } }`.
+- **Exit codes:** `0` success, `1` an API error (validation, authentication, not found, a stale revision, import failures), `2` a usage error (bad arguments, no API key, unreadable files), `3` the API or storage unreachable, `4` an unexpected failure in the CLI (`NOHEAD_DEBUG=1` prints the stack).
+- **Retries:** up to 3, reported on stderr. A `429` is retried after its `Retry-After` (up to 60 seconds); network failures and `500`, `502`, `503` and `504` with backoff. Every write carries an `Idempotency-Key`, so a retry never writes twice.
+- Deleting a collection needs `--yes`. Everything else is soft-deleted and can be restored.
+
+## Lists and filters
+
+A list prints one page of 100 (`audit`: 20, or `--limit n` up to 100) and ends with `More: --cursor <cursor>` when there are more. `--cursor <cursor>` prints the next page, and `--all` follows the cursors and prints everything. With `--json`, a page prints as the API returns it (`data` and `meta.next_cursor`), and `--all` as `{ "data": [...] }`.
+
+`--filter` takes `key=value`, `key!=value`, `key<value` (and `>`, `<=`, `>=`), `"key in a,b"` (`\,` for a comma in a value), `"key exists"` and `"key !exists"`. Several on one key combine:
+
+```bash
+nohead records list products --filter "price>=10" --filter "price<50" --sort -price
+nohead records list events --filter "starts_on>=today"
+```
+
+Dates take `today`, and dates with a time `now`. `records list --status published` (or `unpublished`) filters by `published_at`; across a whole project, `search` filters with `"published_at exists"` (or `!exists`). [Reading content](/guides/reading-content#filter) has how filters match.
+
+## Records and drafts
+
+Record data comes from `--set key=text`, `--set key:=json` (numbers, booleans, null, lists, objects), `--data '{...}'` and `--data-file <path|->`. `update` changes only the fields given; `--set key:=null` clears one.
+
+```bash
+nohead records create testimonials --set name=Ada --set "quote=Great platform"
+nohead records update rec_... --set company=Analytical --if-revision 1 --note "Add the company"
+nohead records revert rec_... 1 --dry-run
+```
+
+`--if-revision n` refuses the change if someone changed the record since revision `n`. `records schedule` publishes or unpublishes later: a time is ISO 8601 with a time zone (`2026-10-01T09:00:00Z`), an offset from now (`+30m`, `+2h`, `+3d`, `+1w`), or `none` to clear one. `records scheduled <collection>` lists what is coming. A [draft](/guides/publishing#hold-changes-back-in-a-draft) holds changes until it is merged, now (`drafts merge`) or at `--merge-at`; `drafts create` and `update` take the same data flags as records.
+
+## Fields and migrations
+
+Field options are flags: `--description`, `--options a,b` (enum), `--target <collection>` (relation), `--max-length n`, `--min n` and `--max n`, `--include-time` and `--time-zone <zone>` (dates), `--format slug|url|email` and `--unique` (text), and `--searchable`, `--filterable`, `--sortable` (each with a `--no-` form). Field types accept `rich-text` or `rich_text`.
+
+`fields migrate` changes a field in a way that rewrites record values: its type, single or multiple, a stricter configuration, or required with a backfill. Run it with `--dry-run` first to see how every record converts. Without `--no-wait` it waits for the migration and exits non-zero if it fails or is cancelled. While it runs, the collection's fields can't change, and once it is running its records can't either. [Field migrations](/guides/field-migrations) has the rules.
+
+## Schema as code, export and import
+
+`schema pull`, `schema diff` and `schema push` keep a collection's model in `nohead.schema.yaml` in your repository: [Schema as code](/guides/schema-as-code).
+
+`export --output <dir>` writes a project's schema, records, drafts and asset metadata (`--include-history`, `--include-deleted`, and `--include-files` for the originals). `import <dir>` recreates them in another project: the schema first, then the records, relinking relations to the new IDs, then the drafts. Every request has an idempotency key derived from the export, so re-running an interrupted import within 24 hours doesn't duplicate anything. Imported records start a new history.
