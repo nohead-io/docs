@@ -8,7 +8,7 @@ Every request to the API carries a project API key as a bearer token: `Authoriza
 
 ## Create a key
 
-On the project's **API keys** page, choose **New API key**, give it a name and choose its scopes. Store the key in your app's environment or secret manager, as `NOHEAD_API_KEY`. Developers, admins and owners can create keys, and a key never gets a scope its creator's role doesn't have (`not_grantable`). A project has at most 25 keys that aren't revoked.
+On the project's **API keys** page, choose **New API key**, give it a name and choose its scopes. A key works until it is revoked, unless you choose when it **Expires**: in 30 days, 90 days or a year. An expired key stops working, as a revoked one does, and the **API keys** page shows it as **Expired**. Store the key in your app's environment or secret manager, as `NOHEAD_API_KEY`. Developers, admins and owners can create keys, and a key never gets a scope its creator's role doesn't have (`not_grantable`). A project has at most 25 keys that aren't revoked.
 
 <Warning>
 The key is shown only once. If you lose it, create a new one and revoke the old one.

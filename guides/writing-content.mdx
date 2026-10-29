@@ -1,0 +1,263 @@
+---
+title: Writing content
+icon: pen-line
+description: Create and update records, set each kind of field, sync content without duplicates, change many records at once, and delete and restore them.
+---
+
+Records are written in the web app, or with an API key that has the **Write and publish records** scope (`records:write`). Every write is a revision, attributed to the person or key that made it, so you can see it and undo it in the record's [history](/guides/history). In the web app, editors and every role above can create, edit and delete records; viewers can't.
+
+## Create a record
+
+In the web app, choose **New record** on a collection's page, fill in the fields and choose **Create**, or **Create and publish** from its menu.
+
+Through the API, `POST /v1/collections/{collection_id}/records` with the field values in `data`, keyed by field key. With an API key, the collection's slug works in place of its ID:
+
+```bash
+curl -X POST "https://api.nohead.io/v1/collections/blog-posts/records" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "data": {
+      "title": "Hello, world",
+      "slug": "hello-world",
+      "published_on": "2026-10-09",
+      "author": "rec_01J9ZQ3F8X5W2K7M4N6P0R1S2T",
+      "tags": ["news", "launch"],
+      "cover": "ast_01J9ZQ3F8X5W2K7M4N6P0R1S2T",
+      "body": {"type": "doc", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Our first post."}]}]}
+    }
+  }'
+```
+
+The API answers `201` with the record, unpublished, at revision 1; [publish it](/guides/publishing) when it's ready. Each field type takes its own kind of value, never converted from another type (`"5"` is not an integer):
+
+- **Relation**: the ID of a record in the field's target collection (`rec_…`).
+- **Asset**: the ID of an uploaded asset of the project (`ast_…`), of a type the field accepts. [Upload](/guides/assets#upload) the file first.
+- **Rich text**: a document, `{"type": "doc", "content": [...]}`, compatible with ProseMirror and Tiptap, which can show the project's images.
+- **Multiple**: a list of distinct values of the field's type, such as the `tags` above.
+
+[Content modelling](/guides/content-modelling#field-types) has every type's value and rules. A required field needs a value: `null`, `""` and `[]` count as none. Relation and asset IDs are checked when they are newly written: the record must exist in the target collection and the asset must be uploaded and not deleted (`invalid_reference`). IDs a record already holds are left alone, so a record whose related record was deleted later can still be saved.
+
+A value that doesn't pass is a `422`, with a detail for each field, keyed by its `field`, such as `required`, `unknown_field` or `taken` (another record has this value in a unique field). See [Errors and retries](/guides/errors-and-retries#statuses-and-types).
+
+## Update a record
+
+In the web app, open a record, change it and choose **Save**.
+
+Through the API, `PATCH /v1/records/{record_id}` changes only the fields in `data`. Each key you send replaces that field's value, `null` clears it, and the fields you leave out keep their values:
+
+```bash
+curl -X PATCH "https://api.nohead.io/v1/records/rec_01J9ZQ3F8X" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"data": {"summary": null, "tags": ["news", "launch", "product"]}}'
+```
+
+<CodeGroup>
+
+```ts TypeScript
+await nohead.records.update(id, { data: { summary: null, tags: ["news", "launch", "product"] } })
+```
+
+```python Python
+nohead.records.update(record_id, data={"summary": None, "tags": ["news", "launch", "product"]})
+```
+
+```ruby Ruby
+nohead.records.update(id, data: { summary: nil, tags: %w[news launch product] })
+```
+
+```bash CLI
+nohead records update rec_01J9ZQ3F8X --set summary:=null --set 'tags:=["news","launch","product"]'
+```
+
+</CodeGroup>
+
+- **A multiple field's list is replaced as a whole.** To add a tag, send the full list.
+- **A required field can't be cleared** (`422`, `required`).
+- **Published records change at once.** An edit to a live record reaches your site straight away; to hold changes back, write them to a [draft](/guides/publishing#hold-changes-back-in-a-draft) instead.
+- **A pending draft doesn't block the update.** Merging the draft later replaces the fields the draft changes.
+- **A deleted record can't be updated** (`409`, detail code `deleted`): restore it first.
+
+A renamed field's old key keeps working in `data` for six months ([Changing a collection](/guides/content-modelling#changing-a-collection)).
+
+## Sync content without duplicates
+
+To copy content in from another system and run the same job again later, create with `upsert_on`: the key of a unique field, such as a slug or a SKU, whose value `data` includes. If a record already has that value, the API updates it as `PATCH` would and answers `200`; otherwise it creates one and answers `201`.
+
+```bash
+curl -X POST "https://api.nohead.io/v1/collections/products/records" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"upsert_on": "sku", "data": {"sku": "TEE-RED-M", "name": "Red T-shirt, medium", "price": 24}}'
+```
+
+<CodeGroup>
+
+```ts TypeScript
+const product = await nohead.records.create("products", {
+  upsert_on: "sku",
+  data: { sku: "TEE-RED-M", name: "Red T-shirt, medium", price: 24 },
+})
+```
+
+```python Python
+product = nohead.records.create(
+    "products",
+    upsert_on="sku",
+    data={"sku": "TEE-RED-M", "name": "Red T-shirt, medium", "price": 24},
+)
+```
+
+```ruby Ruby
+product = nohead.records.create("products", upsert_on: "sku",
+                                            data: { sku: "TEE-RED-M", name: "Red T-shirt, medium", price: 24 })
+```
+
+</CodeGroup>
+
+The field must hold one value per record and be unique: a `text` field with the slug format or `unique` on, or a unique `integer` field ([Formats and unique values](/guides/content-modelling#formats-and-unique-values)). Any other field is a `400` (`not_unique`), and `data` without a value for it is a `422`. A deleted record doesn't count: its unique values are free, so the upsert creates a new record. Upserting a record doesn't publish it, and an updated record keeps its publication.
+
+## Concurrent edits
+
+Without a check, the last write wins: an update can overwrite a change someone made after you read the record, though both stay in its history. To write only if nobody changed the record since you read it, send its revision, the `ETag` of the response you read it from, as `If-Match`. A stale write is refused with `412` and nothing is written:
+
+```bash
+curl -X PATCH "https://api.nohead.io/v1/records/rec_01J9ZQ3F8X" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H 'If-Match: "6"' \
+  -d '{"data": {"title": "Hello again"}}'
+```
+
+With `upsert_on`, `If-Match` applies to the update, and there being no record to update is a `412` too. In the SDKs, pass the record you read as `ifMatch` (`if_match`): see [Concurrent edits](/sdks/overview#concurrent-edits). The CLI takes `--if-revision`. [Errors and retries](/guides/errors-and-retries#concurrent-edits) has what to do with a `412`, and how to retry any write safely with an `Idempotency-Key`.
+
+## Say why with a change note
+
+Send `Nohead-Change-Note` with a write to keep a short note in the revision it makes, such as the ticket or the reason for an import. The SDKs take it as `changeNote` (`change_note`), and the CLI as `--note`. [Change notes and attribution](/guides/history#change-notes-and-attribution) has the format.
+
+## Change many records at once
+
+In the web app, select records on a collection's page and open the menu that counts them, such as **2 records selected**: **Publish**, **Unpublish**, **Set field…** or **Delete…**. With **Deleted** chosen in the status filter, the menu has **Restore**. Records that fail stay selected.
+
+Through the API, `POST /v1/collections/{collection_id}/record-batches` publishes, unpublishes, deletes, restores or updates up to 100 records of a collection. `action` is `publish`, `unpublish`, `delete`, `restore` or `update`; `record_ids` lists the records; for `update`, `data` holds the fields to set on every one of them (`null` clears one):
+
+```bash
+curl -X POST "https://api.nohead.io/v1/collections/blog-posts/record-batches" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Nohead-Change-Note: Move%20launch%20posts%20to%20news" \
+  -d '{"action": "update", "record_ids": ["rec_01J9ZQ3F8X", "rec_01J9ZQ3F8Y"], "data": {"category": "news"}}'
+```
+
+Each record is changed as if by its own request: one revision for each change it makes, with its own activity log entry, webhook and search update. Records that fail are reported without stopping the others: one that doesn't exist, values that don't pass validation, a plan limit, or, for `publish`, a live record with a pending draft. The response says what happened to each record, in request order:
+
+```json
+{
+  "object": "record_batch",
+  "action": "update",
+  "succeeded": 1,
+  "failed": 1,
+  "results": [
+    { "id": "rec_01J9ZQ3F8X", "status": "succeeded", "changed": true, "record": { "id": "rec_01J9ZQ3F8X", "...": "..." } },
+    { "id": "rec_01J9ZQ3F8Y", "status": "failed", "error": { "type": "not_found", "message": "Record not found" } }
+  ]
+}
+```
+
+`changed` is `false` for a record that was already in that state, such as publishing a published record: it gets no revision. The request as a whole is refused, changing nothing, when `action` is unknown, `record_ids` isn't 1 to 100 distinct IDs, or an `update` has no `data` (`422`). Batches take a change note and an `Idempotency-Key`, but not `If-Match`.
+
+<CodeGroup>
+
+```ts TypeScript
+const batch = await nohead.records.bulk(
+  "blog-posts",
+  { action: "update", record_ids: ["rec_01J9ZQ3F8X", "rec_01J9ZQ3F8Y"], data: { category: "news" } },
+  { changeNote: "Move launch posts to news" }
+)
+for (const result of batch.results) {
+  if (result.status === "failed") console.log(result.id, result.error.message)
+}
+```
+
+```python Python
+batch = nohead.records.bulk(
+    "blog-posts",
+    action="update",
+    record_ids=["rec_01J9ZQ3F8X", "rec_01J9ZQ3F8Y"],
+    data={"category": "news"},
+    change_note="Move launch posts to news",
+)
+for result in batch.results:
+    if result.status == "failed":
+        print(result.id, result.error.message)
+```
+
+```ruby Ruby
+batch = nohead.records.bulk("blog-posts", action: "update", record_ids: %w[rec_01J9ZQ3F8X rec_01J9ZQ3F8Y],
+                                          data: { category: "news" }, change_note: "Move launch posts to news")
+batch.results.each do |result|
+  puts "#{result.id}: #{result.error.message}" if result.status == "failed"
+end
+```
+
+```bash CLI
+nohead records bulk update blog-posts rec_01J9ZQ3F8X rec_01J9ZQ3F8Y --set category=news
+nohead records bulk publish blog-posts --filter "category=news" --status unpublished
+```
+
+</CodeGroup>
+
+`nohead records bulk` also selects the records for you, with `--status`, `--filter`, `--deleted` or `--every`, and sends them 100 at a time. It prints how many records changed and the error for each one that failed, and exits with `1` if any did.
+
+## Delete and restore
+
+Deleting a record keeps its values and history for 30 days, until its `purge_after`, and then removes it for good. Until then it can be restored. A deleted record is gone from lists and from your site, and its unique values are free for other records. Deleting also cancels its schedule, and a pending draft can't be merged until the record is restored.
+
+In the web app, open the record, choose **Delete** and confirm with **Delete record**. To bring it back, choose **Deleted** in the collection's status filter, open the record and choose **Restore**.
+
+<CodeGroup>
+
+```ts TypeScript
+await nohead.records.delete(id)
+await nohead.records.restore(id)
+```
+
+```python Python
+nohead.records.delete(record_id)
+nohead.records.restore(record_id)
+```
+
+```ruby Ruby
+nohead.records.delete(id)
+nohead.records.restore(id)
+```
+
+```bash CLI
+nohead records delete rec_01J9ZQ3F8X
+nohead records restore rec_01J9ZQ3F8X
+```
+
+</CodeGroup>
+
+That's `DELETE /v1/records/{record_id}` and `POST /v1/records/{record_id}/restore`. Deleting a deleted record, or restoring one that isn't deleted, changes nothing. A restore is refused with `409` (`taken`, with that record's `record_id`) when another record took one of its unique values meanwhile, and with `402` when the organization's plan has no room for another record. A restored record comes back as it was, published or not, but its schedule doesn't come back.
+
+To list deleted records, add `filter[deleted]=true` to a list ([Keep a copy in sync](/guides/reading-content#keep-a-copy-in-sync)).
+
+## Import from the command line
+
+The CLI writes records from flags and files. `--set key=value` sets a text value and `--set key:=json` any JSON value; `--data` takes a JSON object and `--data-file` reads one from a file (`-` for stdin). They combine, `--set` winning:
+
+```bash
+nohead records create blog-posts --set "title=Hello, world" --set slug=hello-world --set 'tags:=["news"]'
+nohead records create blog-posts --data-file post.json --note "Imported from the old blog"
+```
+
+`nohead records import <collection> <file>` creates a record for each line of a JSON Lines file: either a plain object of field values, or a record as `nohead records export` writes it. With `--publish`, exported records that were published are published again. Each line is its own request, so a line that fails is reported with its line number and the rest go on; the command then exits with `1`. Each line also gets an idempotency key derived from the file, so running an interrupted import again within 24 hours skips the lines already done.
+
+```bash
+nohead records export blog-posts --output posts.jsonl
+nohead --profile staging records import blog-posts posts.jsonl --publish
+```
+
+The import creates new records, with new IDs and a history of their own. Relation and asset IDs are written as they are, so they must exist in the project you import into. To copy a whole project, schema, assets and relations included, use `nohead export` and `nohead import`: see [the CLI](/cli/overview#schema-as-code-export-and-import). Every endpoint is in the [API reference](/api-reference/overview).
