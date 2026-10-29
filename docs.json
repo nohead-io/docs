@@ -16,6 +16,9 @@
     "dark": "/logo/dark.svg",
     "href": "https://nohead.io"
   },
+  "contextual": {
+    "options": ["copy", "view", "claude", "chatgpt", "download-spec"]
+  },
   "navigation": {
     "tabs": [
       {
@@ -26,12 +29,20 @@
             "pages": ["index", "quickstart", "guides/api-keys"]
           },
           {
+            "group": "Agents",
+            "pages": ["guides/agents", "guides/coding-agents", "guides/mcp"]
+          },
+          {
             "group": "Model",
             "pages": ["guides/content-modelling", "guides/field-migrations", "guides/schema-as-code"]
           },
           {
             "group": "Content",
-            "pages": ["guides/reading-content", "guides/publishing", "guides/history", "guides/images"]
+            "pages": ["guides/reading-content", "guides/publishing", "guides/history"]
+          },
+          {
+            "group": "Assets",
+            "pages": ["guides/assets", "guides/images"]
           },
           {
             "group": "Search",
@@ -39,7 +50,7 @@
           },
           {
             "group": "Integrate",
-            "pages": ["guides/webhooks", "guides/errors-and-retries", "guides/api-requests", "guides/coding-agents", "guides/mcp"]
+            "pages": ["guides/webhooks", "guides/errors-and-retries", "guides/api-requests"]
           }
         ]
       },
@@ -74,7 +85,21 @@
           },
           {
             "group": "Commands",
-            "pages": ["cli/commands/global-options", "cli/commands/setup", "cli/commands/collections", "cli/commands/fields", "cli/commands/migrations", "cli/commands/schema", "cli/commands/records", "cli/commands/drafts", "cli/commands/assets", "cli/commands/search", "cli/commands/webhooks", "cli/commands/audit", "cli/commands/export-import"]
+            "pages": [
+              "cli/commands/global-options",
+              "cli/commands/setup",
+              "cli/commands/collections",
+              "cli/commands/fields",
+              "cli/commands/migrations",
+              "cli/commands/schema",
+              "cli/commands/records",
+              "cli/commands/drafts",
+              "cli/commands/assets",
+              "cli/commands/search",
+              "cli/commands/webhooks",
+              "cli/commands/audit",
+              "cli/commands/export-import"
+            ]
           }
         ]
       }

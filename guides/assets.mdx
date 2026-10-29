@@ -1,0 +1,145 @@
+---
+title: Assets
+icon: upload
+description: Upload images and files from the web app, the SDKs, the CLI or over HTTP, describe them with alt text, find them, and clean up the ones you no longer need.
+---
+
+An asset is a file uploaded to a project: an image, a video, audio, a document or any other file. Records use assets through asset fields and images in rich text ([Content modelling](/guides/content-modelling)), and every asset has URLs that serve it: [Images and files](/guides/images) covers those.
+
+Reading assets needs an API key with `assets:read`; uploading, editing and deleting them `assets:write`. In the web app, editors, admins and owners can upload and delete. Published-only keys can't list assets: a site reaches the ones it shows through its records, with [`expand`](/guides/reading-content#embed-related-records-and-assets).
+
+## Upload
+
+Files are at most 10 MB each on Free and 100 MB on paid plans, and count toward the organization's storage. On Free, storage is a hard limit: an upload that would go over it is refused.
+
+In the web app, choose **Upload** on the **Assets** page, or drop files anywhere on it. An asset field in a record's editor takes uploads too.
+
+With an SDK or the CLI, upload takes a file and returns the ready asset, whose `id` goes into an asset field:
+
+<CodeGroup>
+
+```ts TypeScript
+import { openAsBlob } from "node:fs"
+
+const asset = await nohead.assets.upload(await openAsBlob("cover.jpg"), {
+  filename: "cover.jpg",
+})
+await nohead.records.update(id, { data: { cover: asset.id } })
+```
+
+```python Python
+asset = nohead.assets.upload("cover.jpg")  # a path, bytes or a binary file
+nohead.records.update(record_id, data={"cover": asset.id})
+```
+
+```ruby Ruby
+asset = nohead.assets.upload("cover.jpg") # a path or an IO
+nohead.records.update(id, data: { cover: asset.id })
+```
+
+```bash CLI
+nohead assets upload cover.jpg   # prints the asset ID
+```
+
+</CodeGroup>
+
+### Over HTTP
+
+Without an SDK or the CLI, an upload takes three requests. The file goes straight to storage, not through the API.
+
+<Steps>
+  <Step title="Start the upload">
+    Send the file's name, type and exact size in bytes. `$PROJECT_ID` is your key's project (`prj_…`): `GET /v1/me` returns it as `api_key.project_id`.
+
+    ```bash
+    curl -X POST "https://api.nohead.io/v1/projects/$PROJECT_ID/assets" \
+      -H "Authorization: Bearer $NOHEAD_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"filename": "cover.jpg", "content_type": "image/jpeg", "byte_size": 48213}'
+    ```
+
+    The response is the asset, `pending`, with an `upload`: the `method`, `url` and `headers` to send the file with, and when it `expires_at`.
+  </Step>
+  <Step title="Send the file">
+    Send the file's bytes to `upload.url` with `upload.method`, and every header in `upload.headers`, before `upload.expires_at`. No `Authorization` header: the URL carries its own.
+
+    ```bash
+    curl -X PUT "$UPLOAD_URL" -H "Content-Type: image/jpeg" --data-binary @cover.jpg
+    ```
+  </Step>
+  <Step title="Complete it">
+    The API checks the file has the declared size and type, reads an image's dimensions and marks the asset `ready`. Only ready assets can be used in records.
+
+    ```bash
+    curl -X POST "https://api.nohead.io/v1/assets/ast_01J9ZQ3F8X/complete" \
+      -H "Authorization: Bearer $NOHEAD_API_KEY"
+    ```
+  </Step>
+</Steps>
+
+Completing is safe to retry: a ready asset comes back unchanged. `422 upload_missing` means the file hasn't arrived yet; `422 upload_mismatch` means it differs from what you declared, and the asset is marked `failed`, so start a new upload. A project can have 100 uploads in progress at a time (`409 too_many_uploads`), and uploads never completed are removed after a day.
+
+## Alt text and filenames
+
+An asset's `alt` text says what an image shows, for screen readers and search engines. It is the default wherever the asset is used. An image in rich text can have its own `alt`, which it keeps once set. The `filename` is the name the file downloads under.
+
+In the web app, open an asset on the **Assets** page, change its **Filename** or **Alt text** and choose **Save**. Through the API:
+
+```bash
+curl -X PATCH "https://api.nohead.io/v1/assets/ast_01J9ZQ3F8X" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"alt": "A red sky over the sea"}'
+```
+
+An empty or `null` `alt` clears it. The file itself can't change: to replace it, upload a new asset and point the records at it.
+
+## Find assets
+
+The **Assets** page searches filenames and alt text, filters by type (**Images**, **Documents**, **Video**, **Audio** or **Other**), and lists deleted assets under **Deleted**.
+
+`GET /v1/projects/{project_id}/assets` lists them newest first, a page at a time, like records:
+
+- `q`: words that must each appear in the filename or alt text, ignoring case. `q=hero jpg` finds `Hero-banner.jpg`.
+- `filter[kind]`: `image`, `video`, `audio`, `document` (PDFs, text, Office and OpenDocument files) or `other`, or several with `filter[kind][in]=image,video`.
+- `filter[content_type]`: a MIME type or a `type/*` wildcard, or several with `filter[content_type][in]=image/*,application/pdf`, such as the types an asset field accepts.
+- `filter[deleted]=true`: deleted assets instead.
+
+```bash
+curl -G "https://api.nohead.io/v1/projects/$PROJECT_ID/assets" \
+  --data-urlencode "q=hero" -d "filter[kind]=image" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY"
+```
+
+## Where an asset is used
+
+Before you delete or replace an image or file, check which records use it:
+
+```bash
+curl "https://api.nohead.io/v1/assets/ast_01J9ZQ3F8X/usage" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY"
+```
+
+It counts the records that use the asset in an asset field or as an image in a rich text field, in their content or in their pending draft, since merging the draft needs the asset. Deleted records, fields and collections don't count, and neither does history. The response has:
+
+- `records`: how many records use it.
+- `published`: how many of them are published with it in their content, which is what your sites show.
+- `uses`: the 10 most recently updated of them, each with its `record` and the keys of the `fields` that use the asset.
+
+It needs `records:read` as well as `assets:read`, and published-only keys get `403`. In the SDKs, it is `assets.usage`.
+
+In the web app, open an asset on the **Assets** page: **Used in** lists the records that use it. Deleting an asset that records use asks first.
+
+## Delete, restore and purge
+
+Deleting an asset (**Delete**, or `DELETE /v1/assets/{asset_id}`) keeps it for 30 days, until its `purge_after`, and then removes it for good. Records that use it keep its ID. Until then, **Restore** on the **Deleted** tab (`POST /v1/assets/{asset_id}/restore`) brings it back.
+
+<Warning>
+Knowing an asset's URL is all it takes to see it, as with any public image or file. A deleted asset's URLs keep working until it is purged.
+</Warning>
+
+To remove a file sooner, delete it and then choose **Delete permanently** (`POST /v1/assets/{asset_id}/purge`). That can't be undone. Its file, media and every rendition leave the CDN within a minute or so, though browsers keep what they cached, and records that used it keep an ID that no longer resolves. Purging frees the file's storage.
+
+## Webhooks
+
+Asset changes send `asset.created` (when an upload completes), `asset.updated`, `asset.deleted`, `asset.restored` and `asset.purged`: see [Webhooks](/guides/webhooks).

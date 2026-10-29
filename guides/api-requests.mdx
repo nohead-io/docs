@@ -65,7 +65,7 @@ Most sites need far fewer requests than they make. In rough order of impact:
 
 - **Fetch content when your site builds, or cache it.** A page that calls the API on every view makes a request for every visitor. Fetch at build time, or cache responses on your server or CDN, and refresh them when content changes.
 - **Refresh on webhooks, not on a timer.** A [webhook](/guides/webhooks) tells you when a record is published or changed, so you fetch only then. Polling every minute is over 40,000 requests a month for each thing you poll, changed or not.
-- **Keep API calls out of the browser.** With a published-only key in browser code, every visitor's requests count. Fetch on your server and cache instead. For search as you type, use [public search](/guides/public-search), which doesn't count.
+- **Keep API calls out of apps people run.** With a published-only key in a mobile app, every user's requests count. Fetch through your server and cache instead. For search as you type, use [public search](/guides/public-search), which doesn't count.
 - **Get more from each request.** List up to 100 records a page (`limit=100`) instead of fetching them one by one, and embed related records and assets with `expand` instead of fetching them separately.
 - **Change many records at once.** **Change many records** (`POST /v1/collections/{collection_id}/record-batches`) publishes, updates or deletes up to 100 records in one request.
 - **Watch for loops.** A script or agent that retries without stopping can use a month's requests in hours. The **Usage** page shows the month so far, and `RateLimit-Remaining` on every response shows the current minute's.

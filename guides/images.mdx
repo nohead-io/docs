@@ -6,7 +6,7 @@ description: Resize, crop and convert images by writing options into their URLs,
 
 Every image you upload has an `image_url`: the whole image, served from a CDN. Image URLs are open, so you make any size, crop or format of an image by writing [imgproxy](https://docs.imgproxy.net/usage/processing) processing options into its URL. There is no API call per rendition, and frameworks' image components can build their `srcset` themselves.
 
-Upload files on the **Assets** page, or with the SDKs' `assets.upload` ([SDKs](/sdks/overview#upload-files)).
+[Assets](/guides/assets) covers uploading files and managing them.
 
 ## Image URLs
 
@@ -82,30 +82,3 @@ Every asset also has a `file_url` once its upload completes, which downloads the
 
 - Video and audio play as uploaded, with seeking. MP4, QuickTime, M4A, 3GP, WebM, Matroska, MP3, AAC, FLAC, WAV and Ogg files get a `media_url`; other types only download. Browsers play MP4 (H.264 with AAC audio), WebM, MP3, AAC and WAV everywhere, so prefer those. Each file must fit your plan's upload limit.
 - A file uploaded as one of those types must be one: completing an upload whose content doesn't match its declared type fails, as it does for images.
-
-## Where an asset is used
-
-Before you delete or replace an image or file, check which records use it:
-
-```bash
-curl "https://api.nohead.io/v1/assets/ast_01J9ZQ3F8X/usage" \
-  -H "Authorization: Bearer $NOHEAD_API_KEY"
-```
-
-It counts the records that use the asset in an asset field or as an image in a rich text field, in their content or in their pending draft, since merging the draft needs the asset. Deleted records, fields and collections don't count, and neither does history. The response has:
-
-- `records`: how many records use it.
-- `published`: how many of them are published with it in their content, which is what your sites show.
-- `uses`: the 10 most recently updated of them, each with its `record` and the keys of the `fields` that use the asset.
-
-It needs `records:read` as well as `assets:read`, and published-only keys get `403`. In the SDKs, it is `assets.usage`.
-
-In the web app, open an asset on the **Assets** page: **Used in** lists the records that use it. Deleting an asset that records use asks first.
-
-## Deleted and purged assets
-
-<Warning>
-Knowing an asset's URL is all it takes to see it, as with any public image or file. A deleted asset's URLs keep working until it is purged: 30 days later, or sooner with `POST /v1/assets/{asset_id}/purge`.
-</Warning>
-
-A purge removes its file, media and every rendition from the CDN within a minute or so; browsers keep what they cached.

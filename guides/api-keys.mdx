@@ -14,7 +14,7 @@ On the project's **API keys** page, choose **New API key**, give it a name and c
 The key is shown only once. If you lose it, create a new one and revoke the old one.
 </Warning>
 
-**Published records only** is on by default. A published-only key, for your live site or app, sees published records only: no unpublished or deleted records and no history. It can take only the read scopes below, and it is rate-limited per client IP address, since it may sit in browser code. Its token starts `nohead_pk_`; every other key's starts `nohead_sk_`. Turn it off for a key that writes, or that reads drafts for a preview.
+**Published records only** is on by default. A published-only key, for your live site or app, sees published records only: no unpublished or deleted records and no history. It can take only the read scopes below, and it is rate-limited per client IP address, since it may ship inside an app people run, such as a mobile app. Its token starts `nohead_pk_`; every other key's starts `nohead_sk_`. Turn it off for a key that writes, or that reads drafts for a preview.
 
 ## Scopes
 
@@ -36,8 +36,8 @@ A request without the scope it needs is refused with `403`, and the message name
 ## Keep keys safe
 
 - Give each key the fewest scopes that work: a site reads with `records:read`, plus `assets:read` to embed images.
-- Keep keys that aren't published-only on servers: never in browser code or a mobile app.
-- For search in the browser, use a [search token](/guides/public-search) instead of an API key.
+- Call the API from your servers and your site's build, not from browser code: the API accepts browser requests only from the Nohead web app. For search in the browser, use a [search token](/guides/public-search).
+- Keep keys that aren't published-only on servers: never in a mobile app or anything else people can download.
 
 ## Rename and revoke
 
