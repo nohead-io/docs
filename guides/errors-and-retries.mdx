@@ -4,7 +4,7 @@ icon: triangle-alert
 description: Read the API's errors, retry without writing twice, stay within rate limits and keep concurrent edits from overwriting each other.
 ---
 
-Every error the API returns has the same shape, and any write can be made safe to retry. This guide covers what each error means, which ones to retry, and how. The SDKs do most of it for you: see [Retries and idempotency](/guides/sdks#retries-and-idempotency).
+Every error the API returns has the same shape, and any write can be made safe to retry. This guide covers what each error means, which ones to retry, and how. The SDKs do most of it for you: see [Retries and idempotency](/sdks/overview#retries-and-idempotency).
 
 ## The error envelope
 
@@ -66,7 +66,7 @@ curl -X POST "$NOHEAD_API_URL/v1/collections/blog-posts/records" \
 - A retry while the first request is still running gets `409`, detail code `in_progress`. Wait and retry. A request that hasn't finished after 5 minutes is treated as abandoned, and the key can be used again.
 - A `5xx` response doesn't keep the key, so retrying runs the request again.
 
-The SDKs send a key with every write, the same on each of their retries. For a job that may run twice, pass your own key, as in [the SDK guide](/guides/sdks#retries-and-idempotency).
+The SDKs send a key with every write, the same on each of their retries. For a job that may run twice, pass your own key, as in [the SDK guide](/sdks/overview#retries-and-idempotency).
 
 ## Rate limits
 
@@ -86,7 +86,7 @@ A `429` with a `plan_limit` detail is different: on Free, the organization has u
 
 ## What the SDKs retry
 
-The SDKs retry connection errors, `429`, `5xx` and `in_progress` for you ([Retries and idempotency](/guides/sdks#retries-and-idempotency) has the rules). What reaches your code is raised as its `type`'s class. Change the number of retries when you create the client:
+The SDKs retry connection errors, `429`, `5xx` and `in_progress` for you ([Retries and idempotency](/sdks/overview#retries-and-idempotency) has the rules). What reaches your code is raised as its `type`'s class. Change the number of retries when you create the client:
 
 <CodeGroup>
 
@@ -156,4 +156,4 @@ If someone changed the record since revision 6, nothing is written and the API a
 
 Reload the record, then merge your change into it or ask the person editing what to keep. Don't retry the same request: it fails the same way.
 
-`If-Match` works on record writes (a create with `upsert_on`, which may update, and update, delete, restore, publish, unpublish, revert) and on a draft's update, discard and merge, where the revision is the draft's. In the SDKs, pass the record you read as `ifMatch` (`if_match`): see [Concurrent edits](/guides/sdks#concurrent-edits).
+`If-Match` works on record writes (a create with `upsert_on`, which may update, and update, delete, restore, publish, unpublish, revert) and on a draft's update, discard and merge, where the revision is the draft's. In the SDKs, pass the record you read as `ifMatch` (`if_match`): see [Concurrent edits](/sdks/overview#concurrent-edits).

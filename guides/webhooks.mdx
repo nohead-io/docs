@@ -156,7 +156,7 @@ There is no automatic disabling: a failing endpoint keeps getting new events, an
 
 Deliveries are signed per [Standard Webhooks](https://www.standardwebhooks.com), so its libraries verify them too. Always verify before you act on an event.
 
-With an SDK, `unwrap` (`unwrapWebhook` in TypeScript) checks the signature and the timestamp and returns the typed event: see [Verify webhooks](/guides/sdks#verify-webhooks). Pass it the raw body, before any JSON parsing, since parsing and serializing again changes the bytes.
+With an SDK, `unwrap` (`unwrapWebhook` in TypeScript) checks the signature and the timestamp and returns the typed event: see [Verify webhooks](/sdks/overview#verify-webhooks). Pass it the raw body, before any JSON parsing, since parsing and serializing again changes the bytes.
 
 To verify by hand:
 

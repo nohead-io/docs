@@ -17,9 +17,11 @@ import { basename, join } from "node:path"
 
 const FILES = [
   "quickstart.mdx",
-  ...readdirSync("guides")
-    .filter((file) => file.endsWith(".mdx"))
-    .map((file) => `guides/${file}`),
+  ...["guides", "sdks"].flatMap((folder) =>
+    readdirSync(folder)
+      .filter((file) => file.endsWith(".mdx"))
+      .map((file) => `${folder}/${file}`)
+  ),
 ]
 const EXTENSIONS = { ts: "ts", typescript: "ts", python: "py", ruby: "rb" }
 
