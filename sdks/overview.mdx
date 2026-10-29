@@ -6,11 +6,11 @@ description: Use the API from TypeScript, Python or Ruby, with pagination, safe 
 
 The SDKs cover every operation an API key can call, and every endpoint in the [API reference](/api-reference/overview) shows how to call it from each. They follow the API's conventions, so what you read about the API holds for them too.
 
-| Language | Package | Source |
-|---|---|---|
-| [TypeScript and JavaScript](/sdks/typescript) | `@nohead/sdk` | [nohead-io/nohead-typescript](https://github.com/nohead-io/nohead-typescript) |
-| [Python](/sdks/python) (sync and async) | `nohead` | [nohead-io/nohead-python](https://github.com/nohead-io/nohead-python) |
-| [Ruby](/sdks/ruby) | `nohead` | [nohead-io/nohead-ruby](https://github.com/nohead-io/nohead-ruby) |
+| Language | Package | Needs | Source |
+|---|---|---|---|
+| [TypeScript and JavaScript](/sdks/typescript) | `@nohead/sdk` | Node 22+, Bun, Deno, Workers | [nohead-io/nohead-typescript](https://github.com/nohead-io/nohead-typescript) |
+| [Python](/sdks/python) (sync and async) | `nohead` | Python 3.11+ | [nohead-io/nohead-python](https://github.com/nohead-io/nohead-python) |
+| [Ruby](/sdks/ruby) | `nohead` | Ruby 3.3+ | [nohead-io/nohead-ruby](https://github.com/nohead-io/nohead-ruby) |
 
 This page covers what the three share. Each language's page has its install, configuration and what is particular to it.
 
@@ -59,12 +59,6 @@ nohead = Nohead::Client.new # or Nohead::Client.new(api_key: ...)
 </CodeGroup>
 
 API keys are secrets: use the SDKs on servers, never in a browser.
-
-| | Version | Runs on |
-|---|---|---|
-| TypeScript | Node 22 or newer | Node, Bun, Deno, Cloudflare Workers, anything with `fetch` |
-| Python | 3.11 or newer | Sync and async clients (`Nohead`, `AsyncNohead`) |
-| Ruby | 3.3 or newer | No dependencies beyond Ruby's standard library |
 
 ## Read content
 
@@ -116,7 +110,7 @@ page.meta.next_cursor
 
 </CodeGroup>
 
-In TypeScript, describe a collection's fields and its records are typed: `nohead.records.get<Post>(id)` makes `post.data.title` a string. In Python, results are Pydantic models, and a record's values are in its `data` dict. In Ruby, read fields as methods or with `[]` (`post.data["title"]`); timestamps are Times.
+In TypeScript, describe a collection's fields and its records are [typed](/sdks/typescript#typed-record-data): `nohead.records.get<Post>(id)` makes `post.data.title` a string. In Python, results are Pydantic [models](/sdks/python#models), and a record's values are in its `data` dict. In Ruby, read [fields](/sdks/ruby#results) as methods or with `[]` (`post.data["title"]`); timestamps are Times.
 
 ## Write content
 
@@ -359,4 +353,4 @@ The same event can arrive twice: deduplicate by the `webhook-id` header. [Webhoo
 
 ## Versions
 
-The SDKs have their own version numbers, separate from the API's `/v1`. Within `/v1` the API adds without breaking clients, so an older SDK keeps working. Anything an SDK depends on is deprecated at least 12 months before it is removed, and the SDKs warn when they call something deprecated. Each SDK's README covers the rest: async in Python, typed record data in TypeScript, and the full list of methods.
+The SDKs have their own version numbers, separate from the API's `/v1`. Within `/v1` the API adds without breaking clients, so an older SDK keeps working. Anything an SDK depends on is deprecated at least 12 months before it is removed, and the SDKs warn when they call something deprecated. Each SDK's releases on GitHub (linked from the table at the top) list what changed in each version.
