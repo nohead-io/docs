@@ -1,7 +1,7 @@
 ---
 title: Revisions and history
 icon: history
-description: See who changed a record, when, through what and why, compare any two versions, revert, and redact values that should never have been stored.
+description: See who changed a record, when, through what and why, compare any two versions, revert, redact values that should never have been stored, and read the organization's activity log.
 ---
 
 Every change to a record is a revision. Revisions are numbered per record from 1, numbers are never reused, and the current one is the record's `revision` (and its `ETag`). Changes add revisions and never edit old ones: only redaction, the plan's retention and purges of deleted data remove anything from history.
@@ -174,4 +174,46 @@ How long revisions are kept depends on the organization's [plan](https://nohead.
 History doesn't outlive deletion: when a deleted record is purged, its revisions go with it, and when a deleted field is purged, its values are removed from every revision.
 </Note>
 
-Published-only API keys can't read history (`403`), since it holds unpublished content. Every endpoint is in the [API reference](/api-reference/overview).
+Published-only API keys can't read history (`403`), since it holds unpublished content.
+
+## Activity log
+
+Revisions hold what a record's content was. The activity log holds everything else that changed in the organization, and who changed it, through what: every record, draft, schema, asset, webhook, API key and search token change in its projects, and changes to the projects, the organization, its members, invitations and plan. Each event names its type (such as `record.published` or `member.role_changed`), its actor and its `via`, with small references such as a `revision_id`, but never content. Reads aren't recorded.
+
+Admins and owners read it on the organization's **Activity** page. Filter it by project, by what changed (**Show**: **Records**, **Drafts**, **Schema**, **Members** and so on) and by **Who**: a member, **All API keys** or **System**; choosing a name in the list shows only their activity. **Client** shows what each change came through: **Web app**, **API**, **CLI**, **SDK**, **MCP**, **System** or **Scheduler**. A record's or collection's event links to it.
+
+An API key with **Read the activity log** (`audit:read`) reads its own project's events with `GET /v1/projects/{project_id}/audit-events`, newest first. Filter by `type`, exactly or by prefix (`filter[type]=record.*`), by `resource_type` and `resource_id`, by `actor_type` and `actor_id`, and by a `created_at` range. `$PROJECT_ID` is your key's project: `GET /v1/me` returns it as `api_key.project_id`.
+
+```bash
+curl -g "https://api.nohead.io/v1/projects/$PROJECT_ID/audit-events?filter[type]=record.*&filter[actor_type]=api_key" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY"
+```
+
+<CodeGroup>
+
+```ts TypeScript
+for await (const event of nohead.auditEvents.list({ filter: { type: "record.*", created_at: { gte: "2026-10-01T00:00:00Z" } } })) {
+  console.log(event.created_at, event.type, event.actor.name, event.via)
+}
+```
+
+```python Python
+for event in nohead.audit_events.list(filter={"type": "record.*", "created_at": {"gte": "2026-10-01T00:00:00Z"}}):
+    print(event.created_at, event.type, event.actor.name, event.via)
+```
+
+```ruby Ruby
+nohead.audit_events.list(filter: { type: "record.*", created_at: { gte: "2026-10-01T00:00:00Z" } }).each do |event|
+  puts [event.created_at, event.type, event.actor.name, event.via].join(" ")
+end
+```
+
+```bash CLI
+nohead audit --type "record.*" --since 2026-10-01T00:00:00Z
+```
+
+</CodeGroup>
+
+Only admins and owners can create a key with this scope, and published-only keys can't have it. Events about the organization itself, such as members and billing, are on the **Activity** page only. [Webhooks](/guides/webhooks#event-types) get many of the same events, with the same types, as they happen.
+
+How long the activity log is kept depends on the organization's [plan](https://nohead.io/pricing); older events are removed once a day. As with history, nothing is removed for 30 days after a move to a plan that keeps less. Every endpoint is in the [API reference](/api-reference/overview).

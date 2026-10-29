@@ -1,0 +1,104 @@
+---
+title: Plans and usage
+icon: gauge
+description: See what your organization uses, what happens at a plan's limits, upgrade or cancel, and delete organizations, projects and your account.
+---
+
+The plan belongs to the organization: its limits cover all of its projects and members. A new organization starts on Free. The [pricing page](https://nohead.io/pricing) lists each plan's limits and prices.
+
+## The Usage page
+
+The organization's **Usage** page shows its plan and what it has used, for admins and owners. The month is the calendar month in UTC.
+
+- The plan's limits come first: **Records**, **API requests**, **Storage**, **Projects**, **Collections**, **Members** and **Webhooks**, each as how much of the limit is used, or as unlimited. A limit that is reached, or passed, shows in red.
+- **Also metered** lists the month's **Search requests**, **Uploads**, **Downloads**, **Webhook deliveries** and **Record revisions**. They have no limit.
+
+API requests and everything under **Also metered** are the month's so far; the other limits count what the organization has now. Deleted records don't count toward **Records**, while a project scheduled for deletion keeps its files in **Storage** until it is purged. [API requests](/guides/api-requests) has what counts as one.
+
+## What happens at a limit
+
+Plans limit:
+
+- the number of projects, collections, records, members and webhooks
+- storage, and the size of each uploaded file
+- API requests a month, and API requests a minute for each key ([Rate limits](/guides/errors-and-retries#rate-limits))
+- how long record history and the activity log are kept ([How long history is kept](/guides/history#how-long-history-is-kept))
+
+Most limits are **hard**: a change that would go over is refused. Some are **soft** on paid plans: nothing is refused, and the API warns.
+
+### Hard limits
+
+Projects, collections, records, members and webhooks are hard limits on every plan, and so is storage on Free. The change that would go over is refused with `402 plan_limit_exceeded`. Its detail, code `plan_limit`, names the limit in `field` (such as `collections`), with the current `usage` and the `limit` ([Errors and retries](/guides/errors-and-retries#statuses-and-types)).
+
+- **Members** counts pending invitations, so inviting someone needs room too.
+- **Restoring** a deleted record or project needs room for what comes back.
+- **Uploads** larger than the plan allows are refused when they start, with `byte_size` as the `field` ([Assets](/guides/assets#upload)).
+- **API requests** on Free are refused with `429` until the first of the next month: see [API requests](/guides/api-requests#when-the-months-requests-are-used).
+
+In the web app, a form that would add one more says so instead, such as **Collection limit reached**, with **See usage**, and **Upgrade plan** for owners. On Free, when the month's API requests are used up, every page tells admins and owners, with the date they work again.
+
+### Soft limits
+
+On paid plans, storage and API requests are soft limits. Past them, nothing is refused, and responses carry a `Nohead-Usage-Warning` header with the metric, the usage and the limit: `api_requests=<usage>/<limit>` on any API request, and `asset_storage_bytes=<usage>/<limit>` when an upload starts. Going over now and then is fine; if it happens most months, upgrade.
+
+### Emails
+
+The organization's owners get an email when its API requests near or reach the month's limit, at most once a month each: see [Emails to owners](/guides/api-requests#emails-to-owners). Other limits send no email: the API's answer and the **Usage** page say when one is reached.
+
+## Upgrade
+
+Owners upgrade on the **Usage** page: choose **Upgrade plan**, pick **Monthly** or **Yearly**, and choose **Upgrade to** a plan. Payment is through Stripe Checkout, which then sends you back to the **Usage** page. The new plan applies as soon as Stripe confirms the payment, usually within seconds, with its limits. **Upgrade plan** shows only while the organization has no subscription; to change a paid plan, use **Manage billing**.
+
+## Manage or cancel a plan
+
+Once the organization has a subscription, the **Usage** page shows owners its plan, its status and when it renews. **Manage billing** opens Stripe's billing portal, to change the plan or the payment method, or to cancel.
+
+- **Cancelling** takes effect at the end of the period you paid for. Until then the plan shows **canceled** with the date it ends, and **Renew plan** keeps it. Then the organization moves to Free.
+- **A failed payment** keeps the plan while Stripe retries it, and the **Usage** page asks owners to update the payment method. If the payment still fails, the subscription is canceled and the organization moves to Free.
+
+## What a downgrade keeps
+
+Moving to a plan with lower limits deletes nothing:
+
+- **Over a hard limit**, existing projects, collections, records, members, webhooks and files stay. Adding more is refused until usage is back under the limit. An organization back on Free with more storage than Free allows keeps its files, but can't upload more.
+- **History** is kept in full for 30 days after a move to a plan that keeps it for less. Then revisions and activity log events older than the new plan keeps are removed, though every record keeps its first revision and its last 10. Meanwhile the **Usage** page says what will be removed and when.
+
+## Organizations and projects
+
+Choose **New organization** or **New project** in the project switcher. Whoever creates an organization is its owner; admins and owners create projects.
+
+A person can own only a few organizations on the Free plan: past that, creating another is refused (`409`, detail code `free_organization_limit`), and the message says how many. Organizations scheduled for deletion count until they are purged, so deleting one doesn't make room at once. Paid organizations don't count: upgrading one does.
+
+### Rename
+
+Admins and owners rename an organization, or change its **Slug**, on its **Settings** page, and a project on the project's **Settings** page. The slug is used in URLs; the organization's or project's ID never changes.
+
+### Delete and restore
+
+Deleting an organization or a project schedules it for deletion: everything in it stops working at once, it can be restored for 30 days, and it is then deleted for good. To delete one, choose **Delete organization** or **Delete project** on its **Settings** page and type its slug to confirm.
+
+- **A project** (admins and owners): its collections, records, history, assets, API keys and webhooks disappear, and its API keys stop working. Restore it with **Undo** right after deleting it, or later with **Restore** under **Scheduled for deletion** on the organization's **Settings** page. A restore needs room under the plan's limits for what comes back.
+- **An organization** (owners only): every project in it goes with it, and all of its API keys stop working. Pending invitations are revoked, and stay revoked if it is restored. Cancel a paid subscription before deleting, or the deletion is refused. Restore it with **Undo** right after deleting it; later, **Scheduled for deletion** lists it, with **Restore**, on the web app's start page when you have no other project to open.
+
+<Warning>
+After 30 days, the purge removes the content, history, files, API keys and webhooks for good. A purged project's events stay in the organization's activity log; a purged organization's activity log goes with it.
+</Warning>
+
+## Delete your account
+
+On the **Account** page, choose **Delete account**. Deleting it needs a recent sign-in: unless you signed in a few minutes ago, the web app emails a sign-in code to your address, and you enter it to confirm.
+
+It is refused, and the dialog says what to do first, while:
+
+- you are the only owner of an organization that has other members: make another member an owner, or delete the organization;
+- an organization only you belong to has a paid subscription: cancel it.
+
+Then:
+
+- your name and email are removed, and you are signed out everywhere;
+- you leave every organization, and organizations only you belong to are deleted with your account;
+- invitations you sent and haven't been answered are revoked;
+- your changes stay in history, shown as made by "Deleted user";
+- API keys you created keep working until an admin revokes them ([Access to review](/guides/members-and-roles#review-the-access-people-leave-behind)).
+
+Deleting your account can't be undone. Signing in with the same address later starts a new account.

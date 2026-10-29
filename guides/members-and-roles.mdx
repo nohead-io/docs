@@ -1,0 +1,71 @@
+---
+title: Members and roles
+icon: users
+description: Invite people to your organization, give each a role, change or remove it, and clean up the access people leave behind.
+---
+
+Everyone who works in Nohead is a member of an organization, with one role that applies to all of its projects. The organization's **Members** page lists them, and every member can see it, to know whom to ask for access.
+
+Members, invitations and roles are managed in the web app only: API keys can't manage them.
+
+## Roles
+
+| Role | In the web app |
+|---|---|
+| **Owner** | Everything, including billing and deleting the organization |
+| **Admin** | Members, projects, schemas, records and API keys |
+| **Developer** | Schemas, records, assets, API keys and webhooks |
+| **Editor** | Records, assets and publishing |
+| **Viewer** | Read-only access |
+
+Each role can do everything the role below it can, and more:
+
+| | Viewer | Editor | Developer | Admin | Owner |
+|---|:-:|:-:|:-:|:-:|:-:|
+| Read records, assets and the schema, and search | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Create, edit, publish and delete records; upload and delete assets | | ✓ | ✓ | ✓ | ✓ |
+| Change the schema: collections, fields and field migrations | | | ✓ | ✓ | ✓ |
+| Manage API keys, search tokens and webhooks | | | ✓ | ✓ | ✓ |
+| Invite and remove members, and change their roles | | | | ✓ | ✓ |
+| Create, rename and delete projects | | | | ✓ | ✓ |
+| Rename the organization, and see its **Usage** page | | | | ✓ | ✓ |
+| Read the **Activity** log, and redact values from history | | | | ✓ | ✓ |
+| Upgrade, manage billing and delete the organization | | | | | ✓ |
+| Grant, change or remove the owner role | | | | | ✓ |
+
+The web app shows each member only what their role can use. Viewers and editors see a project's **Collections** and **Assets**; developers also see **API keys**, **Search tokens** and **Webhooks**; admins and owners also see the project's **Settings** and the organization's **Activity**, **Usage** and **Settings**. A page opened by its URL without the role says whom to ask.
+
+An API key never gets more than the role of the person who creates it: a developer can't give a key the `audit:read` scope, since developers can't read the activity log. See [API keys](/guides/api-keys).
+
+## Invite someone
+
+Admins and owners invite people on the **Members** page: choose **Invite**, enter their **Email**, pick a **Role** and choose **Send invitation**. Admins can invite every role but **Owner**; owners can invite owners too.
+
+They get an email, and join by signing in to the web app with that address: the invitation shows at the top of the page, with **Accept** and **Decline**. Invitations expire after 14 days.
+
+- **Pending invitations** lists the invitations not yet accepted, declined or revoked, with who sent each. **Revoke** cancels one: the link in the email stops working, and you can invite them again later. An expired invitation shows **Expired**; inviting the address again replaces it.
+- When the email doesn't arrive, the invitation says so: **Email bounced** (check the address, then revoke and invite again), **Marked as spam** or **Email not sent**. In the last two cases they can still join by signing in with the address.
+- An address can have one pending invitation per organization, and someone who is already a member can't be invited.
+- Pending invitations count toward the plan's member limit. At the limit, the **Invite** dialog says so instead: remove a member, revoke an invitation or upgrade. See [Plans and usage](/guides/plans-and-usage).
+
+## Change a role or remove a member
+
+On the **Members** page, admins and owners change a member's role in the **Role** list of their row, and remove them with **Remove**, then **Remove member**. Anyone can leave an organization with **Leave** on their own row.
+
+- **Only owners touch owners.** Granting the owner role, and changing or removing an owner, takes an owner.
+- **There is always an owner.** The last owner can't be removed, leave, or be given another role: make another member an owner first.
+- **A role change applies at once**, in every project and in the web app.
+- **Removing a member** ends their access to the organization's projects. Their changes stay in history under their name.
+
+## Review the access people leave behind
+
+API keys belong to projects, not to the people who created them, so they keep working when their creator leaves or changes role, and nothing breaks unannounced. The same goes for invitations someone sent before they left.
+
+When there is something to review, the **Members** page shows admins and owners **Access to review**:
+
+- API keys whose creator left the organization, or whose creator's role can no longer grant the key's scopes.
+- Pending invitations sent by someone who left, or who can no longer invite.
+
+**Revoke** one at a time, or **Revoke all**. Revoked keys stop working at once, and revoked invitations can't be accepted. Revoking can't be undone, so check that no site or job still uses a key, or replace it first.
+
+Changes to members and invitations are recorded in the organization's [activity log](/guides/history#activity-log).

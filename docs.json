@@ -58,6 +58,7 @@
             "group": "Content",
             "pages": [
               "guides/reading-content",
+              "guides/writing-content",
               "guides/publishing",
               "guides/history"
             ]
@@ -80,7 +81,14 @@
             "group": "Integrate",
             "pages": [
               "guides/webhooks",
-              "guides/errors-and-retries",
+              "guides/errors-and-retries"
+            ]
+          },
+          {
+            "group": "Organization",
+            "pages": [
+              "guides/members-and-roles",
+              "guides/plans-and-usage",
               "guides/api-requests"
             ]
           }
