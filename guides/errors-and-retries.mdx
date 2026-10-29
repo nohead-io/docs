@@ -88,7 +88,7 @@ A `429` with a `plan_limit` detail is different: on Free, the organization has u
 
 ## What the SDKs retry
 
-The SDKs retry connection errors, `429`, `5xx` and `in_progress` for you ([Retries and idempotency](/sdks/overview#retries-and-idempotency) has the rules). What reaches your code is raised as its `type`'s class. Change the number of retries when you create the client:
+The SDKs retry connection errors, `429`, `500`, `502`, `503`, `504` and `in_progress` for you ([Retries and idempotency](/sdks/overview#retries-and-idempotency) has the rules). What reaches your code is raised as its `type`'s class. Change the number of retries when you create the client:
 
 <CodeGroup>
 

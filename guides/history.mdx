@@ -6,7 +6,7 @@ description: See who changed a record, when, through what and why, compare any t
 
 Every change to a record is a revision. Revisions are numbered per record from 1, numbers are never reused, and the current one is the record's `revision` (and its `ETag`). Changes add revisions and never edit old ones: only redaction, the plan's retention and purges of deleted data remove anything from history.
 
-In the web app, open a record's **History** tab. Through the API, reading history needs `records:read`, and reverting `records:write`.
+In the web app, open a record's **History** tab. Through the API, reading history needs `records:read`, and reverting `records:write` (and `records:read` to preview a revert).
 
 ## What a revision records
 
@@ -79,7 +79,7 @@ for change in diff.changes:
 
 ```ruby Ruby
 diff = nohead.records.diff(id, from: 3, to: 7)
-diff.changes.each { |change| puts "#{change.field || change.attribute}: #{change.before} -> #{change.after}" }
+diff.changes.each { |change| puts "#{change["field"] || change["attribute"]}: #{change["before"]} -> #{change["after"]}" }
 ```
 
 </CodeGroup>

@@ -45,7 +45,7 @@ Filter on field values with `filter[<key>]=value` (equal), or with an operator, 
 | Operator | Matches | Example |
 | --- | --- | --- |
 | `eq` (or none) | equal; for a multiple field, lists that contain the value | `filter[category]=shoes` |
-| `ne` | not equal, including records with no value | `filter[category][ne]=sale` |
+| `ne` | not equal, including records with no value; for a multiple field, lists without the value | `filter[category][ne]=sale` |
 | `gt`, `gte`, `lt`, `lte` | greater or less than, for integer, decimal and date fields with one value | `filter[price][lt]=50` |
 | `in` | any of up to 100 comma-separated values (`\,` for a comma inside one) | `filter[category][in]=shoes,bags` |
 | `exists` | `true`: has a value, `false`: has none | `filter[cover][exists]=false` |
@@ -105,4 +105,4 @@ count = nohead.records.count("blog-posts", filter: { category: "news" }).count
 
 To copy content into your own store, list what changed since your last run with `filter[updated_at][gt]=` and the time you last synced, sorted by `updated_at`. Deleted records aren't in lists: add `filter[deleted]=true` to the same query to list those deleted since then, with a key that isn't published-only. A deleted record can be restored for 30 days and is then purged, so run the sync at least that often; a restored record comes back in the first query.
 
-For changes as they happen instead of on a schedule, subscribe to [webhooks](/guides/webhooks): a site that rebuilds on `record.published`, `record.updated` and `record.deleted` stays current without polling.
+For changes as they happen instead of on a schedule, subscribe to [webhooks](/guides/webhooks): a site that rebuilds on `record.*` and `field.migrated` stays current without polling.

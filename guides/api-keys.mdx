@@ -29,7 +29,7 @@ The key is shown only once. If you lose it, create a new one and revoke the old 
 | `search:read` | Search | ✓ |
 | `webhooks:read` | Read webhooks and their payloads | |
 | `webhooks:write` | Manage webhooks (receives content) | |
-| `audit:read` | Read the audit log | |
+| `audit:read` | Read the activity log | |
 
 A request without the scope it needs is refused with `403`, and the message names the scope. `GET /v1/me` shows a key's project, scopes and whether it is published-only. Webhook payloads carry content, unpublished records included, so treat the webhook scopes like `records:read` on everything.
 

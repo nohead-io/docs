@@ -176,7 +176,7 @@ Failed requests are retried twice by default:
 - `500`, `502`, `503` and `504`
 - `409` with detail code `in_progress`: the same write, still running
 
-Each attempt times out after 60 seconds. Set `timeout` and `maxRetries` (`max_retries`) on the client or for one call to change them. [Errors and retries](/guides/errors-and-retries) covers what each error means.
+Each attempt times out after 60 seconds. Set `timeout` and `maxRetries` (`max_retries`) on the client to change them. TypeScript also takes them for one call, and in Python `with_options` returns a client with other settings. [Errors and retries](/guides/errors-and-retries) covers what each error means.
 
 Every write carries an `Idempotency-Key` that stays the same across its retries, so a retry after a lost response never writes twice.
 

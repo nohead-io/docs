@@ -30,9 +30,9 @@ In the web app, open your project's **API keys** page and choose **New API key**
 | Upload files | `assets:write` |
 | Search | `search:read` |
 | Manage webhooks | `webhooks:read`, `webhooks:write` |
-| Read the audit log | `audit:read` |
+| Read the activity log | `audit:read` |
 
-New keys are published-only by default (**Published records only**): they read published records and nothing else, which is what a site needs. Turn it off for a key that writes, reads unpublished content or history, manages webhooks or reads the audit log. Published-only keys start with `nohead_pk_`, the others with `nohead_sk_`.
+New keys are published-only by default (**Published records only**): they read published records and nothing else, which is what a site needs. Turn it off for a key that writes, reads unpublished content or history, manages webhooks or reads the activity log. Published-only keys start with `nohead_pk_`, the others with `nohead_sk_`.
 
 <Warning>
 Keep the key in a secret store, such as your CI's, never in the repository.
@@ -46,12 +46,12 @@ Whichever interface an agent uses, the same API stands behind it:
 
 - **Attributed.** History shows each change with the key's name and the client it came through, such as the CLI or MCP.
 - **Explained.** A change can carry a note saying why, kept in history next to it: `--note` in the CLI, a required `note` on every MCP tool that writes, `Nohead-Change-Note` over HTTP.
-- **Reviewed.** An agent can propose changes as a draft that a person merges, and new records start unpublished.
+- **Reviewed.** With the CLI, an SDK or the API, an agent can propose changes as a draft that a person merges. New records start unpublished.
 - **No lost edits.** A change can name the revision the agent read (`--if-revision`, `expected_revision`, `If-Match`), and is refused if someone changed the record since.
 - **Safe retries.** With an idempotency key, retrying a write never applies it twice.
-- **Reversible.** Every change is a revision you can revert, and deleted records, fields, collections and assets can be restored for 30 days.
+- **Reversible.** Every record change is a revision you can revert, and deleted records, fields, collections and assets can be restored for 30 days.
 
-[Coding agents](/guides/coding-agents#change-content-safely) and [MCP server](/guides/mcp#guardrails) show each of these in practice.
+[Coding agents](/guides/coding-agents#change-content-safely) and [MCP server](/guides/mcp#guardrails) show these in practice.
 
 ## Point the agent at the API
 

@@ -94,6 +94,6 @@ The tools add guardrails for agents:
 - **A note on every change.** Every write takes a required `note` saying why, up to 500 characters. It is stored in the record's history next to the key's name and the client, **MCP**.
 - **No overwriting.** Changes to an existing record take the `expected_revision` the agent read, and the server's instructions ask agents to pass it. If someone changed the record since, the change is refused with `precondition_failed`, and the agent should read it again. Without it, the last write wins.
 - **Safe retries.** Every write takes an optional `idempotency_key`. Retrying with the same key never applies a change twice.
-- **Nothing irreversible.** Every change is a revision you can revert, and `revert_record` previews with `dry_run: true`. New records start unpublished.
+- **Nothing irreversible.** Every record change is a revision you can revert, and `revert_record` previews with `dry_run: true`. New records start unpublished.
 
 Errors come back as tool errors with the API's error envelope, so an agent sees the same `type`, `message` and `details` (each with its `code`) the [API reference](/api-reference/overview) documents.

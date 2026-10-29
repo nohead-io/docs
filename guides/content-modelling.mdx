@@ -131,7 +131,7 @@ Every collection is indexed for full-text search. Members search in the web app,
 You can change a collection's name and description at any time. Adding fields, renaming them and loosening their options is safe: record data is stored by field ID, so it never moves.
 
 - **Renaming a field's key** keeps its values. Records come back under the new key, and requests that use the old key keep working for six months, so your code has time to switch.
-- **Changing a field's type, making it multiple, or adding or removing a date's time** rewrites stored values, so it runs as a [field migration](/guides/field-migrations). You can preview how many records convert cleanly before you start, and while it runs the collection's fields can't change, and its records can't either once it is running.
+- **Changing a field's type, making it multiple, or adding or removing a date's time** rewrites stored values, so it runs as a [field migration](/guides/field-migrations). You can preview how many records convert cleanly before you start, and from the start the collection's fields can't change, and once it is running its records can't either.
 - **Tightening a field** (making it required, lowering a maximum, removing enum options) is refused while existing records would break the new rule. Fix those records first, or run a [field migration](/guides/field-migrations) that clears the values that break it or fills in records without a value.
 - **Deleting a field or collection** is a soft delete, and can be undone for 30 days (until its `purge_after`).
 
