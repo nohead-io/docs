@@ -252,7 +252,7 @@
                 ]
               },
               {
-                "group": "Audit log",
+                "group": "Activity log",
                 "icon": "history",
                 "pages": [
                   "GET /v1/projects/{project_id}/audit-events"
