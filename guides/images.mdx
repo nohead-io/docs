@@ -57,9 +57,7 @@ export default function noheadLoader({ src, width, quality }) {
 
 ## Limits
 
-Uploaded files, images or not, are at most 10 MB each on Free and 100 MB on paid plans.
-
-So that any URL stays cheap to serve:
+So that any URL stays cheap to serve ([Assets](/guides/assets#upload) has the upload limits):
 
 - Renditions are at most 4096 pixels a side, and originals at most 50 megapixels.
 - Options that would return a file as stored are refused: `raw`, `skip_processing` and `strip_metadata`. Renditions never carry a photo's metadata, such as its location.
