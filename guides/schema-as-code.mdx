@@ -132,9 +132,15 @@ jobs:
         run: npx --yes nohead@0.3 schema push --yes
 ```
 
+<Note>
 GitHub doesn't give workflows for pull requests from forks the repository's secrets, so on those the diff step fails without a key (exit code `2`).
+</Note>
 
-Leave `--allow-migrations` out of CI, and run migrations by hand after reviewing their preview. A scheduled `nohead schema diff --exit-code` tells you when someone changed the schema in the web app without updating the file. Add `--json` for one JSON document on stdout instead of text.
+<Warning>
+Leave `--allow-migrations` out of CI, and run migrations by hand after reviewing their preview.
+</Warning>
+
+A scheduled `nohead schema diff --exit-code` tells you when someone changed the schema in the web app without updating the file. Add `--json` for one JSON document on stdout instead of text.
 
 ## Copy a project
 

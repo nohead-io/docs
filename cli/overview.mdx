@@ -15,7 +15,9 @@ npm install -g @nohead/cli    # or run it without installing: npx nohead
 nohead --version              # the CLI's version, then the SDK's
 ```
 
+<Tip>
 In CI, pin a version, such as `npx nohead@0.3`, so an upgrade is a change you choose ([releases](https://github.com/nohead-io/nohead-cli/releases)).
+</Tip>
 
 ## Sign in
 
@@ -86,3 +88,9 @@ Field options are flags: `--description`, `--options a,b` (enum), `--target <col
 `schema pull`, `schema diff` and `schema push` keep a collection's model in `nohead.schema.yaml` in your repository: [Schema as code](/guides/schema-as-code).
 
 `export --output <dir>` writes a project's schema, records, drafts and asset metadata (`--include-history`, `--include-deleted`, and `--include-files` for the originals). `import <dir>` recreates them in another project: the schema first, then the records, relinking relations to the new IDs, then the drafts. Every request has an idempotency key derived from the export, so re-running an interrupted import within 24 hours doesn't duplicate anything. Imported records start a new history.
+
+## Source
+
+The CLI is open source, under the MIT license. Report issues and follow releases on GitHub:
+
+<GitHub.Repo repo="nohead-io/nohead-cli" />

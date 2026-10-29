@@ -154,11 +154,15 @@ The SDKs also name themselves in `Nohead-Client`, so their changes show `via: sd
 
 When a value should never have been stored, such as personal data or a secret, owners and admins can remove it from history in the web app. On the record's **History** tab, choose **Redact…**, pick the **Field** and the **Values to remove** (every past value, or the value set in one revision), check the preview, type the field's key and choose **Redact permanently**.
 
+<Warning>
+Redaction can't be undone.
+</Warning>
+
 - Each removed value reads `{"$redacted": true}` wherever it appears in revision snapshots and changes, and those revisions list the field in `redacted_fields`.
 - Copies in stored webhook payloads are removed too.
 - The current value is never touched. If it is the problem, change the record first, then redact.
 - Reverting to a redacted revision keeps the field's current value.
-- Redaction can't be undone. It is recorded in the activity log, and sent to webhooks, as `record.redacted`.
+- Redactions are recorded in the activity log, and sent to webhooks, as `record.redacted`.
 
 Redaction is not part of the API: API keys can't redact.
 
@@ -166,6 +170,8 @@ Redaction is not part of the API: API keys can't redact.
 
 How long revisions are kept depends on the organization's [plan](https://nohead.io/pricing). Once a day, older revisions are removed, but every record keeps its first revision and its last 10. A record's `history_pruned_through` is the highest revision number removed (`null` while nothing was), and the **History** tab says which revisions were removed. For 30 days after a move to a plan that keeps less, nothing is removed.
 
+<Note>
 History doesn't outlive deletion: when a deleted record is purged, its revisions go with it, and when a deleted field is purged, its values are removed from every revision.
+</Note>
 
 Published-only API keys can't read history (`403`), since it holds unpublished content. Every endpoint is in the [API reference](/api-reference/overview).

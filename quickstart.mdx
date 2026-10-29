@@ -17,7 +17,11 @@ description: Create a project, publish a record and fetch it from your code.
   <Step title="Create an API key">
     Under **API keys**, choose **New API key** and give it the **Read records** scope (`records:read`). Leave **Published records only** on (the default) for a key your live site uses, so unpublished records never reach it; turn it off for a key that writes. A published-only key starts `nohead_pk_`, and any other key `nohead_sk_`. [API keys](/guides/api-keys) lists every scope.
 
-    The key is shown once. Store it somewhere safe, for example as `NOHEAD_API_KEY` in your app's environment:
+    <Warning>
+    The key is shown only once. If you lose it, create a new one and revoke the old one.
+    </Warning>
+
+    Store the key somewhere safe, for example as `NOHEAD_API_KEY` in your app's environment:
 
     ```bash
     export NOHEAD_API_KEY=nohead_pk_...

@@ -43,7 +43,9 @@ Requests made with the organization's API keys are refused until the first of th
 }
 ```
 
+<Note>
 The SDKs don't wait that long: they raise (or throw) `RateLimitError` at once, as for any `Retry-After` over 60 seconds.
+</Note>
 
 Upgrading lifts it straight away. Nothing is deleted, and the web app, images and public search keep working.
 

@@ -82,7 +82,9 @@ An API key's limit is per minute and depends on its organization's plan (the [pr
 
 Over the limit, the API answers `429 rate_limited` with `Retry-After`, in seconds. The request was neither performed nor counted, so wait that long and send it again (with the same `Idempotency-Key`, for a write).
 
+<Note>
 A `429` with a `plan_limit` detail is different: on Free, the organization has used the month's API requests, and `Retry-After` runs to the start of the next month. See [API requests](/guides/api-requests).
+</Note>
 
 ## What the SDKs retry
 
