@@ -88,13 +88,8 @@
       },
       {
         "tab": "API reference",
-        "groups": [
-          {
-            "group": "Overview",
-            "pages": [
-              "api-reference/overview"
-            ]
-          },
+        "pages": [
+          "api-reference/overview",
           {
             "group": "Endpoints",
             "openapi": "openapi.json",
@@ -270,27 +265,17 @@
       },
       {
         "tab": "SDKs",
-        "groups": [
-          {
-            "group": "SDKs",
-            "pages": [
-              "sdks/overview",
-              "sdks/typescript",
-              "sdks/python",
-              "sdks/ruby"
-            ]
-          }
+        "pages": [
+          "sdks/overview",
+          "sdks/typescript",
+          "sdks/python",
+          "sdks/ruby"
         ]
       },
       {
         "tab": "CLI",
-        "groups": [
-          {
-            "group": "Get started",
-            "pages": [
-              "cli/overview"
-            ]
-          },
+        "pages": [
+          "cli/overview",
           {
             "group": "Commands",
             "pages": [

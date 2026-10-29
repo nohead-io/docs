@@ -53,8 +53,8 @@ const groups = contract.tags
   .map((tag) => ({ group: tag["x-group"] ?? tag.name, icon: ICONS[tag.name], pages: endpoints.get(tag.name) }))
 
 const reference = docs.navigation.tabs.find((tab) => tab.tab === "API reference")
-const section = reference?.groups.find((group) => group.openapi)
-if (!section) throw new Error('docs.json: no group with "openapi" in the "API reference" tab')
+const section = reference?.pages?.find((page) => page.openapi)
+if (!section) throw new Error('docs.json: no group with "openapi" in the "API reference" tab\'s pages')
 section.pages = groups
 writeFileSync(new URL("../docs.json", import.meta.url), JSON.stringify(docs, null, 2) + "\n")
 console.log(`docs.json: ${groups.length} API reference groups, ${groups.reduce((n, g) => n + g.pages.length, 0)} endpoints`)
