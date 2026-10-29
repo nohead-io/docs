@@ -104,4 +104,8 @@ In the web app, open an asset on the **Assets** page: **Used in** lists the reco
 
 ## Deleted and purged assets
 
-Knowing an asset's URL is all it takes to see it, as with any public image or file. A deleted asset's URLs keep working until it is purged (30 days later, or sooner with `POST /v1/assets/{asset_id}/purge`). A purge removes its file, media and every rendition from the CDN within a minute or so; browsers keep what they cached.
+<Warning>
+Knowing an asset's URL is all it takes to see it, as with any public image or file. A deleted asset's URLs keep working until it is purged: 30 days later, or sooner with `POST /v1/assets/{asset_id}/purge`.
+</Warning>
+
+A purge removes its file, media and every rendition from the CDN within a minute or so; browsers keep what they cached.
