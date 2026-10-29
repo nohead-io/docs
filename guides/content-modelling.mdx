@@ -106,7 +106,7 @@ In the web app, the editor's **Image** button chooses an asset or uploads one, a
 To render a document, expand the field, which needs the key's `assets:read` scope: `expanded` then lists the assets its images show, in order, with their dimensions and `image_url`. Write the size your page needs into each image's URL ([Images](/guides/images)), with no further request:
 
 ```bash
-curl "$NOHEAD_API_URL/v1/collections/blog-posts/records?expand=body" \
+curl "https://api.nohead.io/v1/collections/blog-posts/records?expand=body" \
   -H "Authorization: Bearer $NOHEAD_API_KEY"
 ```
 

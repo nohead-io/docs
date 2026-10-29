@@ -53,7 +53,7 @@ Every error the API returns has the same shape, and any write can be made safe t
 A request can fail after the API has done the work, when the response is lost on the way back. Send an `Idempotency-Key` header on any `POST`, `PUT`, `PATCH` or `DELETE`, and you can retry it without doing it twice:
 
 ```bash
-curl -X POST "$NOHEAD_API_URL/v1/collections/blog-posts/records" \
+curl -X POST "https://api.nohead.io/v1/collections/blog-posts/records" \
   -H "Authorization: Bearer $NOHEAD_API_KEY" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: 8f14e45f-ceea-467a-9575-0f1a3f2c1d2e" \
@@ -134,7 +134,7 @@ Without a check, the last write wins: your update can overwrite a change someone
 Record and draft responses carry the revision as an `ETag`, such as `"7"`. Send it back as `If-Match` when you change the record:
 
 ```bash
-curl -X PATCH "$NOHEAD_API_URL/v1/records/rec_01J9ZQ3F8X5W2K7M4N6P0R1S2T" \
+curl -X PATCH "https://api.nohead.io/v1/records/rec_01J9ZQ3F8X5W2K7M4N6P0R1S2T" \
   -H "Authorization: Bearer $NOHEAD_API_KEY" \
   -H "Content-Type: application/json" \
   -H 'If-Match: "6"' \

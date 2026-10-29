@@ -83,7 +83,7 @@ nohead records revert rec_01J9ZQ3F8X 2 --dry-run
 The API serves `/llms.txt`, a plain-text map of every endpoint and the API's conventions, generated from the same contract the API is tested against. It suits an agent's context better than the full contract, `/openapi.json`:
 
 ```bash
-curl "$NOHEAD_API_URL/llms.txt"
+curl "https://api.nohead.io/llms.txt"
 ```
 
 ## A snippet for your AGENTS.md

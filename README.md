@@ -30,7 +30,7 @@ The Mintlify CLI is pinned in `package.json` and run with `npx`, with telemetry 
 ## Writing guides
 
 - Describe only shipped behavior, and check names against the web app (button and field labels) and the API reference.
-- Examples use `$NOHEAD_API_URL` and `$NOHEAD_API_KEY`.
+- Examples call `https://api.nohead.io` with `$NOHEAD_API_KEY`.
 - Link to the reference instead of repeating every parameter.
 
 ## Deploying

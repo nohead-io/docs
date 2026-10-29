@@ -88,7 +88,7 @@ Every asset also has a `file_url` once its upload completes, which downloads the
 Before you delete or replace an image or file, check which records use it:
 
 ```bash
-curl "$NOHEAD_API_URL/v1/assets/ast_01J9ZQ3F8X/usage" \
+curl "https://api.nohead.io/v1/assets/ast_01J9ZQ3F8X/usage" \
   -H "Authorization: Bearer $NOHEAD_API_KEY"
 ```
 

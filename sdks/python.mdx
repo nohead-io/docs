@@ -18,15 +18,16 @@ import os
 from nohead import Nohead
 
 nohead = Nohead(
-    api_key=os.environ["NOHEAD_API_KEY"],  # default: NOHEAD_API_KEY
-    base_url="https://api.nohead.io",  # default: NOHEAD_API_URL, else production
+    api_key=os.environ["NOHEAD_API_KEY"],  # the default
+    timeout=10.0,  # seconds per attempt
+    max_retries=3,
 )
 ```
 
 | Option | Default | |
 |---|---|---|
 | `api_key` | `NOHEAD_API_KEY` | A project [API key](/guides/api-keys). Required. |
-| `base_url` | `NOHEAD_API_URL`, else `https://api.nohead.io` | |
+| `base_url` | `https://api.nohead.io` | For a proxy, or a mock server in tests. |
 | `project_id` | the key's project | Looked up once with `GET /v1/me` when omitted. |
 | `max_retries` | `2` | See [retries](/sdks/overview#retries-and-idempotency). |
 | `timeout` | `60.0` | Seconds per attempt. |

@@ -13,7 +13,7 @@ In the web app, open your project's **Webhooks** page and choose **New webhook**
 Through the API, create one with an API key that has the `webhooks:write` scope. The response holds the `secret`, and it is the only one that does:
 
 ```bash
-curl -X POST "$NOHEAD_API_URL/v1/projects/$PROJECT_ID/webhooks" \
+curl -X POST "https://api.nohead.io/v1/projects/$PROJECT_ID/webhooks" \
   -H "Authorization: Bearer $NOHEAD_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{

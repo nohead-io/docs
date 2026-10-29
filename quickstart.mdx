@@ -17,10 +17,9 @@ description: Create a project, publish a record and fetch it from your code.
   <Step title="Create an API key">
     Under **API keys**, choose **New API key** and give it the **Read records** scope (`records:read`). Leave **Published records only** on (the default) for a key your live site uses, so unpublished records never reach it; turn it off for a key that writes. A published-only key starts `nohead_pk_`, and any other key `nohead_sk_`. [API keys](/guides/api-keys) lists every scope.
 
-    The key is shown once. Store it somewhere safe, for example as `NOHEAD_API_KEY` in your app's environment, next to the API's address:
+    The key is shown once. Store it somewhere safe, for example as `NOHEAD_API_KEY` in your app's environment:
 
     ```bash
-    export NOHEAD_API_URL=https://api.nohead.io
     export NOHEAD_API_KEY=nohead_pk_...
     ```
   </Step>
@@ -30,7 +29,7 @@ description: Create a project, publish a record and fetch it from your code.
     <CodeGroup>
 
     ```bash curl
-    curl "$NOHEAD_API_URL/v1/collections/blog-posts/records" \
+    curl "https://api.nohead.io/v1/collections/blog-posts/records" \
       -H "Authorization: Bearer $NOHEAD_API_KEY"
     ```
 

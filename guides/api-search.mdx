@@ -11,7 +11,7 @@ Every collection is indexed for full-text search. With an API key that has the `
 `GET /v1/collections/{collection_id}/search` searches one collection. Put the words in `q`; an empty `q` matches every record.
 
 ```bash
-curl -G "$NOHEAD_API_URL/v1/collections/recipes/search" \
+curl -G "https://api.nohead.io/v1/collections/recipes/search" \
   -H "Authorization: Bearer $NOHEAD_API_KEY" \
   --data-urlencode "q=lentil soup" \
   --data-urlencode "filter[cuisine]=french" \
@@ -74,7 +74,7 @@ Without `sort`, results are in order of relevance. `sort` takes `created_at`, `u
 `GET /v1/projects/{project_id}/search` returns one ranked list from all of the project's collections. Your project's ID (`prj_…`) is in `GET /v1/me`; the SDKs find it for you. Each record carries its `collection`.
 
 ```bash
-curl -G "$NOHEAD_API_URL/v1/projects/$PROJECT_ID/search" \
+curl -G "https://api.nohead.io/v1/projects/$PROJECT_ID/search" \
   -H "Authorization: Bearer $NOHEAD_API_KEY" \
   --data-urlencode "q=lovelace" \
   --data-urlencode "filter[collection][in]=posts,authors" \

@@ -11,7 +11,7 @@ Records start unpublished. A record is live when it has a `published_at`, and wh
 In the web app, open a record and choose **Publish** or **Unpublish**. Through the API, publishing is the record's `publication`:
 
 ```bash
-curl -X POST "$NOHEAD_API_URL/v1/records/rec_01J9ZQ3F8X/publication" \
+curl -X POST "https://api.nohead.io/v1/records/rec_01J9ZQ3F8X/publication" \
   -H "Authorization: Bearer $NOHEAD_API_KEY"
 ```
 
@@ -88,7 +88,7 @@ Discarding a draft (`DELETE /v1/drafts/{draft_id}`) leaves the record unchanged.
 A record's schedule publishes it at `publish_at` and unpublishes it at `unpublish_at`, within a minute of each time. In the web app, choose **Schedule**, set **Publish at** and **Unpublish at**, and choose **Save schedule**.
 
 ```bash
-curl -X PUT "$NOHEAD_API_URL/v1/records/rec_01J9ZQ3F8X/schedule" \
+curl -X PUT "https://api.nohead.io/v1/records/rec_01J9ZQ3F8X/schedule" \
   -H "Authorization: Bearer $NOHEAD_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"publish_at": "2026-11-02T08:00:00Z", "unpublish_at": "2026-11-30T23:00:00Z"}'

@@ -16,15 +16,16 @@ The package is ESM; Node 22+ can also `require()` it. It runs on Node 22, 24 and
 import { Nohead } from "@nohead/sdk"
 
 const nohead = new Nohead({
-  apiKey: process.env.NOHEAD_API_KEY, // default: NOHEAD_API_KEY
-  baseUrl: "https://api.nohead.io", // default: NOHEAD_API_URL, else production
+  apiKey: process.env.NOHEAD_API_KEY, // the default
+  timeout: 10_000, // milliseconds per attempt
+  maxRetries: 3,
 })
 ```
 
 | Option | Default | |
 |---|---|---|
 | `apiKey` | `NOHEAD_API_KEY` | A project [API key](/guides/api-keys). Required. |
-| `baseUrl` | `NOHEAD_API_URL`, else `https://api.nohead.io` | |
+| `baseUrl` | `https://api.nohead.io` | For a proxy, or a mock server in tests. |
 | `projectId` | the key's project | Looked up once with `GET /v1/me` when omitted. |
 | `maxRetries` | `2` | See [retries](/sdks/overview#retries-and-idempotency). |
 | `timeout` | `60000` | Milliseconds per attempt. |
