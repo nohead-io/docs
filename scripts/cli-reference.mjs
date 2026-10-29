@@ -86,7 +86,7 @@ function section(command, path) {
       for (const option of command.options) {
         const fallback = option.default === undefined || option.default === false
           ? ""
-          : ` Default: ${code(JSON.stringify(option.default))}.`
+          : ` Default: ${code(typeof option.default === "string" ? option.default : JSON.stringify(option.default))}.`
         lines.push(`| ${code(option.flags)} | ${sentence(option.description)}${choices(option)}${fallback} |`)
       }
       lines.push("")
