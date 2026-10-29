@@ -1,0 +1,29 @@
+/* Icon files show as images in their own colours. The SDK pages' logos
+   take the sidebar's icon colours instead, as Mintlify's own icons do:
+   each logo is a mask over a background of the theme's colour, and the
+   padding pushes the image itself out of its 16px box. */
+img[src="/icons/typescript.svg"] {
+  --icon: url("/icons/typescript.svg");
+}
+img[src="/icons/python.svg"] {
+  --icon: url("/icons/python.svg");
+}
+img[src="/icons/ruby.svg"] {
+  --icon: url("/icons/ruby.svg");
+}
+img[src^="/icons/"] {
+  box-sizing: border-box;
+  padding-left: 1rem;
+  background-color: rgb(var(--gray-400)) !important;
+  -webkit-mask: var(--icon) center / contain no-repeat;
+  mask: var(--icon) center / contain no-repeat;
+}
+.dark img[src^="/icons/"] {
+  background-color: rgb(var(--gray-500)) !important;
+}
+[aria-current] img[src^="/icons/"] {
+  background-color: rgb(var(--primary)) !important;
+}
+.dark [aria-current] img[src^="/icons/"] {
+  background-color: rgb(var(--primary-light)) !important;
+}
