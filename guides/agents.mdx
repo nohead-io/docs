@@ -1,0 +1,62 @@
+---
+title: Work with agents
+sidebarTitle: Overview
+icon: sparkles
+description: Let AI agents read and change your content and schema next to your team, through the CLI, the MCP server or the API, with every change attributed and reversible.
+---
+
+Agents work in Nohead next to people. Coding agents such as Claude Code, Cursor or Codex, chat apps, agent frameworks, CI jobs and scripts use the same public API as the web app, each with an API key of its own. Every change they make is attributed to that key and kept in history, so you can see what an agent did, and why, and undo it.
+
+## Pick an interface
+
+| Interface | Use it when | Start here |
+|---|---|---|
+| The `nohead` CLI | The agent has a shell: coding agents, CI | [Coding agents](/guides/coding-agents), [CLI](/cli/overview) |
+| The MCP server | The agent has no shell: chat apps, agent frameworks, automation platforms | [MCP server](/guides/mcp) |
+| The REST API | Anything that speaks HTTP | [`/llms.txt`](#point-the-agent-at-the-api) and `/openapi.json` on the API |
+| An SDK | Your application's code | [SDKs](/sdks/overview) |
+
+For a coding agent, the CLI is usually the best fit: `--json` output and exit codes cost it less context than a list of tools.
+
+## Give each agent its own key
+
+In the web app, open your project's **API keys** page and choose **New API key**. Give the agent a key of its own, with only the scopes its job needs:
+
+| Job | Scopes |
+|---|---|
+| Read content for a site build | `records:read`, plus `assets:read` for images and files |
+| Seed or sync content | `records:read`, `records:write` |
+| Manage the schema as code | `schema:read`, `schema:write`, `records:read` |
+| Upload files | `assets:write` |
+| Search | `search:read` |
+| Manage webhooks | `webhooks:read`, `webhooks:write` |
+| Read the audit log | `audit:read` |
+
+New keys are published-only by default (**Published records only**): they read published records and nothing else, which is what a site needs. Turn it off for a key that writes, reads unpublished content or history, manages webhooks or reads the audit log. Published-only keys start with `nohead_pk_`, the others with `nohead_sk_`.
+
+<Warning>
+Keep the key in a secret store, such as your CI's, never in the repository.
+</Warning>
+
+The CLI and the SDKs read the key from `NOHEAD_API_KEY`. A key belongs to one project, so an agent never needs a project ID. With a key per agent or pipeline, history shows which one made each change, and revoking a key stops only that one.
+
+## What keeps changes safe
+
+Whichever interface an agent uses, the same API stands behind it:
+
+- **Attributed.** History shows each change with the key's name and the client it came through, such as the CLI or MCP.
+- **Explained.** A change can carry a note saying why, kept in history next to it: `--note` in the CLI, a required `note` on every MCP tool that writes, `Nohead-Change-Note` over HTTP.
+- **Reviewed.** An agent can propose changes as a draft that a person merges, and new records start unpublished.
+- **No lost edits.** A change can name the revision the agent read (`--if-revision`, `expected_revision`, `If-Match`), and is refused if someone changed the record since.
+- **Safe retries.** With an idempotency key, retrying a write never applies it twice.
+- **Reversible.** Every change is a revision you can revert, and deleted records, fields, collections and assets can be restored for 30 days.
+
+[Coding agents](/guides/coding-agents#change-content-safely) and [MCP server](/guides/mcp#guardrails) show each of these in practice.
+
+## Point the agent at the API
+
+The API serves `/llms.txt`, a plain-text map of every endpoint and the API's conventions, generated from the same contract the API is tested against. It suits an agent's context better than the full contract, `/openapi.json`:
+
+```bash
+curl "https://api.nohead.io/llms.txt"
+```

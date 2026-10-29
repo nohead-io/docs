@@ -2,10 +2,11 @@
 
 The guides and API reference at [docs.nohead.io](https://docs.nohead.io), hosted by [Mintlify](https://mintlify.com) on its free plan. Corrections and suggestions are welcome as issues or pull requests.
 
-- `docs.json`: site settings and navigation. New pages must be listed here.
-- `*.mdx`, `guides/*.mdx`: the guides. Plain Markdown where possible; use Mintlify components (`<Note>`, `<Steps>`, `<CodeGroup>`) sparingly, so moving to another tool stays cheap.
+- `docs.json`: site settings and navigation. New pages must be listed here. The API reference's endpoint groups in it are generated from `openapi.json`'s tags, with an icon each (`scripts/api-navigation.mjs`, which fails if a tag has no icon): don't edit them. The script writes the whole file in its own format, and CI fails while `docs.json` differs from that, so run `npm run generate` after editing it.
+- `*.mdx`, `guides/*.mdx`: the guides. Plain Markdown where possible; use Mintlify components (`<CodeGroup>`, `<Steps>`, `<Card>`, `<GitHub.Repo>`) sparingly, so moving to another tool stays cheap. Callouts (`<Warning>`, `<Note>`, `<Tip>`) are for what can't be undone or would cost a reader if missed, not for emphasis.
 - `openapi.json`: the API reference source, generated (do not edit). It is the API's published contract plus code samples from the SDKs.
 - `sdk-samples/`: each SDK's `samples.json`, one sample per operation.
+- `icons/`, `style.css`: the SDK pages' language logos ([Simple Icons](https://simpleicons.org), CC0), drawn in the sidebar's icon colours. A new icon file needs its entry in `style.css`.
 - `cli/`: the CLI's overview (written here) and command reference (`cli/commands/`, generated from `cli/commands.json`, the CLI's own description of its commands: do not edit).
 
 ```bash

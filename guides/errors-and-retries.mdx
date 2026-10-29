@@ -78,7 +78,7 @@ Every authenticated response carries the current window:
 | `RateLimit-Remaining` | Requests left |
 | `RateLimit-Reset` | Seconds until the window resets |
 
-An API key's limit is per minute and depends on its organization's plan (the [pricing page](https://nohead.io/pricing) lists it). A published-only key is public, so it is counted per client IP address: one visitor can't use up everyone else's. Requests with an invalid key are limited per IP address too.
+An API key's limit is per minute and depends on its organization's plan (the [pricing page](https://nohead.io/pricing) lists it). A published-only key can ship inside an app people run, so it is counted per client IP address: one user can't use up everyone else's. Requests with an invalid key are limited per IP address too.
 
 Over the limit, the API answers `429 rate_limited` with `Retry-After`, in seconds. The request was neither performed nor counted, so wait that long and send it again (with the same `Idempotency-Key`, for a write).
 
