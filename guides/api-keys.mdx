@@ -14,6 +14,8 @@ On the project's **API keys** page, choose **New API key**, give it a name and c
 The key is shown only once. If you lose it, create a new one and revoke the old one.
 </Warning>
 
+Signing in the [CLI](/cli/overview#sign-in) with `nohead login` creates a key too, once you approve it in the web app: it is named after the machine, such as "CLI on emils-macbook", and listed with the others. Revoking it signs only that machine's CLI out.
+
 **Published records only** is on by default. A published-only key, for your live site or app, sees published records only: no unpublished or deleted records and no history. It can take only the read scopes below, and it is rate-limited per client IP address, since it may ship inside an app people run, such as a mobile app. Its token starts `nohead_pk_`; every other key's starts `nohead_sk_`. Turn it off for a key that writes, or that reads drafts for a preview.
 
 ## Scopes

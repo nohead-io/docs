@@ -15,7 +15,7 @@ nohead whoami                # reads NOHEAD_API_KEY
 
 The CLI needs Node 26 or newer. In CI, pin its version (for example `npx nohead@0.3`; the [releases](https://github.com/nohead-io/nohead-cli/releases) list the latest), so an upgrade is a change you choose.
 
-On your own machine, `echo "$NOHEAD_API_KEY" | nohead login` saves the key for its project instead, and `nohead link <project>` in a checkout keeps an agent working there in that project: see [Projects](/cli/overview#projects). Then unset `NOHEAD_API_KEY`: while it's set, it wins over saved keys and a folder's link.
+On your own machine, sign in with `nohead login` instead: it opens the web app for you to approve a key for the project (an agent can run it too, and shows you the code to check). `nohead link <project>` in a checkout keeps an agent working there in that project: see [Projects](/cli/overview#projects). Don't keep `NOHEAD_API_KEY` set as well: while it's set, it wins over saved keys and a folder's link.
 
 ## Output agents can rely on
 
