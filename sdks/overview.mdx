@@ -355,4 +355,4 @@ The same event can arrive twice: deduplicate by the `webhook-id` header. [Webhoo
 
 ## Versions
 
-The SDKs have their own version numbers, separate from the API's `/v1`. Within `/v1` the API adds without breaking clients, so an older SDK keeps working. Anything an SDK depends on is deprecated at least 12 months before it is removed, and the SDKs warn when they call something deprecated. Each SDK's releases on GitHub (linked from the table at the top) list what changed in each version.
+The SDKs have their own version numbers, separate from the API's `/v1`. Until 1.0, the SDKs, the CLI and the API may change in ways that break your code: pin a version, and read each release's **Breaking** entries before upgrading. From 1.0, the API only adds within `/v1`, so an older SDK keeps working; anything an SDK depends on is deprecated at least 12 months before it is removed, and the SDKs warn when they call something deprecated. Each SDK's releases on GitHub (linked from the table at the top) list what changed in each version.
