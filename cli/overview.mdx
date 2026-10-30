@@ -21,14 +21,14 @@ In CI, pin a version, such as `npx nohead@0.3`, so an upgrade is a change you ch
 
 ## Sign in
 
-Create an [API key](/guides/api-keys) in the web app, then save it:
-
 ```bash
-echo "$NOHEAD_API_KEY" | nohead login   # or run nohead login and paste it: it isn't echoed
-nohead whoami                           # the key, the project in use and its scopes
+nohead login    # opens the web app to approve: choose the project, scopes and expiry
+nohead whoami   # the key, the project in use and its scopes
 ```
 
-`login` checks the key and saves it for its project, in a file only you can read. An API key belongs to one project, so to work on several, log in once with a key of each: they're saved side by side, and logging in again with a key of the same project replaces its key. `nohead logout` forgets the saved key of the project in use; the key itself stays valid until you revoke it in the web app.
+`nohead login` shows a code and opens the web app, where you check the code matches and choose the project, the [API key](/guides/api-keys)'s scopes and its expiry. The CLI then saves the new key, named after your machine, for its project, in a file only you can read. Over SSH or without a browser, open the link it prints on any device. In a folder linked with `nohead link`, that project is preselected.
+
+An API key belongs to one project, so to work on several, log in once for each: the keys are saved side by side, and logging in again for the same project replaces its key. To save a key you already have, pipe it in: `pbpaste | nohead login`, or `echo "$NOHEAD_API_KEY" | nohead login`. `nohead logout` forgets the saved key of the project in use; the key itself stays valid until you revoke it in the web app.
 
 ## Projects
 
