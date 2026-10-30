@@ -28,7 +28,7 @@ nohead whoami   # the key, the project in use and its scopes
 
 `nohead login` shows a code and opens the web app, where you check the code matches and choose the project, the [API key](/guides/api-keys)'s scopes and its expiry. The CLI then saves the new key, named after your machine, for its project, in a file only you can read. Over SSH or without a browser, open the link it prints on any device. In a folder linked with `nohead link`, that project is preselected.
 
-An API key belongs to one project, so to work on several, log in once for each: the keys are saved side by side, and logging in again for the same project replaces its key. To save a key you already have, pipe it in: `pbpaste | nohead login`, or `echo "$NOHEAD_API_KEY" | nohead login`. `nohead logout` forgets the saved key of the project in use; the key itself stays valid until you revoke it in the web app.
+An API key belongs to one project, so to work on several, log in once for each: the keys are saved side by side, and logging in again for the same project replaces its key. To save a key you already have, pipe it in: `echo "$NOHEAD_API_KEY" | nohead login`, or from the clipboard, `pbpaste | nohead login` on macOS (`wl-paste` or `xclip -o` on Linux, `Get-Clipboard` in PowerShell). `nohead logout` forgets the saved key of the project in use; the key itself stays valid until you revoke it in the web app.
 
 ## Projects
 
