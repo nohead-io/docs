@@ -17,7 +17,7 @@ nohead whoami   # the key, the project in use and its scopes
 
 `nohead login` opens the web app for you to approve a key for the project (an agent can run it too, and shows you the code to check). `nohead link <project>` in a checkout keeps an agent working there in that project: see [Projects](/cli/overview#projects).
 
-In CI, or for an agent that should act with a key of its own, create a key in the web app instead, as in [Work with agents](/guides/agents#give-each-agent-its-own-key), and set it as `NOHEAD_API_KEY`. Don't keep `NOHEAD_API_KEY` set where you've logged in: while it's set, it wins over saved keys and a folder's link.
+In CI, or for an agent that should act with a key of its own, create a key in the web app instead, as in [Work with agents](/guides/agents#give-each-agent-its-own-key), and set it as `NOHEAD_API_KEY`. In CI, [pin the CLI's version](/cli/overview#install) too. Don't keep `NOHEAD_API_KEY` set where you've logged in: while it's set, it wins over saved keys and a folder's link.
 
 ## Output agents can rely on
 
