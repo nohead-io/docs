@@ -57,7 +57,7 @@ for (const hit of results[0].hits) console.log(hit.data.title)
 
 Hits look like records:
 
-- `id` (`rec_…`), `status` (always `published`), and `published_at`, `created_at` and `updated_at` as Unix seconds
+- `id` (`rec_…`), and `published_at`, `created_at` and `updated_at` as Unix seconds; `published_at` can be filtered and sorted on, such as `filter: "published_at > 1767225600"` for posts published since 2026
 - field values under `data`, by field key: dates as Unix seconds, rich text as plain text, JSON as a string, assets and relations as IDs
 
 Several collections at once take one query each, or a federated search across them (`federation: {}` in the request).
