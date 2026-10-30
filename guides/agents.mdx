@@ -38,7 +38,9 @@ New keys are published-only by default (**Published records only**): they read p
 Keep the key in a secret store, such as your CI's, never in the repository.
 </Warning>
 
-The CLI and the SDKs read the key from `NOHEAD_API_KEY`. A key belongs to one project, so an agent never needs a project ID. With a key per agent or pipeline, history shows which one made each change, and revoking a key stops only that one.
+The CLI and the SDKs read the key from `NOHEAD_API_KEY`. A key belongs to one project, so with `NOHEAD_API_KEY` an agent never needs a project ID. With a key per agent or pipeline, history shows which one made each change, and revoking a key stops only that one.
+
+On your own machine, `nohead login` makes the key for you, and `nohead link` keeps a folder in its project: see [Projects](/cli/overview#projects).
 
 ## What keeps changes safe
 

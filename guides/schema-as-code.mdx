@@ -6,12 +6,11 @@ description: Keep your collections and fields in a YAML file in your repository,
 
 The `nohead` CLI keeps a project's schema in a file, `nohead.schema.yaml`. You change the file, review what it would change, and push it, from your machine or from CI. Push applies the file through the API under the same rules as the web app. It never deletes anything, and changes that rewrite values run as [field migrations](/guides/field-migrations) only when you allow them.
 
-```bash
-npm install -g @nohead/cli    # or run it without installing: npx nohead
-nohead login                  # approve a key for the project in the web app
-```
+[Install the CLI](/cli/overview#install), then sign in:
 
-The CLI needs Node 26 or newer.
+```bash
+nohead login    # approve a key for the project in the web app
+```
 
 Pulling needs a project API key with `schema:read`. Pushing needs `schema:write` and `records:read` too, on a key with **Published records only** off: push checks migrations and stricter field settings against the records first. Previewing migrations in `diff` needs the same. In CI, set `NOHEAD_API_KEY` instead of logging in.
 
@@ -107,7 +106,7 @@ nohead schema push --yes --note "Add summaries"
 
 ## In CI
 
-Keep `nohead.schema.yaml` in the repository and let CI apply it once a change is merged. A GitHub Actions job could look like this, with the CLI's version pinned so that upgrading it is a change you make:
+Keep `nohead.schema.yaml` in the repository and let CI apply it once a change is merged. A GitHub Actions job could look like this, with the CLI's version [pinned](/cli/overview#install) so that upgrading it is a change you make:
 
 ```yaml
 on:

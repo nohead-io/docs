@@ -4,32 +4,27 @@ icon: bot
 description: Let coding agents and CI jobs change your schema and content through the nohead CLI, with readable output and a note on every change.
 ---
 
-Coding agents such as Claude Code, Cursor or Codex, and CI jobs, work best with Nohead through the `nohead` CLI: its `--json` output and exit codes cost an agent less context than a list of tools. Give the agent an API key of its own first, as in [Work with agents](/guides/agents#give-each-agent-its-own-key).
+Coding agents such as Claude Code, Cursor or Codex, and CI jobs, work best with Nohead through the `nohead` CLI: its `--json` output and exit codes cost an agent less context than a list of tools.
 
-## Install the CLI
+## Set up the CLI
+
+[Install the CLI](/cli/overview#install), then sign in on your own machine:
 
 ```bash
-npm install -g @nohead/cli   # or run it without installing: npx nohead
-nohead whoami                # reads NOHEAD_API_KEY
+nohead login    # approve a key for the project in the web app
+nohead whoami   # the key, the project in use and its scopes
 ```
 
-The CLI needs Node 26 or newer. In CI, pin its version (for example `npx nohead@0.3`; the [releases](https://github.com/nohead-io/nohead-cli/releases) list the latest), so an upgrade is a change you choose.
+`nohead login` opens the web app for you to approve a key for the project (an agent can run it too, and shows you the code to check). `nohead link <project>` in a checkout keeps an agent working there in that project: see [Projects](/cli/overview#projects).
 
-On your own machine, sign in with `nohead login` instead: it opens the web app for you to approve a key for the project (an agent can run it too, and shows you the code to check). `nohead link <project>` in a checkout keeps an agent working there in that project: see [Projects](/cli/overview#projects). Don't keep `NOHEAD_API_KEY` set as well: while it's set, it wins over saved keys and a folder's link.
+In CI, or for an agent that should act with a key of its own, create a key in the web app instead, as in [Work with agents](/guides/agents#give-each-agent-its-own-key), and set it as `NOHEAD_API_KEY`. Don't keep `NOHEAD_API_KEY` set where you've logged in: while it's set, it wins over saved keys and a folder's link.
 
 ## Output agents can rely on
 
 - With `--json`, stdout carries exactly one JSON document: the API's own representation of the result, or for `schema` commands the plan.
 - Errors go to stderr. With `--json`, they use the API's error envelope, `{ "error": { "type", "message", "request_id", "details" } }`, and the CLI adds a few types of its own, such as `network_error` and `schema_differs`. Quote the `request_id` when you ask for support.
 - Rate limits (`429`), network failures and `5xx` responses are retried on their own, and every write carries an `Idempotency-Key`, so a retry never applies a change twice.
-
-| Exit code | Meaning |
-|---|---|
-| `0` | Success |
-| `1` | The API refused the request: validation, permission, not found, a changed record, a plan limit |
-| `2` | Usage error: bad arguments, a missing API key, an unreadable file |
-| `3` | The API could not be reached, after retries |
-| `4` | The CLI failed unexpectedly |
+- Exit codes tell API errors, usage errors and an unreachable API apart: [Output and exit codes](/cli/overview#output-and-exit-codes) lists them.
 
 ## Schema as code in CI
 
