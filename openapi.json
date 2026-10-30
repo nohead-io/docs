@@ -19,10 +19,6 @@
     {
       "url": "https://api.nohead.io",
       "description": "Production"
-    },
-    {
-      "url": "http://localhost:3000",
-      "description": "Local development"
     }
   ],
   "security": [
@@ -5790,7 +5786,7 @@
                   "organization_id": "org_01J9ZQ3F8X5W2K7M4N6P0R1S2T",
                   "project_id": null,
                   "flags": {
-                    "self_serve_organizations": true
+                    "new_editor": true
                   }
                 }
               }
@@ -9300,7 +9296,7 @@
                   },
                   "staff": {
                     "type": "boolean",
-                    "description": "Nohead staff (internal tooling access)."
+                    "description": "Whether the user is Nohead staff."
                   }
                 }
               }
