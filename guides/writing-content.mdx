@@ -257,7 +257,7 @@ nohead records create blog-posts --data-file post.json --note "Imported from the
 
 ```bash
 nohead records export blog-posts --output posts.jsonl
-nohead --profile staging records import blog-posts posts.jsonl --publish
+nohead --project prj_... records import blog-posts posts.jsonl --publish   # another project, with its saved key
 ```
 
 The import creates new records, with new IDs and a history of their own. Relation and asset IDs are written as they are, so they must exist in the project you import into. To copy a whole project, schema, assets and relations included, use `nohead export` and `nohead import`: see [the CLI](/cli/overview#schema-as-code-export-and-import). Every endpoint is in the [API reference](/api-reference/overview).

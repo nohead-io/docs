@@ -25,20 +25,38 @@ Create an [API key](/guides/api-keys) in the web app, then save it:
 
 ```bash
 echo "$NOHEAD_API_KEY" | nohead login   # or run nohead login and paste it: it isn't echoed
-nohead whoami                           # the key, its project and scopes
+nohead whoami                           # the key, the project in use and its scopes
 ```
 
-`login` checks the key and saves it, with its project, as a profile in a file only you can read. `--profile <name>` saves or uses another one, for example a key per project. In CI and for agents, set `NOHEAD_API_KEY` instead of logging in. `nohead logout` forgets a saved key; the key itself stays valid until you revoke it in the web app.
+`login` checks the key and saves it for its project, in a file only you can read. An API key belongs to one project, so to work on several, log in once with a key of each: they're saved side by side, and logging in again with a key of the same project replaces its key. `nohead logout` forgets the saved key of the project in use; the key itself stays valid until you revoke it in the web app.
+
+## Projects
+
+Choosing a project chooses its saved key. A command works in the first of:
+
+1. `--project <id>`
+2. `NOHEAD_PROJECT`
+3. the project in the nearest `nohead.json`, in the current folder or a folder above it
+4. the project of the only saved key
+
+With keys saved for several projects and none chosen, a command stops and asks for one. `nohead whoami` shows the project in use and where it came from.
+
+```bash
+nohead link prj_...   # this folder and the folders below it use that project
+```
+
+`nohead link` writes `nohead.json`, `{ "project": "prj_..." }`, in the current folder. It holds no secret, so commit it: each teammate logs in once with a key of that project, and a coding agent working in the folder stays in its project too. To unlink a folder, delete its `nohead.json`.
+
+In CI, or for an agent that should act with a key of its own, set `NOHEAD_API_KEY` instead of logging in. It wins over saved keys and works in its own project (or the one given with `--project` or `NOHEAD_PROJECT`); `nohead.json` doesn't apply to it.
 
 ## Configuration
 
-Flags win over environment variables, which win over the saved profile.
+Flags win over environment variables, which win over `nohead.json` and saved keys.
 
 | Setting | Flag | Environment |
 |---|---|---|
 | API key | none | `NOHEAD_API_KEY` |
-| Project | `--project <id>` | `NOHEAD_PROJECT` (default: the API key's project) |
-| Profile | `--profile <name>` | `NOHEAD_PROFILE` (default `default`) |
+| Project | `--project <id>` | `NOHEAD_PROJECT` (default: the nearest `nohead.json`, then the only saved key; with `NOHEAD_API_KEY`, the key's project) |
 | Change note | `--note <text>` | none: kept with record revisions, merges and schema changes |
 | Idempotency | `--idempotency-key <key>` | none: the same key and request return the first result for 24 hours |
 
