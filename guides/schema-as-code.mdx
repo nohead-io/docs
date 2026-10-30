@@ -127,9 +127,9 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 26
-      - run: npx --yes nohead@0.3 schema diff
+      - run: npx --yes nohead@0.4 schema diff
       - if: github.event_name == 'push'
-        run: npx --yes nohead@0.3 schema push --yes
+        run: npx --yes nohead@0.4 schema push --yes
 ```
 
 <Note>
