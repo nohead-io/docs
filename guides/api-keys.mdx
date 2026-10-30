@@ -8,13 +8,13 @@ Every request to the API carries a project API key as a bearer token: `Authoriza
 
 ## Create a key
 
-On the project's **API keys** page, choose **New API key**, give it a name and choose its scopes. A key works until it is revoked, unless you choose when it **Expires**: in 30 days, 90 days or a year. An expired key stops working, as a revoked one does, and the **API keys** page shows it as **Expired**. Store the key in your app's environment or secret manager, as `NOHEAD_API_KEY`. Developers, admins and owners can create keys, and a key never gets a scope its creator's role doesn't have (`not_grantable`). A project has at most 25 keys that aren't revoked.
+On the project's **API keys** page, choose **New API key**, give it a name and choose its scopes. A key works until it is revoked, unless you choose when it **Expires**: in 30 days, 90 days or a year. An expired key stops working, as a revoked one does, and the **API keys** page shows it as **Expired**. Store the key in your app's environment or secret manager, as `NOHEAD_API_KEY`. Developers, admins and owners can create keys, and a key never gets a scope its creator's role doesn't have (`not_grantable`). A project has at most 25 keys that aren't revoked or expired.
 
 <Warning>
 The key is shown only once. If you lose it, create a new one and revoke the old one.
 </Warning>
 
-Signing in the [CLI](/cli/overview#sign-in) with `nohead login` creates a key too, once you approve it in the web app: it is named after the machine, such as "CLI on emils-macbook", and listed with the others. Revoking it signs only that machine's CLI out.
+Signing in the [CLI](/cli/overview#sign-in) with `nohead login` creates a key too, once you approve it in the web app: it is named after the machine, such as "CLI on my-laptop", and listed with the others. Revoking it signs only that machine's CLI out. Approving another sign-in from that machine for the same project revokes it and creates a new one.
 
 **Published records only** is on by default. A published-only key, for your live site or app, sees published records only: no unpublished or deleted records and no history. It can take only the read scopes below, and it is rate-limited per client IP address, since it may ship inside an app people run, such as a mobile app. Its token starts `nohead_pk_`; every other key's starts `nohead_sk_`. Turn it off for a key that writes, or that reads drafts for a preview.
 

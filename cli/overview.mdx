@@ -26,9 +26,9 @@ nohead login    # opens the web app to approve: choose the project, scopes and e
 nohead whoami   # the key, the project in use and its scopes
 ```
 
-`nohead login` shows a code and opens the web app, where you check the code matches and choose the project, the [API key](/guides/api-keys)'s scopes and its expiry. The CLI then saves the new key, named after your machine, for its project, in a file only you can read. Over SSH or without a browser, open the link it prints on any device. In a folder linked with `nohead link`, or with `--project`, the key is for that project: the page offers no other.
+`nohead login` shows a code and opens the web app, where you check the code matches and choose the project, the [API key](/guides/api-keys)'s scopes and its expiry. The CLI then saves the new key, named after your machine, for its project, in a file only you can read. Over SSH or without a browser, open the link it prints on any device. In a folder linked with `nohead link`, or with `--project` or `NOHEAD_PROJECT`, the key is for that project: the page offers no other. Only approve a code your own terminal just showed: never approve a sign-in from a link someone sent you.
 
-An API key belongs to one project, so to work on several, log in once for each: the keys are saved side by side, and logging in again for the same project replaces its key. To save a key you already have, pipe it in: `echo "$NOHEAD_API_KEY" | nohead login`, or from the clipboard, `pbpaste | nohead login` on macOS (`wl-paste` or `xclip -o` on Linux, `Get-Clipboard` in PowerShell). `nohead logout` forgets the saved key of the project in use; the key itself stays valid until you revoke it in the web app.
+An API key belongs to one project, so to work on several, log in once for each: the keys are saved side by side. Approving another sign-in from the same machine for the same project replaces the key: the CLI saves the new one, and the earlier one is revoked. To save a key you already have, pipe it in: `echo "$NOHEAD_API_KEY" | nohead login`, or from the clipboard, `pbpaste | nohead login` on macOS (`wl-paste` or `xclip -o` on Linux, `Get-Clipboard` in PowerShell). `nohead logout` forgets the saved key of the project in use; the key itself stays valid until you revoke it in the web app, or approve another sign-in from that machine for that project.
 
 ## Projects
 
@@ -39,7 +39,7 @@ Choosing a project chooses its saved key. A command works in the first of:
 3. the project in the nearest `nohead.json`, in the current folder or a folder above it
 4. the project of the only saved key
 
-With keys saved for several projects and none chosen, a command stops and asks for one. `nohead whoami` shows the project in use and where it came from.
+With keys saved for several projects and none chosen, a command exits with `2` and lists the projects and the ways to choose one. `nohead whoami` shows the project in use and where it came from.
 
 ```bash
 nohead link prj_...   # this folder and the folders below it use that project
@@ -66,13 +66,13 @@ Scripts and agents can rely on this:
 
 - **stdout** carries only results. With `--json`, exactly one JSON document, the API's representation; `records export` writes JSON Lines.
 - **stderr** carries errors, summaries and diagnostics. With `--json`, errors use the API's error envelope, `{ "error": { "type", "message", "request_id", "details" } }`.
-- **Exit codes:** `0` success, `1` an API error (validation, authentication, not found, a stale revision, import failures), `2` a usage error (bad arguments, no API key, unreadable files), `3` the API or storage unreachable, `4` an unexpected failure in the CLI (`NOHEAD_DEBUG=1` prints the stack).
+- **Exit codes:** `0` success, `1` an API error (validation, authentication, permission, not found, a stale revision, a plan limit, import failures), `2` a usage error (bad arguments, no API key, unreadable files), `3` the API or storage unreachable, `4` an unexpected failure in the CLI (`NOHEAD_DEBUG=1` prints the stack).
 - **Retries:** up to 3, reported on stderr. A `429` is retried after its `Retry-After` (up to 60 seconds); network failures and `500`, `502`, `503` and `504` with backoff. Every write carries an `Idempotency-Key`, so a retry never writes twice.
 - Deleting a collection and discarding a draft need `--yes`; a discarded draft can't be restored. Everything else is soft-deleted and can be restored.
 
 ## Lists and filters
 
-A list prints one page of 100 (`audit`: 20, or `--limit n` up to 100) and ends with `More: --cursor <cursor>` when there are more. `--cursor <cursor>` prints the next page, and `--all` follows the cursors and prints everything. With `--json`, a page prints as the API returns it (`data` and `meta.next_cursor`), and `--all` as `{ "data": [...] }`.
+A list prints one page and ends with `More: --cursor <cursor>` when there are more. A page holds 100 (`audit`: 20), and `--limit n` sets another size, up to 100. `search` prints the top 20 results, or `--limit n` up to 100, without pages. `--cursor <cursor>` prints the next page, and `--all` follows the cursors and prints everything. With `--json`, a page prints as the API returns it (`data` and `meta.next_cursor`), and `--all` as `{ "data": [...] }`.
 
 `--filter` takes `key=value`, `key!=value`, `key<value` (and `>`, `<=`, `>=`), `"key in a,b"` (`\,` for a comma in a value), `"key exists"` and `"key !exists"`. Several on one key combine:
 
