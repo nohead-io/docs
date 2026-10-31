@@ -30,7 +30,7 @@ These field keys are reserved, for records' own attributes and a few kept for la
 | --- | --- | --- |
 | `text` | A string, up to 10,000 characters | `min_length`, `max_length`, `format`, `unique` (see [Formats and unique values](#formats-and-unique-values)) |
 | `long_text` | A string, up to 100,000 characters | `min_length`, `max_length` |
-| `rich_text` | A rich text document: `{"type": "doc", "content": [...]}`, compatible with ProseMirror and Tiptap, which can show [images](#images-in-rich-text) of the project's assets, up to 1 MB | |
+| `rich_text` | A rich text document: `{"type": "doc", "content": [...]}`, compatible with ProseMirror and Tiptap, which can show [images](#images-in-rich-text) of the project's assets, up to 1,000,000 bytes | |
 | `integer` | A whole number within ±9,007,199,254,740,991, which every JSON client represents exactly | `min`, `max`, `unique` |
 | `decimal` | A number | `min`, `max` |
 | `date` | A calendar date, `2026-10-09`, returned exactly as written. With `include_time`, a moment: ISO 8601 with an offset, stored in UTC | `include_time`, `time_zone` (see [Dates](#dates)) |
@@ -38,9 +38,11 @@ These field keys are reserved, for records' own attributes and a few kept for la
 | `enum` | One of the configured options, as a string | `options` (required): up to 500 unique strings |
 | `asset` | An asset ID (`ast_...`) from the project's assets | `accepted_types`: the kinds of file it takes |
 | `relation` | A record ID (`rec_...`) in the target collection | `target_collection_id` (required) |
-| `json` | Any JSON value, up to 1 MB | |
+| `json` | Any JSON value, up to 100,000 bytes and 32 levels of nesting. For data with a shape of its own, such as settings or another service's payload: model content as typed fields, and keep large data in an [asset](/guides/assets) | |
 
 Every type's configuration also takes a `description` (**Help text** in the web app, up to 500 characters) shown to editors, and the search options `searchable`, `filterable` and `sortable` ([Search options](#search-options)).
+
+A collection has at most 100 fields, and a record holds at most 2,000,000 bytes of values, all its fields together (`too_large` on `data`). A collection that needs more is usually two: move a group of its fields into a collection of their own and point to it with a [relation](#relations-and-assets).
 
 Values are never converted between types: `"5"` is not an integer and `1` is not a boolean. With **multiple** on, the value is a list of distinct values of the field's type, such as a list of tags or photos; a repeated value is refused (`duplicate_value`).
 
