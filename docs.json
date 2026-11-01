@@ -323,7 +323,17 @@
     "socials": {
       "x": "https://x.com/nohead_io",
       "github": "https://github.com/nohead-io"
-    }
+    },
+    "links": [
+      {
+        "items": [
+          {
+            "label": "Status",
+            "href": "https://status.nohead.io"
+          }
+        ]
+      }
+    ]
   },
   "redirects": [
     {
