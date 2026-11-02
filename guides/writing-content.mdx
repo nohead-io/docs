@@ -33,7 +33,7 @@ The API answers `201` with the record, unpublished, at revision 1; [publish it](
 
 - **Relation**: the ID of a record in the field's target collection (`rec_…`).
 - **Asset**: the ID of an uploaded asset of the project (`ast_…`), of a type the field accepts. [Upload](/guides/assets#upload) the file first.
-- **Rich text**: a document, `{"type": "doc", "content": [...]}`, compatible with ProseMirror and Tiptap, which can show the project's images.
+- **Rich text**: Markdown, or a ProseMirror document (`{"type": "doc", "content": [...]}`), which can show the project's images. See [Rich text](/guides/content-modelling#rich-text).
 - **Multiple**: a list of distinct values of the field's type, such as the `tags` above.
 
 [Content modelling](/guides/content-modelling#field-types) has every type's value and rules. A required field needs a value: `null`, `""` and `[]` count as none. Relation and asset IDs are checked when they are newly written: the record must exist in the target collection and the asset must be uploaded and not deleted (`invalid_reference`). IDs a record already holds are left alone, so a record whose related record was deleted later can still be saved.
