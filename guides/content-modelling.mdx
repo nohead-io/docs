@@ -96,9 +96,9 @@ What the vocabulary below can't hold is converted as closely as it can be: headi
 
 A document uses the web editor's nodes and marks, and nothing else, so whatever is stored edits in the web app and renders:
 
-- **Blocks:** `paragraph`, `heading` (`level` 1 to 3), `blockquote`, `bulletList` and `orderedList` (`start`) of `listItem` (each starting with a paragraph), `codeBlock` (`language`), `horizontalRule`, `table` of `tableRow` of `tableHeader` and `tableCell` (`colspan`, `rowspan`, `align`), and [images](#images-in-rich-text). Any block can have a `dir` (`auto`, `ltr` or `rtl`).
+- **Blocks:** `paragraph`, `heading` (`level` 1 to 3), `blockquote`, `bulletList` and `orderedList` (`start`, `type`) of `listItem` (each starting with a paragraph), `codeBlock` (`language`), `horizontalRule`, `table` of `tableRow` of `tableHeader` and `tableCell` (`colspan`, `rowspan`, `colwidth`, `align`), and [images](#images-in-rich-text). Any block can have a `dir` (`auto`, `ltr` or `rtl`).
 - **Inline:** `text` and `hardBreak`.
-- **Marks on text:** `bold`, `italic`, `strike`, `underline`, `code` (on its own) and `link` (`href`, and optionally `title`).
+- **Marks on text:** `bold`, `italic`, `strike`, `underline`, `code` (on its own) and `link` (`href`, and optionally `title`, `target`, `rel` and `class`, which Tiptap adds).
 
 Another editor's names are refused with `invalid_format`, naming ours where one fits: `contains an unknown mark "strong"; use "bold"`. These are Tiptap's names, so documents from a Tiptap editor with StarterKit and tables need no conversion.
 
@@ -164,7 +164,7 @@ puts post.data["body"]
 </CodeGroup>
 
 - **HTML** is a fragment of the elements above (`p`, `h1`–`h3`, `ul`, `ol`, `table`, `pre`, `a`, `strong` and so on), with every text and attribute escaped, to put in a page as it is. Images are WebP renditions at most 1,600 pixels wide with their `width` and `height` (an SVG as itself); one whose asset was deleted is left out.
-- **Markdown** reads back as the same document, so an agent or script can read it, change it and write it back. Images are written with their `image_url`.
+- **Markdown** reads back as the same document, so an agent or script can read it, change it and write it back. Markdown has no underline or merged table cells, so those are lost on the way, and text that looks like a URL or an email address comes back as a link. Images are written with their `image_url`.
 - Images come with their URLs, so they need no `expand`, and no `assets:read`. Records embedded with `expand` read the same way.
 - Record history and webhook payloads keep documents.
 
