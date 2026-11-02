@@ -30,7 +30,7 @@ These field keys are reserved, for records' own attributes and a few kept for la
 | --- | --- | --- |
 | `text` | A string, up to 10,000 characters | `min_length`, `max_length`, `format`, `unique` (see [Formats and unique values](#formats-and-unique-values)) |
 | `long_text` | A string, up to 100,000 characters | `min_length`, `max_length` |
-| `rich_text` | A rich text document: `{"type": "doc", "content": [...]}`, compatible with ProseMirror and Tiptap, which can show [images](#images-in-rich-text) of the project's assets, up to 1,000,000 bytes | |
+| `rich_text` | A ProseMirror document, `{"type": "doc", "content": [...]}`, which can show [images](#images-in-rich-text) of the project's assets, up to 1,000,000 bytes. Write it as Markdown or as the document; read it as the document, HTML or Markdown ([Rich text](#rich-text)) | |
 | `integer` | A whole number within ±9,007,199,254,740,991, which every JSON client represents exactly | `min`, `max`, `unique` |
 | `decimal` | A number | `min`, `max` |
 | `date` | A calendar date, `2026-10-09`, returned exactly as written. With `include_time`, a moment: ISO 8601 with an offset, stored in UTC | `include_time`, `time_zone` (see [Dates](#dates)) |
@@ -47,7 +47,7 @@ A collection has at most 100 fields, and a record holds at most 2,000,000 bytes 
 Values are never converted between types: `"5"` is not an integer and `1` is not a boolean. With **multiple** on, the value is a list of distinct values of the field's type, such as a list of tags or photos; a repeated value is refused (`duplicate_value`).
 
 <Note>
-  Links and image sources inside rich text must be `http`, `https`, `mailto`, `tel` or relative URLs. Your site renders this content, so the API rejects `javascript:` and `data:` URLs.
+  Links inside rich text must be `http`, `https`, `mailto`, `tel` or relative URLs. Your site renders this content, so the API rejects `javascript:` and `data:` URLs.
 </Note>
 
 ## Formats and unique values
@@ -75,7 +75,34 @@ With `include_time: true` the field holds a moment, such as an event's start. Se
 
 Changing `time_zone` never rewrites values: the moments stay, and only how they are written changes. Turning `include_time` on or off does rewrite them, so it runs as a [field migration](/guides/field-migrations). Removing the time takes a `time_zone` whose day each moment falls on (by default the field's own, else UTC), and adding it makes each date midnight in the field's zone.
 
-## Images in rich text
+## Rich text
+
+Rich text is stored as a [ProseMirror](https://prosemirror.net) document in the web editor's vocabulary. Write it as Markdown, or as the document, and read it back as the document, as HTML or as Markdown.
+
+### Write Markdown
+
+A Markdown string (GitHub Flavored) in a rich text field is stored as the document it reads as:
+
+```bash
+curl -X PATCH "https://api.nohead.io/v1/records/rec_01J9ZQ3F8X5W2K7M4N6P0R1S2T" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"data": {"body": "## Getting there\n\nTake the **8:15** ferry, then walk.\n\n| Day | Ferry |\n| --- | --- |\n| Mon | 8:15 |"}}'
+```
+
+What the vocabulary below can't hold is converted as closely as it can be: headings below `###` become `###`, task list items plain items, and footnotes and raw HTML their text. Images are the project's assets, written `![alt](ast_...)` or with an asset's `image_url`; any other image is refused (`invalid_format`). There is no HTML input: convert HTML to Markdown first.
+
+### The document
+
+A document uses the web editor's nodes and marks, and nothing else, so whatever is stored edits in the web app and renders:
+
+- **Blocks:** `paragraph`, `heading` (`level` 1 to 3), `blockquote`, `bulletList` and `orderedList` (`start`, `type`) of `listItem` (each starting with a paragraph), `codeBlock` (`language`), `horizontalRule`, `table` of `tableRow` of `tableHeader` and `tableCell` (`colspan`, `rowspan`, `colwidth`, `align`), and [images](#images-in-rich-text). Any block can have a `dir` (`auto`, `ltr` or `rtl`).
+- **Inline:** `text` and `hardBreak`.
+- **Marks on text:** `bold`, `italic`, `strike`, `underline`, `code` (on its own) and `link` (`href`, and optionally `title`, `target`, `rel` and `class`, which Tiptap adds).
+
+Another editor's names are refused with `invalid_format`, naming ours where one fits: `contains an unknown mark "strong"; use "bold"`. These are Tiptap's names, so documents from a Tiptap editor with StarterKit and tables need no conversion.
+
+### Images in rich text
 
 An image in a rich text document is one of the project's assets, by ID, with its alt text:
 
@@ -98,14 +125,54 @@ An image in a rich text document is one of the project's assets, by ID, with its
 }
 ```
 
-- Images go between the document's blocks, not inside a list or a quote.
-- A newly added image must be an uploaded JPEG, PNG, GIF, WebP or AVIF of the project; anything else is refused (`invalid_reference`, `type_not_accepted`). SVG files can't be images in rich text, because they can carry scripts. An image already in a document stays when its asset is deleted later.
+- Images go between the document's blocks, not inside a list, a quote or a table. In Markdown, an image inside one moves to after it.
+- A newly added image must be an uploaded JPEG, PNG, GIF, WebP, AVIF or SVG of the project; anything else is refused (`invalid_reference`, `type_not_accepted`). An image already in a document stays when its asset is deleted later.
 - A document holds at most 100 images (`too_many_images`). For more, an asset field with **multiple** on suits a gallery better.
 - `alt` is up to 1,000 characters, and search matches it.
 
 In the web app, the editor's **Image** button chooses an asset or uploads one, and images can be pasted or dropped in.
 
-To render a document, expand the field, which needs the key's `assets:read` scope: `expanded` then lists the assets its images show, in order, with their dimensions and `image_url`. Write the size your page needs into each image's URL ([Images](/guides/images)), with no further request:
+### Read HTML or Markdown
+
+Pass `rich_text=html` or `rich_text=markdown` to any request that returns records or drafts, and each rich text value is a string instead of the document:
+
+<CodeGroup>
+
+```bash curl
+curl "https://api.nohead.io/v1/collections/blog-posts/records?rich_text=html" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY"
+```
+
+```ts TypeScript
+const site = nohead.withOptions({ richText: "html" })
+const post = await site.records.get<{ body: string }>("rec_01J9ZQ3F8X5W2K7M4N6P0R1S2T")
+console.log(post.data.body) // "<h2>Getting there</h2>\n<p>Take the <strong>8:15</strong> ferry…"
+```
+
+```python Python
+site = nohead.with_options(rich_text="html")
+post = site.records.get("rec_01J9ZQ3F8X5W2K7M4N6P0R1S2T")
+print(post.data["body"])
+```
+
+```ruby Ruby
+site = nohead.with_options(rich_text: "html")
+post = site.records.get("rec_01J9ZQ3F8X5W2K7M4N6P0R1S2T")
+puts post.data["body"]
+```
+
+</CodeGroup>
+
+- **HTML** is a fragment of the elements above (`p`, `h1`–`h3`, `ul`, `ol`, `table`, `pre`, `a`, `strong` and so on), with every text and attribute escaped, to put in a page as it is. Images are WebP renditions at most 1,600 pixels wide with their `width` and `height` (an SVG as itself); one whose asset was deleted is left out.
+- **Markdown** reads back as the same document, so an agent or script can read it, change it and write it back. Markdown has no underline or merged table cells, so those are lost on the way, and text that looks like a URL or an email address comes back as a link. Images are written with their `image_url`.
+- Images come with their URLs, so they need no `expand`, and no `assets:read`. Records embedded with `expand` read the same way.
+- Record history and webhook payloads keep documents.
+
+<Warning>
+  A string written to a rich text field is read as Markdown. Write back Markdown or the document, never the HTML: its tags would be kept as text.
+</Warning>
+
+To render documents yourself, expand the field instead, which needs the key's `assets:read` scope: `expanded` then lists the assets its images show, in order, with their dimensions and `image_url`. Write the size your page needs into each image's URL ([Images](/guides/images)), with no further request:
 
 ```bash
 curl "https://api.nohead.io/v1/collections/blog-posts/records?expand=body" \

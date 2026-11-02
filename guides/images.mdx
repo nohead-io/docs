@@ -10,7 +10,7 @@ Every image you upload has an `image_url`: the whole image, served from a CDN. I
 
 ## Image URLs
 
-An asset that is a ready JPEG, PNG, GIF, WebP or AVIF image has an `image_url` (it is `null` for other files):
+An asset that is a ready JPEG, PNG, GIF, WebP, AVIF or SVG image has an `image_url` (it is `null` for other files):
 
 ```text
 https://images.nohead.io/plain/<project>/<asset>
@@ -61,7 +61,7 @@ So that any URL stays cheap to serve ([Assets](/guides/assets#upload) has the up
 
 - Renditions are at most 4096 pixels a side, and originals at most 50 megapixels.
 - Options that would return a file as stored are refused: `raw`, `skip_processing` and `strip_metadata`. Renditions never carry a photo's metadata, such as its location.
-- SVG images have no `image_url`, only a `preview_url` (a WebP): their `file_url` downloads them as they are.
+- An SVG's `image_url` serves it as SVG with its scripts removed, and other options are ignored; add a format, such as `@webp`, for a raster image. Its `file_url` downloads it as uploaded.
 - Each rendition is cached for a year. Requests from one address are rate limited, generously enough for pages full of images.
 
 ## Video, audio and other files

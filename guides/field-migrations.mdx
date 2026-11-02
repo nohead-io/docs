@@ -21,7 +21,7 @@ An edit that would leave records invalid is refused with `requires_migration` (o
 
 ## Which values convert
 
-- Any type converts to `json`, and `json` to any type whose values it already holds.
+- Any type converts to `json`, and `json` to any type whose values it already holds (a string becomes rich text as Markdown).
 - Numbers, booleans, dates and enum values convert to `text` and `long_text`.
 - `text` and `long_text` convert to each other, and to `integer`, `decimal`, `boolean` (`true` or `false`), `date` and `enum` when the value fits, and to `rich_text`, with a paragraph per block of text between blank lines.
 - `integer` converts to `decimal`, and `decimal` to `integer` when the value is a whole number.

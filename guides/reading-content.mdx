@@ -74,7 +74,7 @@ curl "https://api.nohead.io/v1/collections/blog-posts/records?expand=author,cove
   -H "Authorization: Bearer $NOHEAD_API_KEY"
 ```
 
-Each record then has an `expanded` object keyed by field key. A related record or asset that no longer exists is `null` for a single-value field and left out of the list for a multiple one. With a published-only key, related unpublished records are left out too. To render rich text with its images, see [Images in rich text](/guides/content-modelling#images-in-rich-text).
+Each record then has an `expanded` object keyed by field key. A related record or asset that no longer exists is `null` for a single-value field and left out of the list for a multiple one. With a published-only key, related unpublished records are left out too. To get rich text as HTML or Markdown, with its images, pass `rich_text` ([Read HTML or Markdown](/guides/content-modelling#read-html-or-markdown)).
 
 ## Count
 
