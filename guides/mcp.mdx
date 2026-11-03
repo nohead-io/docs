@@ -84,10 +84,30 @@ Chat apps that only connect through a sign-in (OAuth), such as Claude.ai connect
 | `diff_record` | What changed between two revisions | `records:read` |
 | `revert_record` | Make an earlier revision current again (with `dry_run`) | `records:write` |
 | `restore_record` | Bring back a deleted record | `records:write` |
+| `list_assets` | The project's images and files, with search and filters | `assets:read` |
+| `get_asset` | One asset, with its `image_url` | `assets:read` |
+| `update_asset` | Set an asset's alt text or filename | `assets:write` |
+| `delete_asset` | Delete an asset, restorable for 30 days | `assets:write` |
+| `start_upload` | Step 1 of an upload: where to send the file | `assets:write` |
+| `complete_upload` | Step 2 of an upload: make the asset ready | `assets:write` |
 
 An agent sees only the tools its key's scopes allow, and a published-only key reads published records only: its `list_revisions` and `diff_record` calls are refused (`403`), since history can hold unpublished content. Each tool's arguments carry the API reference's own descriptions. Schema changes aren't tools: make those as reviewed schema files with the CLI (`nohead schema pull`, `diff` and `push`).
 
 Agents read and write rich text as Markdown: tools that return records give rich text fields as Markdown unless the agent asks for `rich_text: "html"` or `"document"`, and `create_record` and `update_record` take Markdown ([Rich text](/guides/content-modelling#rich-text)).
+
+## Images and files
+
+With `assets:read` and `assets:write`, an agent can find a project's [assets](/guides/assets), fix missing alt text, and upload an image to put on a record. Asset tools take no `note` or `expected_revision`, since assets have no history.
+
+An upload is the API's [two steps](/guides/assets#over-http), with the file's bytes sent in between by the agent itself:
+
+1. `start_upload` with the file's `filename`, `content_type` and exact `byte_size`. It returns the pending asset and its `upload`: a `method`, `url` and `headers`, and when it `expires_at`. A file larger than your plan allows is refused with `402 plan_limit_exceeded`.
+2. The agent sends the file to `upload.url`, for example with `curl -X PUT "$UPLOAD_URL" -H "Content-Type: image/png" --data-binary @cover.png`. The bytes go straight to storage, not through the MCP server.
+3. `complete_upload` checks the file and marks the asset `ready`.
+
+The second step needs an agent that can make HTTP requests, such as a coding agent with a shell: an agent with only the MCP server's tools can't upload this way.
+
+A ready asset's `id` (`ast_…`) is then the value of an asset field, set with `update_record` (`"data": {"cover": "ast_…"}`), or an image in rich text, `![alt](ast_…)`. `get_schema` shows which fields are asset fields and the types they accept.
 
 ## Guardrails
 
