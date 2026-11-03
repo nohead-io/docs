@@ -85,20 +85,25 @@ Chat apps that only connect through a sign-in (OAuth), such as Claude.ai connect
 | `discard_draft` | Discard a draft; the record is unchanged | `records:write` |
 | `publish_record` | Publish a record's current revision | `records:write` |
 | `unpublish_record` | Take a record off sites and apps | `records:write` |
+| `schedule_record` | Publish or unpublish a record at a set time | `records:write` |
+| `get_schedule` | When a record publishes or unpublishes on its own | `records:read` |
+| `unschedule_record` | Cancel a record's schedule | `records:write` |
 | `list_revisions` | A record's history | `records:read` |
 | `diff_record` | What changed between two revisions | `records:read` |
 | `revert_record` | Make an earlier revision current again (with `dry_run`) | `records:write` |
 | `restore_record` | Bring back a deleted record | `records:write` |
 
-An agent sees only the tools its key's scopes allow, and a published-only key reads published records only: its `list_revisions` and `diff_record` calls are refused (`403`), since history can hold unpublished content. Each tool's arguments carry the API reference's own descriptions. Schema changes aren't tools: make those as reviewed schema files with the CLI (`nohead schema pull`, `diff` and `push`).
+An agent sees only the tools its key's scopes allow, and a published-only key reads published records only: its `list_revisions` and `diff_record` calls are refused (`403`), since history can hold unpublished content, and so are its `get_schedule` calls. Each tool's arguments carry the API reference's own descriptions. Schema changes aren't tools: make those as reviewed schema files with the CLI (`nohead schema pull`, `diff` and `push`).
 
-Agents read and write rich text as Markdown: tools that return records give rich text fields as Markdown unless the agent asks for `rich_text: "html"` or `"document"`, and `create_record`, `update_record`, `create_draft` and `update_draft` take Markdown ([Rich text](/guides/content-modelling#rich-text)).
+`schedule_record` ([Schedule publishing](/guides/publishing#schedule-publishing)) takes `publish_at`, `unpublish_at` or both, as ISO 8601 times with a zone such as `2026-11-06T09:00:00Z`, and replaces the whole schedule: a time left out is cleared, so an agent adding an unpublish time passes the publish time again. A publish time needs an unpublished record, and an unpublish time a published one or a publish time before it. The change is made within a minute of its time, as its own revision; one that can't be made then (the record is live with a pending draft, say) is dropped, and `get_schedule` gives the reason in `last_error`. Scheduling makes no revision, so these tools take no `note` or `expected_revision`, and a schedule change can't be reverted: the last write wins, so read the schedule with `get_schedule` just before replacing it. Schedule changes are in the [activity log](/guides/history#activity-log).
+
+Agents read and write rich text as Markdown: tools that return records, `diff_record` and `revert_record` (its changes too, with `dry_run`) give rich text fields as Markdown unless the agent asks for `rich_text: "html"` or `"document"`, and `create_record`, `update_record`, `create_draft` and `update_draft` take Markdown ([Rich text](/guides/content-modelling#rich-text)).
 
 ## Guardrails
 
 The tools add guardrails for agents:
 
-- **A note on every change.** Every write to a record takes a required `note` saying why, up to 500 characters. It is stored in the record's history next to the key's name and the client, **MCP**.
+- **A note on every change to your content.** Each one takes a required `note` saying why, up to 500 characters. It is stored in the record's history next to the key's name and the client, **MCP**.
 - **No overwriting.** Changes to an existing record take the `expected_revision` the agent read, and the server's instructions ask agents to pass it. If someone changed the record since, the change is refused with `precondition_failed`, and the agent should read it again. Without it, the last write wins.
 - **Safe retries.** Every write takes an optional `idempotency_key`. Retrying with the same key never applies a change twice.
 - **Review before it goes live.** A change to a published record shows on your sites at once, so the server's instructions ask agents to propose it as a draft instead, unless you asked for a direct edit. The draft waits until a person merges it in the editor (**Publish changes**) or with `nohead drafts merge`: no tool merges or schedules a draft. A record has at most one draft, and `create_draft` on a record that has one is refused with `draft_exists` and its `draft_id`, so the agent changes that one with `update_draft`, passing the draft's `revision` as `expected_revision`.
