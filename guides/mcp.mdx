@@ -78,6 +78,11 @@ Chat apps that only connect through a sign-in (OAuth), such as Claude.ai connect
 | `get_record` | One record, with its current revision | `records:read` |
 | `create_record` | A new record, unpublished | `records:write` |
 | `update_record` | Change some of a record's field values | `records:write` |
+| `list_drafts` | A collection's drafts: changes waiting for review | `records:read` |
+| `get_draft` | A draft: the record as it reads once merged, and the fields it changes | `records:read` |
+| `create_draft` | Propose changes to a record, for a person to merge | `records:write` |
+| `update_draft` | Change some of a draft's values | `records:write` |
+| `discard_draft` | Discard a draft; the record is unchanged | `records:write` |
 | `publish_record` | Publish a record's current revision | `records:write` |
 | `unpublish_record` | Take a record off sites and apps | `records:write` |
 | `list_revisions` | A record's history | `records:read` |
@@ -87,15 +92,16 @@ Chat apps that only connect through a sign-in (OAuth), such as Claude.ai connect
 
 An agent sees only the tools its key's scopes allow, and a published-only key reads published records only: its `list_revisions` and `diff_record` calls are refused (`403`), since history can hold unpublished content. Each tool's arguments carry the API reference's own descriptions. Schema changes aren't tools: make those as reviewed schema files with the CLI (`nohead schema pull`, `diff` and `push`).
 
-Agents read and write rich text as Markdown: tools that return records give rich text fields as Markdown unless the agent asks for `rich_text: "html"` or `"document"`, and `create_record` and `update_record` take Markdown ([Rich text](/guides/content-modelling#rich-text)).
+Agents read and write rich text as Markdown: tools that return records give rich text fields as Markdown unless the agent asks for `rich_text: "html"` or `"document"`, and `create_record`, `update_record`, `create_draft` and `update_draft` take Markdown ([Rich text](/guides/content-modelling#rich-text)).
 
 ## Guardrails
 
 The tools add guardrails for agents:
 
-- **A note on every change.** Every write takes a required `note` saying why, up to 500 characters. It is stored in the record's history next to the key's name and the client, **MCP**.
+- **A note on every change.** Every write to a record takes a required `note` saying why, up to 500 characters. It is stored in the record's history next to the key's name and the client, **MCP**.
 - **No overwriting.** Changes to an existing record take the `expected_revision` the agent read, and the server's instructions ask agents to pass it. If someone changed the record since, the change is refused with `precondition_failed`, and the agent should read it again. Without it, the last write wins.
 - **Safe retries.** Every write takes an optional `idempotency_key`. Retrying with the same key never applies a change twice.
+- **Review before it goes live.** A change to a published record shows on your sites at once, so the server's instructions ask agents to propose it as a draft instead, unless you asked for a direct edit. The draft waits until a person merges it in the editor (**Publish changes**) or with `nohead drafts merge`: no tool merges or schedules a draft. A record has at most one draft, and `create_draft` on a record that has one is refused with `draft_exists` and its `draft_id`, so the agent changes that one with `update_draft`, passing the draft's `revision` as `expected_revision`.
 - **Nothing irreversible.** Every record change is a revision you can revert, and `revert_record` previews with `dry_run: true`. New records start unpublished.
 
 Errors come back as tool errors with the API's error envelope, so an agent sees the same `type`, `message` and `details` (each with its `code`) the [API reference](/api-reference/overview) documents.
