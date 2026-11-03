@@ -123,7 +123,7 @@ A ready asset's `id` (`ast_…`) is then the value of an asset field, set with `
 
 The tools add guardrails for agents:
 
-- **A note on every change to your content.** Each one takes a required `note` saying why, up to 500 characters. It is stored in the record's history next to the key's name and the client, **MCP**.
+- **A note on every change to a record.** Each one takes a required `note` saying why, up to 500 characters. It is stored in the record's history next to the key's name and the client, **MCP**.
 - **No overwriting.** Changes to an existing record take the `expected_revision` the agent read, and the server's instructions ask agents to pass it. If someone changed the record since, the change is refused with `precondition_failed`, and the agent should read it again. Without it, the last write wins.
 - **Safe retries.** Every write takes an optional `idempotency_key`. Retrying with the same key never applies a change twice.
 - **Review before it goes live.** A change to a published record shows on your sites at once, so the server's instructions ask agents to propose it as a draft instead, unless you asked for a direct edit. The draft waits until a person merges it in the editor (**Publish changes**) or with `nohead drafts merge`: no tool merges or schedules a draft. A record has at most one draft, and `create_draft` on a record that has one is refused with `draft_exists` and its `draft_id`, so the agent changes that one with `update_draft`, passing the draft's `revision` as `expected_revision`.
