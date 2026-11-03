@@ -87,7 +87,7 @@ Chat apps that only connect through a sign-in (OAuth), such as Claude.ai connect
 
 An agent sees only the tools its key's scopes allow, and a published-only key reads published records only: its `list_revisions` and `diff_record` calls are refused (`403`), since history can hold unpublished content. Each tool's arguments carry the API reference's own descriptions. Schema changes aren't tools: make those as reviewed schema files with the CLI (`nohead schema pull`, `diff` and `push`).
 
-Agents read and write rich text as Markdown: tools that return records give rich text fields as Markdown unless the agent asks for `rich_text: "html"` or `"document"`, and `create_record` and `update_record` take Markdown ([Rich text](/guides/content-modelling#rich-text)).
+Agents read and write rich text as Markdown: tools that return records, and `diff_record`, give rich text fields as Markdown unless the agent asks for `rich_text: "html"` or `"document"`, and `create_record` and `update_record` take Markdown ([Rich text](/guides/content-modelling#rich-text)).
 
 ## Guardrails
 
