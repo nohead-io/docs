@@ -10,7 +10,7 @@ Coding agents and CI jobs with a shell are usually better served by the `nohead`
 
 ## Connect
 
-The server speaks Streamable HTTP at `https://mcp.nohead.io/mcp`. Authenticate with a project API key as the bearer token. Give the agent a key of its own, with only the scopes it needs, so its changes are attributed to it in history. New keys are published-only by default: an agent that changes content needs a key with **Published records only** off and `schema:read`, `records:read` and `records:write`, plus `search:read` to search. The server offers only the tools a key's scopes allow, and an agent starts by reading the schema.
+The server speaks Streamable HTTP at `https://mcp.nohead.io/mcp`. Authenticate with a project API key as the bearer token. Give the agent a key of its own, with only the scopes it needs, so its changes are attributed to it in history. New keys are published-only by default: an agent that changes content needs a key with **Published records only** off and `schema:read`, `records:read` and `records:write`, plus `search:read` to search, and `assets:read` and `assets:write` for images and files. The server offers only the tools a key's scopes allow, and an agent starts by reading the schema.
 
 Codex and Cursor read the key from the `NOHEAD_API_KEY` environment variable, and VS Code asks for it once and stores it, so none of their config files holds the key itself, and a project's `.cursor/mcp.json` or `.vscode/mcp.json` can be committed. Claude Code saves the key in its own settings, outside the project, when you run its command: run it with `NOHEAD_API_KEY` set.
 
@@ -92,12 +92,32 @@ Chat apps that only connect through a sign-in (OAuth), such as Claude.ai connect
 | `diff_record` | What changed between two revisions | `records:read` |
 | `revert_record` | Make an earlier revision current again (with `dry_run`) | `records:write` |
 | `restore_record` | Bring back a deleted record | `records:write` |
+| `list_assets` | The project's images and files, with search and filters | `assets:read` |
+| `get_asset` | One asset, with its URLs | `assets:read` |
+| `update_asset` | Set an asset's alt text or filename | `assets:write` |
+| `delete_asset` | Delete an asset, restorable for 30 days | `assets:write` |
+| `start_upload` | Step 1 of an upload: where to send the file | `assets:write` |
+| `complete_upload` | Step 2 of an upload: make the asset ready | `assets:write` |
 
 An agent sees only the tools its key's scopes allow, and a published-only key reads published records only: its `list_revisions` and `diff_record` calls are refused (`403`), since history can hold unpublished content, and so are its `get_schedule` calls. Each tool's arguments carry the API reference's own descriptions. Schema changes aren't tools: make those as reviewed schema files with the CLI (`nohead schema pull`, `diff` and `push`).
 
 `schedule_record` ([Schedule publishing](/guides/publishing#schedule-publishing)) takes `publish_at`, `unpublish_at` or both, as ISO 8601 times with a zone such as `2026-11-06T09:00:00Z`, and replaces the whole schedule: a time left out is cleared, so an agent adding an unpublish time passes the publish time again. A publish time needs an unpublished record, and an unpublish time a published one or a publish time before it. The change is made within a minute of its time, as its own revision; one that can't be made then (the record is live with a pending draft, say) is dropped, and `get_schedule` gives the reason in `last_error`. Scheduling makes no revision, so these tools take no `note` or `expected_revision`, and a schedule change can't be reverted: the last write wins, so read the schedule with `get_schedule` just before replacing it. Schedule changes are in the [activity log](/guides/history#activity-log).
 
 Agents read and write rich text as Markdown: tools that return records, `diff_record` and `revert_record` (its changes too, with `dry_run`) give rich text fields as Markdown unless the agent asks for `rich_text: "html"` or `"document"`, and `create_record`, `update_record`, `create_draft` and `update_draft` take Markdown ([Rich text](/guides/content-modelling#rich-text)).
+
+## Images and files
+
+With `assets:read` and `assets:write`, an agent can find a project's [assets](/guides/assets), fix missing alt text, and upload an image to put on a record. Asset tools take no `note` or `expected_revision`, since assets have no history.
+
+An upload takes [the same three requests as over HTTP](/guides/assets#over-http): two tools, with the agent sending the file itself in between.
+
+1. `start_upload` with the file's `filename`, `content_type` and exact `byte_size`. It returns the pending asset and its `upload`: a `method`, `url` and `headers`, and when it `expires_at`. A file larger than your plan allows, or on Free one that would go over the organization's storage, is refused with `402 plan_limit_exceeded`.
+2. The agent sends the file's bytes to `upload.url` with `upload.method` and every header in `upload.headers`, before `upload.expires_at`: for example `curl -X PUT "$UPLOAD_URL" -H "Content-Type: image/png" --data-binary @cover.png`. The bytes go straight to storage, not through the MCP server.
+3. `complete_upload` checks the file and marks the asset `ready`.
+
+The second step needs an agent that can make HTTP requests, such as a coding agent with a shell: an agent with only the MCP server's tools can't upload this way.
+
+A ready asset's `id` (`ast_…`) is then the value of an asset field, set with `update_record` (`"data": {"cover": "ast_…"}`, or a list of IDs with **multiple** on), or an image in rich text, `![alt](ast_…)`. `get_schema` shows which fields are asset fields and the types they accept.
 
 ## Guardrails
 

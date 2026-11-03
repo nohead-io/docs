@@ -79,6 +79,8 @@ Without an SDK or the CLI, an upload takes three requests. The file goes straigh
 
 Completing is safe to retry: a ready asset comes back unchanged. `422 upload_missing` means the file hasn't arrived yet; `422 upload_mismatch` means it differs from what you declared, and the asset is marked `failed`, so start a new upload. A project can have 100 uploads in progress at a time (`409 too_many_uploads`), and uploads never completed are removed after a day.
 
+Agents connected to the [MCP server](/guides/mcp#images-and-files) upload in the same steps, with its `start_upload` and `complete_upload` tools.
+
 ## Alt text and filenames
 
 An asset's `alt` text says what an image shows, for screen readers and search engines. It is the default wherever the asset is used. An image in rich text can have its own `alt`, which it keeps once set. The `filename` is the name the file downloads under.
