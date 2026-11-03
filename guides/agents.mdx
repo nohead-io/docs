@@ -47,7 +47,7 @@ On your own machine, `nohead login` makes the key for you, and `nohead link` kee
 Whichever interface an agent uses, the same API stands behind it:
 
 - **Attributed.** History shows each change with the key's name and the client it came through, such as the CLI or MCP.
-- **Explained.** A change can carry a note saying why, kept in history next to it: `--note` in the CLI, a required `note` on every MCP tool that writes, `Nohead-Change-Note` over HTTP.
+- **Explained.** A change can carry a note saying why, kept in history next to it: `--note` in the CLI, a required `note` on every MCP tool that changes your content, `Nohead-Change-Note` over HTTP.
 - **Reviewed.** With the CLI, an SDK or the API, an agent can propose changes as a draft that a person merges. New records start unpublished.
 - **No lost edits.** A change can name the revision the agent read (`--if-revision`, `expected_revision`, `If-Match`), and is refused if someone changed the record since.
 - **Safe retries.** With an idempotency key, retrying a write never applies it twice.
