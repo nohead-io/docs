@@ -1542,17 +1542,17 @@
           {
             "lang": "typescript",
             "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.diff(\"rec_01J9ZQ3F8X\", { from: 1, to: 2 })\n"
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.diff(\n  \"rec_01J9ZQ3F8X\",\n  { from: 1, to: 2 },\n  { richText: \"markdown\" }\n)\n"
           },
           {
             "lang": "python",
             "label": "Python",
-            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.diff(\"rec_01J9ZQ3F8X\", from_revision=1, to_revision=2)\n"
+            "source": "from nohead import Nohead\n\nnohead = Nohead()\n\nresult = nohead.records.diff(\n    \"rec_01J9ZQ3F8X\", from_revision=1, to_revision=2, rich_text=\"markdown\"\n)\n"
           },
           {
             "lang": "ruby",
             "label": "Ruby",
-            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.diff(\"rec_01J9ZQ3F8X\", from: 1, to: 2)\n"
+            "source": "require \"nohead\"\n\nnohead = Nohead::Client.new\n\nresult = nohead.records.diff(\"rec_01J9ZQ3F8X\", from: 1, to: 2, rich_text: \"markdown\")\n"
           }
         ]
       }
