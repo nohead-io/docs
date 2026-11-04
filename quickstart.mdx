@@ -26,6 +26,8 @@ description: Create a project, publish a record and fetch it from your code.
     ```bash
     export NOHEAD_API_KEY=nohead_pk_...
     ```
+
+    The SDKs read the key from `NOHEAD_API_KEY` when you don't pass one. They don't read the key that `nohead login` saves for the [CLI](/cli/overview), so even after signing in there, your app needs a key like this one.
   </Step>
   <Step title="Fetch your content">
     List the collection's records: a published-only key sees only the published ones. With an API key, you can use the collection's slug instead of its ID.
@@ -40,21 +42,21 @@ description: Create a project, publish a record and fetch it from your code.
     ```ts TypeScript
     import { Nohead } from "@nohead/sdk"
 
-    const nohead = new Nohead() // NOHEAD_API_KEY
+    const nohead = new Nohead() // reads NOHEAD_API_KEY
     const page = await nohead.records.list("blog-posts")
     ```
 
     ```python Python
     from nohead import Nohead
 
-    nohead = Nohead()  # NOHEAD_API_KEY
+    nohead = Nohead()  # reads NOHEAD_API_KEY
     page = nohead.records.list("blog-posts")
     ```
 
     ```ruby Ruby
     require "nohead"
 
-    nohead = Nohead::Client.new # NOHEAD_API_KEY
+    nohead = Nohead::Client.new # reads NOHEAD_API_KEY
     page = nohead.records.list("blog-posts")
     ```
 
