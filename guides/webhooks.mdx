@@ -8,7 +8,7 @@ A webhook sends a signed `POST` to your URL whenever something you subscribed to
 
 ## Create a webhook
 
-In the web app, open your project's **Webhooks** page and choose **New webhook**. Enter the **URL**, an optional **Description**, and the **Events** to send: turn on **All events**, or tick a whole group (such as all records, `record.*`) or single event types. Choose **Create webhook**, then copy the **Signing secret**. It is shown only once.
+In the web app, open your project's **Webhooks** page and choose **New webhook**. Enter the **URL** and an optional **Description**. Turn on **Published content only** to send only changes to published content (see [below](#published-content-only)). Then choose the events to send: turn on **All events**, or tick a whole group (such as all records, `record.*`) or single event types. Choose **Create webhook**, then copy the **Signing secret**. It is shown only once.
 
 Through the API, create one with an API key that has the `webhooks:write` scope. The response holds the `secret`, and it is the only one that does:
 
@@ -75,6 +75,51 @@ Event types are the activity log's, by resource:
 Merging a draft sends `record.updated`, with the merged draft's `draft_id`, since it changes the record's content.
 
 A subscription lists event types, a resource's wildcard (`record.*`) or `*` for everything. Wildcards include event types added later.
+
+## Published content only
+
+A site or app that reads published content only needs to hear about changes to it. With `published_only: true`, a webhook sends only the events that change what a [published-only API key](/guides/publishing#published-only-api-keys) reads:
+
+- Record events when the record was published before or after the change: publishing, unpublishing, editing a live record (or merging a draft into it), and deleting or restoring a published record. Edits to unpublished records are skipped.
+- Every collection and field event, since published-only keys read the schema.
+- Asset events for assets that published records use. A new upload is skipped until a published record uses it.
+
+It never sends drafts, schedules, redactions (they rewrite history, never current values), uploads (`asset.created`) or purges (`asset.purged`), and a published-only webhook can't subscribe to them by name. Wildcards and `*` are fine. When a scheduled publish happens, it sends `record.published` like any other. Test events are always sent.
+
+To rebuild a static site, for example through a build service's deploy hook:
+
+<CodeGroup>
+
+```ts TypeScript
+const webhook = await nohead.webhooks.create({
+  url: "https://example.com/deploy-hook",
+  event_types: ["record.*", "asset.*"],
+  published_only: true,
+  description: "Rebuild the website",
+})
+```
+
+```python Python
+webhook = nohead.webhooks.create(
+    url="https://example.com/deploy-hook",
+    event_types=["record.*", "asset.*"],
+    published_only=True,
+    description="Rebuild the website",
+)
+```
+
+```ruby Ruby
+webhook = nohead.webhooks.create(
+  url: "https://example.com/deploy-hook",
+  event_types: ["record.*", "asset.*"],
+  published_only: true,
+  description: "Rebuild the website"
+)
+```
+
+</CodeGroup>
+
+Turn it on for an existing webhook with `PATCH /v1/webhooks/{webhook_id}` and `{"published_only": true}`, or with the webhook's **Edit** in the web app.
 
 ## The payload
 
