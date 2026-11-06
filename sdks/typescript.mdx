@@ -62,7 +62,7 @@ console.log(data.id, requestId, response.headers.get("RateLimit-Remaining"))
 
 ## Images in frameworks
 
-`@nohead/sdk/images` builds image URLs (`imageUrl`) and has loaders for Next.js and Nuxt Image, and `@nohead/sdk/astro/image-service` is an image service for Astro, with no dependencies: see [Images](/guides/images#frameworks).
+`@nohead/sdk/images` builds image URLs (`imageUrl`) and has loaders for Next.js and Nuxt Image, with no dependencies. Astro's image service is `@nohead/sdk/astro/image-service`. See [Images](/guides/images#frameworks).
 
 ## Astro content collections
 
@@ -88,6 +88,7 @@ export const collections = {
       title: z.string(),
       slug: z.string(),
       date: z.coerce.date(),
+      summary: z.string().optional(),
       authors: z.array(reference("people")),
       cover: z
         .object({
@@ -107,7 +108,7 @@ export const collections = {
 - **Relations** stay record IDs, for `reference()` and `getEntry`.
 - **Empty fields** are left out of `data`, so `.optional()` fits them. Dates are strings: `z.coerce.date()` makes them `Date`s.
 - **Order:** Astro keeps no order for a collection, so sort entries in the page: `posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())`.
-- **Published records** are the only ones that load, so a published-only key is enough. `filter` adds conditions, such as `{ featured: true }`.
+- **Published records** are the ones that load, so a published-only key is enough. `filter` adds conditions, such as `{ featured: true }`, and `filter: { published_at: undefined }` loads every record, for a key that reads unpublished ones.
 
 The [README](https://github.com/nohead-io/nohead-typescript#astro) has a page that renders an entry and the loader's other options.
 
