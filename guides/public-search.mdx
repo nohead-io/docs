@@ -17,7 +17,7 @@ Tokens find only collections included in public search. In the web app, open a c
 A token finds only the **published** records of included collections. The search engine enforces that: other collections, other projects and unpublished records stay out of reach, whatever a request asks for. Including or removing a collection reaches every token within seconds.
 
 <Warning>
-A token is public: in a site, it goes in your page source. Every field of the published records it finds can be read with it, so keep private content out of public search.
+A token is public: in a site, it goes in your page source. Every field of the published records it finds can be read with it, and so can the title of each published record they relate to, so keep private content out of public search.
 </Warning>
 
 ## Index names
@@ -59,6 +59,37 @@ Hits look like records:
 
 - `id` (`rec_…`), and `published_at`, `created_at` and `updated_at` as Unix seconds; `published_at` can be filtered and sorted on, such as `filter: "published_at > 1767225600"` for posts published since 2026
 - field values under `data`, by field key: dates as Unix seconds, rich text as plain text, JSON as a string, assets and relations as IDs
+- what asset and relation fields point at under `expanded`, by field key, as the API's [`expand`](/guides/reading-content#embed-related-records-and-assets) names it, so a result can show a thumbnail or a byline without another request
+
+```json
+{
+  "id": "rec_01JB2M3N4P5Q6R7S8T9V0W1X2Y",
+  "published_at": 1790812800,
+  "created_at": 1790726400,
+  "updated_at": 1790812800,
+  "data": {
+    "title": "Lentil soup",
+    "cover": "ast_01JB2M3N4P5Q6R7S8T9V0W1X3Z",
+    "authors": ["rec_01JB2M3N4P5Q6R7S8T9V0W1X4A"],
+    "category": "rec_01JB2M3N4P5Q6R7S8T9V0W1X5B"
+  },
+  "expanded": {
+    "cover": {
+      "id": "ast_01JB2M3N4P5Q6R7S8T9V0W1X3Z",
+      "image_url": "https://images.nohead.io/plain/…",
+      "alt": "A bowl of lentil soup",
+      "width": 1600,
+      "height": 1067
+    },
+    "authors": [{ "id": "rec_01JB2M3N4P5Q6R7S8T9V0W1X4A", "title": "Leela Rao" }],
+    "category": { "id": "rec_01JB2M3N4P5Q6R7S8T9V0W1X5B", "title": "Studio" }
+  }
+}
+```
+
+An asset has its `id`, `image_url` (null for files that aren't images; it takes [image options](/guides/images) like any image URL), `alt`, `width` and `height`. A related record has its `id` and `title`: its collection's first single-value text field, or null when it has none. Only what is public shows: a related record while it is published, an asset while it isn't deleted. A single-value field that points at anything else (an unpublished record, a deleted asset) is `null` under `expanded`, and a list field leaves it out. When a related record's title or an asset's alt text changes, the hits that show it are updated too.
+
+Relation fields are searchable by those titles, so searching a person's name finds the posts that relate to them, and a category's name finds the posts in it. Filters and facets still take the IDs under `data`.
 
 Several collections at once take one query each, or a federated search across them (`federation: {}` in the request).
 
@@ -71,6 +102,24 @@ Fields take part in searches by their [search settings](/guides/content-modellin
 ```
 
 Dates are Unix seconds here too: `'data.starts_on >= 1790812800'` finds records from 1 October 2026 (00:00 UTC) on.
+
+## Highlight
+
+To mark the words that matched, name fields by their path in `attributesToHighlight`, and shorten long text around them with `attributesToCrop`. The marked-up copy of the hit is its `_formatted`:
+
+```javascript
+{
+  indexUid: index,
+  q: "leela soup",
+  attributesToHighlight: ["data.title", "expanded.authors.title"],
+  attributesToCrop: ["data.summary"],
+  cropLength: 20,
+}
+// hit._formatted.data.title: "Lentil <em>soup</em>"
+// hit._formatted.expanded.authors[0].title: "<em>Leela</em> Rao"
+```
+
+`["*"]` highlights every field. The highlighted text comes from your content, so escape it before inserting it as HTML and turn only the `<em>` tags back into markup, or set your own tags with `highlightPreTag` and `highlightPostTag`.
 
 ## Facets
 
@@ -90,7 +139,7 @@ Each result then has a `facetDistribution`, counted over the hits that match the
 ```
 
 - **Fields that facet well** have a few values shared by many records: enums, booleans, and short text such as a brand or a city. Fields with several values count each value once per record, so tags work as facets.
-- **Relations and assets count by ID** (`rec_…`, `ast_…`). To show names, look them up, or keep an enum or text field next to the relation.
+- **Relations and assets count by ID** (`rec_…`, `ast_…`). Hits carry names under `expanded`, but facet counts don't: to show names in a filter list, keep an enum or text field next to the relation.
 - **Up to 100 values** are returned per facet, and only for published records, like hits.
 - **In a federated search**, name the facets per index in the federation instead, `federation: { facetsByIndex: { [index]: ["data.cuisine"] } }`, and read them from the response's `facetsByIndex`. A query's own `facets` is refused there.
 
