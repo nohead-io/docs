@@ -3,7 +3,8 @@
 // TypeScript blocks are type-checked with @nohead/sdk (tsc), Python blocks
 // with nohead (pyright), and Ruby blocks are syntax-checked (ruby -c). Each
 // block stands alone; the names the guides take as given (`nohead`, `id`…)
-// are declared in a prelude.
+// are declared in a prelude, and Astro's modules as `any`, so an Astro
+// example checks the SDK's calls without installing Astro.
 //
 //   npm run check:code   # needs Python 3.11+ (PYTHON, default python3) and Ruby
 //
@@ -33,6 +34,16 @@ declare const id: string
 declare const title: string
 declare const data: { [apiKey: string]: unknown }
 declare const row: { id: string }
+declare module "astro:content" {
+  export const defineCollection: any
+  export const reference: any
+}
+declare module "astro/zod" {
+  export const z: any
+}
+interface ImportMeta {
+  env: { [name: string]: string | undefined }
+}
 `,
   "prelude.py": `
 from typing import Any
