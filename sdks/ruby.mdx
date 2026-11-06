@@ -25,7 +25,6 @@ nohead = Nohead::Client.new(
 | Option | Default | |
 |---|---|---|
 | `api_key:` | `NOHEAD_API_KEY` | A project [API key](/guides/api-keys). Required. |
-| `base_url:` | `https://api.nohead.io` | For a proxy, or a mock server in tests. |
 | `project_id:` | the key's project | Looked up once with `GET /v1/me` when omitted. |
 | `max_retries:` | `2` | See [retries](/sdks/overview#retries-and-idempotency). |
 | `timeout:` | `60` | Seconds per attempt. |
