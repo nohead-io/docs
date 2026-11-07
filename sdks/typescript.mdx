@@ -25,6 +25,7 @@ const nohead = new Nohead({
 | Option | Default | |
 |---|---|---|
 | `apiKey` | `NOHEAD_API_KEY` | A project [API key](/guides/api-keys). Required. |
+| `baseUrl` | `NOHEAD_API_URL`, else `https://api.nohead.io` | The API's address. The [CLI](/cli/overview) reads the same variable, so one environment points both at the same API. |
 | `projectId` | the key's project | Looked up once with `GET /v1/me` when omitted. |
 | `maxRetries` | `2` | See [retries](/sdks/overview#retries-and-idempotency). |
 | `timeout` | `60000` | Milliseconds per attempt. |

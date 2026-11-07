@@ -29,7 +29,7 @@ curl -X POST "https://api.nohead.io/v1/collections/blog-posts/records" \
   }'
 ```
 
-The API answers `201` with the record, unpublished, at revision 1; [publish it](/guides/publishing) when it's ready. Each field type takes its own kind of value, never converted from another type (`"5"` is not an integer):
+The API answers `201` with the record, unpublished, at revision 1; [publish it](/guides/publishing) when it's ready, or send `"publish": true` with `data` to create it published in the same request ([Create a record published](/guides/publishing#create-a-record-published)). Each field type takes its own kind of value, never converted from another type (`"5"` is not an integer):
 
 - **Relation**: the ID of a record in the field's target collection (`rec_…`).
 - **Asset**: the ID of an uploaded asset of the project (`ast_…`), of a type the field accepts. [Upload](/guides/assets#upload) the file first.
@@ -116,7 +116,7 @@ product = nohead.records.create("products", upsert_on: "sku",
 
 </CodeGroup>
 
-The field must hold one value per record and be unique: a `text` field with the slug format or `unique` on, or a unique `integer` field ([Formats and unique values](/guides/content-modelling#formats-and-unique-values)). Any other field is a `400` (`not_unique`), and `data` without a value for it is a `422`. A deleted record doesn't count: its unique values are free, so the upsert creates a new record. Upserting a record doesn't publish it, and an updated record keeps its publication.
+The field must hold one value per record and be unique: a `text` field with the slug format or `unique` on, or a unique `integer` field ([Formats and unique values](/guides/content-modelling#formats-and-unique-values)). Any other field is a `400` (`not_unique`), and `data` without a value for it is a `422`. A deleted record doesn't count: its unique values are free, so the upsert creates a new record. Upserting a record doesn't publish it, and an updated record keeps its publication, unless you send `"publish": true`: then the record is published too, and one already published stays so.
 
 ## Concurrent edits
 

@@ -45,6 +45,37 @@ To publish or unpublish up to 100 records at once, `POST /v1/collections/{collec
 
 In the web app, Editors and every role above can publish; Viewers can't. API keys publish with `records:write`.
 
+## Create a record published
+
+To create a record and publish it in one request, send `"publish": true` with its `data`. It is created and published in one transaction, so it is never unpublished in between, which suits seeds and imports. Its history has the `create` and the `publish` revision, and it needs the permission to publish. Webhooks get `record.created`, then `record.published`. With `upsert_on` ([Upserts](/guides/writing-content#sync-content-without-duplicates)), the record is published too, and one already published stays so.
+
+```bash
+curl -X POST "https://api.nohead.io/v1/collections/posts/records" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"data": {"title": "Hello, world"}, "publish": true}'
+```
+
+<CodeGroup>
+
+```ts TypeScript
+await nohead.records.create("posts", { data: { title: "Hello, world" }, publish: true })
+```
+
+```python Python
+nohead.records.create("posts", data={"title": "Hello, world"}, publish=True)
+```
+
+```ruby Ruby
+nohead.records.create("posts", data: { title: "Hello, world" }, publish: true)
+```
+
+```bash CLI
+nohead records create posts --set "title=Hello, world" --publish
+```
+
+</CodeGroup>
+
 ## Hold changes back in a draft
 
 A draft holds changes to a record until they are merged into it, while the record keeps its current content. In the web app, edit a published record and choose **Save as draft** from the save menu; the record then shows its pending changes, with **Publish changes**, **Schedule changes** and **Discard changes**. On an unpublished record, **Publish changes** reads **Apply changes**.
