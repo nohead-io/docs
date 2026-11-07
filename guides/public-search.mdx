@@ -79,7 +79,7 @@ A hit carries what a result shows, so a site needs no lookups. Where records kee
 ```
 
 - **An asset** has its `image_url`, the whole image: resize it for your results with [image options](/guides/images), such as `imageUrl(hit.data.cover, { width: 144, height: 108, fit: "cover" })` with the TypeScript SDK. `image_url` is null for files that aren't images and for deleted assets, so check it before building a URL.
-- **A related record** is a partial record: its `id`, and in `data` its title field (its collection's first text field holding a single value) and slug field, by their keys. Link to it by its slug.
+- **A related record** is a partial record: its `id`, and in `data` its [title field](/guides/content-modelling#the-title-field) and slug field, by their keys. Link to it by its slug.
 - **Only public, published content shows.** A related record shows while it is published and its own collection has public search on too. Otherwise it keeps its `id`, with `data: null`; an asset that's deleted keeps its `id` with the rest null.
 - **Related names match** the search words, so "Leela" finds her posts. Turn `searchable` off on the relation field if they shouldn't. An asset field you make `searchable` matches its alt text.
 - **They stay current:** renaming, publishing or unpublishing a related record updates the hits that show it within seconds, and so does turning off its collection's public search. Changing which fields a related collection shows, or turning its public search on, rebuilds the indexes that relate to it.

@@ -189,6 +189,10 @@ An asset field takes any file unless you limit it with `accepted_types`: MIME ty
 
 Records store only the IDs. [Reading content](/guides/reading-content#embed-related-records-and-assets) embeds the related records and assets in the same response with `expand`.
 
+### The title field
+
+Each collection has a title field, `title_field_id`: the single-value text field that names its records. The web app shows records by it, and [public search](/guides/public-search#images-and-related-records) hits show it for the records they relate to. It starts as the collection's first text field, plain text before a slug, URL or email, and you choose another in the collection's **Settings** (or `PATCH /v1/collections/{id}` with `title_field_id`). Reordering fields never changes it. If you delete the title field, or migrate it to another type, the next text field takes its place.
+
 ## Search options
 
 To filter and sort records, see [Reading content](/guides/reading-content#filter).
