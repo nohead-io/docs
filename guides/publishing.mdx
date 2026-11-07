@@ -47,7 +47,7 @@ In the web app, Editors and every role above can publish; Viewers can't. API key
 
 ## Create a record published
 
-To create a record and publish it in one request, send `"publish": true` with its `data`. It is created and published in one transaction, so it is never unpublished in between, which suits seeds and imports. Its history has the `create` and the `publish` revision, and it needs the permission to publish. With `upsert_on` ([Upserts](/guides/writing-content#sync-content-without-duplicates)), the record is published too, and one already published stays so.
+To create a record and publish it in one request, send `"publish": true` with its `data`. It is created and published in one transaction, so it is never unpublished in between, which suits seeds and imports. Its history has the `create` and the `publish` revision, and it needs the permission to publish. Webhooks get `record.created`, then `record.published`. With `upsert_on` ([Upserts](/guides/writing-content#sync-content-without-duplicates)), the record is published too, and one already published stays so.
 
 ```bash
 curl -X POST "https://api.nohead.io/v1/collections/posts/records" \

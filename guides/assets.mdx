@@ -50,7 +50,7 @@ Without an SDK or the CLI, an upload takes three requests. The file goes straigh
 
 <Steps>
   <Step title="Start the upload">
-    Send the file's name, type and exact size in bytes, and its `alt` text if you have it. `$PROJECT_ID` is your key's project (`prj_…`): `GET /v1/me` returns it as `api_key.project_id`.
+    Send the file's name, type and exact size in bytes, and its `alt` text if you have it (at most 1,000 characters; empty means none). `$PROJECT_ID` is your key's project (`prj_…`): `GET /v1/me` returns it as `api_key.project_id`.
 
     ```bash
     curl -X POST "https://api.nohead.io/v1/projects/$PROJECT_ID/assets" \
