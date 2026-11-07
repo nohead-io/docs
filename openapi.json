@@ -191,7 +191,7 @@
       "post": {
         "operationId": "records_create",
         "summary": "Create a record",
-        "description": "Creates an unpublished record (revision 1).\n\nWith `upsert_on`, the field key of a `unique` field whose value\n`data` includes, it updates the active record holding that value\ninstead, if one exists (`200`), as `PATCH /v1/records/{id}` does: keys\nin `data` replace their values. Otherwise it creates one (`201`). So a\ncontent sync can run again without making duplicates. `If-Match`\napplies to the update; with no record to update it is `412`. A\nsoft-deleted record doesn't count: its unique values are free.\n",
+        "description": "Creates an unpublished record (revision 1). With `publish: true`, it\nis published in the same transaction (revision 2, a `publish`), as\n`POST /v1/records/{record_id}/publication` would.\n\nWith `upsert_on`, the field key of a `unique` field whose value\n`data` includes, it updates the active record holding that value\ninstead, if one exists (`200`), as `PATCH /v1/records/{id}` does: keys\nin `data` replace their values. Otherwise it creates one (`201`). So a\ncontent sync can run again without making duplicates. `If-Match`\napplies to the update; with no record to update it is `412`. A\nsoft-deleted record doesn't count: its unique values are free.\n",
         "tags": [
           "records"
         ],
@@ -5796,7 +5796,7 @@
       "get": {
         "operationId": "me_get",
         "summary": "Get the authenticated principal",
-        "description": "The user or API key making the request. API key clients use it to\ndiscover their project and scopes.\n",
+        "description": "The user or API key making the request. API key clients use it to\ndiscover their project and scopes, and their organization's room\nfor new collections.\n",
         "tags": [
           "system"
         ],
@@ -9040,6 +9040,11 @@
             "examples": [
               "slug"
             ]
+          },
+          "publish": {
+            "type": "boolean",
+            "default": false,
+            "description": "Publish the record too, in the same request: as\n`POST /v1/records/{record_id}/publication` right after the write,\nin one transaction, so it is never live half done and never\nunpublished in between. Needs the permission to publish. With\n`upsert_on`, a record that is already published stays published.\n`false` leaves publication as it is.\n"
           }
         }
       },
@@ -9414,7 +9419,8 @@
                   "scopes",
                   "published_only",
                   "project_id",
-                  "expires_at"
+                  "expires_at",
+                  "collections"
                 ],
                 "properties": {
                   "id": {
@@ -9437,6 +9443,30 @@
                   },
                   "expires_at": {
                     "$ref": "#/components/schemas/NullableTimestamp"
+                  },
+                  "collections": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                      "usage",
+                      "limit"
+                    ],
+                    "description": "The organization's active collections, across all its\nprojects, and how many its plan allows, so a client can\ncheck that new collections fit before creating any.\nCreating one past the limit is `402 plan_limit_exceeded`.\nNull for a key without `schema:write`.\n",
+                    "properties": {
+                      "usage": {
+                        "type": "integer"
+                      },
+                      "limit": {
+                        "type": [
+                          "integer",
+                          "null"
+                        ],
+                        "description": "Null when the plan doesn't limit collections."
+                      }
+                    }
                   }
                 }
               }
@@ -10891,6 +10921,14 @@
             "type": "integer",
             "minimum": 1,
             "description": "Exact size of the file in bytes, at most the plan's largest upload (10 MB on Free, 100 MB on paid plans)."
+          },
+          "alt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 1000,
+            "description": "Alt text for the asset from the start, as `PATCH /v1/assets/{asset_id}` sets it. Surrounding whitespace is removed; empty or null leaves it unset."
           }
         }
       },
