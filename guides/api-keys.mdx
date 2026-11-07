@@ -41,9 +41,11 @@ A request without the scope it needs is refused with `403`, and the message name
 - Call the API from your servers and your site's build, not from browser code: the API accepts browser requests only from the Nohead web app. For search in the browser, use a [search token](/guides/public-search).
 - Keep keys that aren't published-only on servers: never in a mobile app or anything else people can download.
 
-## Rename and revoke
+## Edit and revoke
 
-The **API keys** page shows when each key was **Last used**, to the minute. Rename a key or revoke it from its menu.
+The **API keys** page shows when each key was **Last used**, to the minute. Edit a key or revoke it from its menu.
+
+**Edit** changes a key's name and scopes and keeps its token, so nothing using it needs to change: new scopes apply from its next request. You can add only scopes that both your role and the role of the person who created the key can grant, and remove any. Whether a key is published-only is part of its token and can't change: for that, create a new key. A revoked or expired key's scopes can't change.
 
 <Warning>
 **Revoke key** stops a key at once, and can't be undone. To replace a key, create the new one, switch your app to it, then revoke the old one.
