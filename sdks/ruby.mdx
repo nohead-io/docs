@@ -25,6 +25,7 @@ nohead = Nohead::Client.new(
 | Option | Default | |
 |---|---|---|
 | `api_key:` | `NOHEAD_API_KEY` | A project [API key](/guides/api-keys). Required. |
+| `base_url:` | `NOHEAD_API_URL`, else `https://api.nohead.io` | The API's address. The [CLI](/cli/overview) reads the same variable, so one environment points both at the same API. |
 | `project_id:` | the key's project | Looked up once with `GET /v1/me` when omitted. |
 | `max_retries:` | `2` | See [retries](/sdks/overview#retries-and-idempotency). |
 | `timeout:` | `60` | Seconds per attempt. |

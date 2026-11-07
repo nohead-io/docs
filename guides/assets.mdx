@@ -23,22 +23,23 @@ import { openAsBlob } from "node:fs"
 
 const asset = await nohead.assets.upload(await openAsBlob("cover.jpg"), {
   filename: "cover.jpg",
+  alt: "A red sky over the sea", // optional
 })
 await nohead.records.update(id, { data: { cover: asset.id } })
 ```
 
 ```python Python
-asset = nohead.assets.upload("cover.jpg")  # a path, bytes or a binary file
+asset = nohead.assets.upload("cover.jpg", alt="A red sky over the sea")  # a path, bytes or a binary file
 nohead.records.update(record_id, data={"cover": asset.id})
 ```
 
 ```ruby Ruby
-asset = nohead.assets.upload("cover.jpg") # a path or an IO
+asset = nohead.assets.upload("cover.jpg", alt: "A red sky over the sea") # a path or an IO
 nohead.records.update(id, data: { cover: asset.id })
 ```
 
 ```bash CLI
-nohead assets upload cover.jpg   # prints the asset ID
+nohead assets upload cover.jpg --alt "A red sky over the sea"   # prints the asset ID
 ```
 
 </CodeGroup>
@@ -49,13 +50,13 @@ Without an SDK or the CLI, an upload takes three requests. The file goes straigh
 
 <Steps>
   <Step title="Start the upload">
-    Send the file's name, type and exact size in bytes. `$PROJECT_ID` is your key's project (`prj_…`): `GET /v1/me` returns it as `api_key.project_id`.
+    Send the file's name, type and exact size in bytes, and its `alt` text if you have it. `$PROJECT_ID` is your key's project (`prj_…`): `GET /v1/me` returns it as `api_key.project_id`.
 
     ```bash
     curl -X POST "https://api.nohead.io/v1/projects/$PROJECT_ID/assets" \
       -H "Authorization: Bearer $NOHEAD_API_KEY" \
       -H "Content-Type: application/json" \
-      -d '{"filename": "cover.jpg", "content_type": "image/jpeg", "byte_size": 48213}'
+      -d '{"filename": "cover.jpg", "content_type": "image/jpeg", "byte_size": 48213, "alt": "A red sky over the sea"}'
     ```
 
     The response is the asset, `pending`, with an `upload`: the `method`, `url` and `headers` to send the file with, and when it `expires_at`.
@@ -85,7 +86,7 @@ Agents connected to the [MCP server](/guides/mcp#images-and-files) upload in the
 
 An asset's `alt` text says what an image shows, for screen readers and search engines. It is the default wherever the asset is used. An image in rich text can have its own `alt`, which it keeps once set. The `filename` is the name the file downloads under.
 
-In the web app, open an asset on the **Assets** page, change its **Filename** or **Alt text** and choose **Save**. Through the API:
+Set the alt text when you upload (`alt` above), or later. In the web app, open an asset on the **Assets** page, change its **Filename** or **Alt text** and choose **Save**. Through the API:
 
 ```bash
 curl -X PATCH "https://api.nohead.io/v1/assets/ast_01J9ZQ3F8X" \
