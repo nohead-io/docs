@@ -127,6 +127,7 @@ run("npm", [
   "--no-fund",
   "--silent",
   "@nohead/sdk@latest",
+  "@nohead/astro@latest",
   "typescript@6.0.3",
   "@types/node@26.6.4",
 ])

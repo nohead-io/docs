@@ -6,7 +6,7 @@ description: List, filter, sort and page through records, embed related ones, co
 
 Sites and apps read records with an API key that has the **Read records** scope (`records:read`). A published-only key, the default for a new key, sees only published records, so your live site needs no filter for it; see [Drafts and publishing](/guides/publishing). With an API key, a collection's slug works wherever its ID does.
 
-A site built with Astro can skip the requests below: the TypeScript SDK's [content loader](/sdks/typescript#astro-content-collections) loads a collection's published records into Astro's content collections when the site builds.
+A site built with Astro can skip the requests below: the [content loader](/sdks/astro) of `@nohead/astro` loads a collection's published records into Astro's content collections when the site builds.
 
 ## List records
 
