@@ -58,9 +58,31 @@ for (const hit of results[0].hits) console.log(hit.data.title)
 Hits look like records:
 
 - `id` (`rec_…`), and `published_at`, `created_at` and `updated_at` as Unix seconds; `published_at` can be filtered and sorted on, such as `filter: "published_at > 1767225600"` for posts published since 2026
-- field values under `data`, by field key: dates as Unix seconds, rich text as plain text, JSON as a string, assets and relations as IDs
+- field values under `data`, by field key: dates as Unix seconds, rich text as plain text, JSON as a string, and assets and related records as objects with what showing them takes (below)
 
 Several collections at once take one query each, or a federated search across them (`federation: {}` in the request).
+
+## Images and related records
+
+A hit carries what a result shows, so a site needs no lookups. Where records keep IDs in `data`, hits hold objects with the ID inside:
+
+```json
+{
+  "id": "rec_…",
+  "data": {
+    "title": "Lentil soup",
+    "cover": { "id": "ast_…", "image_url": "https://images.nohead.io/plain/…", "alt": "A bowl of soup", "width": 1600, "height": 1067 },
+    "authors": [{ "id": "rec_…", "data": { "name": "Leela Rao" } }],
+    "category": { "id": "rec_…", "data": { "name": "Studio", "slug": "studio" } }
+  }
+}
+```
+
+- **An asset** has its `image_url`, the whole image: resize it for your results with [image options](/guides/images), such as `imageUrl(hit.data.cover, { width: 144, height: 108, fit: "cover" })` with the TypeScript SDK. `image_url` is null for files that aren't images.
+- **A related record** is a partial record: its `id`, and in `data` its title field (its collection's first text field holding a single value) and slug field, by their keys. Link to it by its slug.
+- **Only public, published content shows.** A related record shows while it is published and its own collection has public search on too. Otherwise it keeps its `id`, with `data: null`; an asset that's deleted keeps its `id` with the rest null.
+- **Related names match** the search words, so "Leela" finds her posts. Turn `searchable` off on the relation field if they shouldn't. An asset field you make `searchable` matches its alt text.
+- **They stay current:** renaming, publishing or unpublishing a related record updates the hits that show it within seconds, and so does turning off its collection's public search. Changing which fields a related collection shows, or turning its public search on, rebuilds the indexes that relate to it.
 
 ## Filter and sort
 
@@ -71,6 +93,12 @@ Fields take part in searches by their [search settings](/guides/content-modellin
 ```
 
 Dates are Unix seconds here too: `'data.starts_on >= 1790812800'` finds records from 1 October 2026 (00:00 UTC) on.
+
+Relations filter by the related record's ID, or by its title or slug, which suits filters in a page's URL:
+
+```javascript
+{ indexUid: index, filter: 'data.category.data.slug = "studio"' } // or 'data.category.id = "rec_…"'
+```
 
 ## Highlight
 
@@ -107,7 +135,7 @@ Each result then has a `facetDistribution`, counted over the hits that match the
 ```
 
 - **Fields that facet well** have a few values shared by many records: enums, booleans, and short text such as a brand or a city. Fields with several values count each value once per record, so tags work as facets.
-- **Relations and assets count by ID** (`rec_…`, `ast_…`). To show names, look them up, or keep an enum or text field next to the relation.
+- **Relations count by ID, title or slug:** `facets: ["data.category.data.slug"]` gives `{ "studio": 12, "kitchen": 8 }`, slugs ready for links. Facet by the title field (`data.category.data.name`) for labels. Assets count by ID only.
 - **Up to 100 values** are returned per facet, and only for published records, like hits.
 - **In a federated search**, name the facets per index in the federation instead, `federation: { facetsByIndex: { [index]: ["data.cuisine"] } }`, and read them from the response's `facetsByIndex`. A query's own `facets` is refused there.
 
