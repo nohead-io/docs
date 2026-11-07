@@ -16,7 +16,7 @@ The key is shown only once. If you lose it, create a new one and revoke the old 
 
 Signing in the [CLI](/cli/overview#sign-in) with `nohead login` creates a key too, once you approve it in the web app: it is named after the machine, such as "CLI on my-laptop", and listed with the others. Revoking it signs only that machine's CLI out. Approving another sign-in from that machine for the same project revokes it and creates a new one.
 
-**Published records only** is on by default. A published-only key, for your live site or app, sees published records only: no unpublished or deleted records and no history. It can take only the read scopes below, and it is rate-limited per client IP address, since it may ship inside an app people run, such as a mobile app. Its token starts `nohead_pk_`; every other key's starts `nohead_sk_`. Turn it off for a key that writes, or that reads drafts for a preview.
+**Published records only** is on by default. It hides unpublished and deleted records and history, and allows only the read scopes below. A published-only key is rate-limited per client IP address, since it may ship inside an app people run, such as a mobile app. Its token starts `nohead_pk_`; every other key's starts `nohead_sk_`. Keys that write or read drafts need it off.
 
 ## Scopes
 
@@ -45,7 +45,7 @@ A request without the scope it needs is refused with `403`, and the message name
 
 The **API keys** page shows when each key was **Last used**, to the minute. Edit a key or revoke it from its menu.
 
-**Edit** changes a key's name and scopes and keeps its token, so nothing using it needs to change: new scopes apply from its next request. You can add only scopes that both your role and the role of the person who created the key can grant, and remove any. Whether a key is published-only is part of its token and can't change: for that, create a new key. A revoked or expired key's scopes can't change.
+**Edit** changes a key's name and scopes and keeps its token, so nothing using it needs to change: new scopes apply from its next request. You can add only scopes that both your role and the role of the person who created the key can grant, and remove any. Whether a key is published-only can't change after it's created. A revoked or expired key's scopes can't change.
 
 <Warning>
 **Revoke key** stops a key at once, and can't be undone. To replace a key, create the new one, switch your app to it, then revoke the old one.
