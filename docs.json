@@ -276,6 +276,7 @@
         "pages": [
           "sdks/overview",
           "sdks/typescript",
+          "sdks/astro",
           "sdks/python",
           "sdks/ruby"
         ]

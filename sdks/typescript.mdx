@@ -63,55 +63,7 @@ console.log(data.id, requestId, response.headers.get("RateLimit-Remaining"))
 
 ## Images in frameworks
 
-`@nohead/sdk/images` builds image URLs (`imageUrl`) and has loaders for Next.js and Nuxt Image, with no dependencies. Astro's image service is `@nohead/sdk/astro/image-service`. See [Images](/guides/images#frameworks).
-
-## Astro content collections
-
-`@nohead/sdk/astro` loads collections into Astro's content collections (Astro 5.9 or later), so pages read them with `getCollection`, `getEntry`, `reference()` and `render()`. Each published record becomes an entry whose `id` is the record ID and whose `data` is its fields, when the site builds and when `astro dev` starts:
-
-```ts
-// src/content.config.ts
-import { defineCollection, reference } from "astro:content"
-import { z } from "astro/zod"
-import { noheadLoader } from "@nohead/sdk/astro"
-
-// Astro reads .env into import.meta.env, not process.env.
-const apiKey = import.meta.env.NOHEAD_API_KEY
-
-export const collections = {
-  people: defineCollection({
-    loader: noheadLoader({ collection: "people", apiKey }),
-    schema: z.object({ name: z.string(), slug: z.string() }),
-  }),
-  posts: defineCollection({
-    loader: noheadLoader({ collection: "posts", expand: ["cover"], body: "body", apiKey }),
-    schema: z.object({
-      title: z.string(),
-      slug: z.string(),
-      date: z.coerce.date(),
-      summary: z.string().optional(),
-      authors: z.array(reference("people")),
-      cover: z
-        .object({
-          image_url: z.string(),
-          width: z.number(),
-          height: z.number(),
-          alt: z.string().optional(),
-        })
-        .optional(),
-    }),
-  }),
-}
-```
-
-- **Rich text** reads as HTML, for `<Fragment set:html={post.data.summary} />`. `body` names one rich text field that moves out of `data` for `render(entry)` to render as `<Content />`. With `richText: "markdown"`, rich text reads as Markdown and that field goes through Astro's own Markdown pipeline (your plugins, syntax highlighting, headings).
-- **Assets** named in `expand` replace their ID with the asset: its `image_url`, `width`, `height`, `alt` and the rest, ready for `<Image>` with the [image service](/guides/images#frameworks).
-- **Relations** stay record IDs, for `reference()` and `getEntry`.
-- **Empty fields** are left out of `data`, so `.optional()` fits them. Dates are strings: `z.coerce.date()` makes them `Date`s.
-- **Order:** Astro keeps no order for a collection, so sort entries in the page: `posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())`.
-- **Published records** are the ones that load, so a published-only key is enough. `filter` adds conditions, such as `{ featured: true }`, and `filter: { published_at: undefined }` loads every record, for a key that reads unpublished ones.
-
-The [README](https://github.com/nohead-io/nohead-typescript#astro) has a page that renders an entry and the loader's other options.
+`@nohead/sdk/images` builds image URLs (`imageUrl`) and has loaders for Next.js and Nuxt Image, with no dependencies. See [Images](/guides/images#frameworks). For Astro, [`@nohead/astro`](/sdks/astro) has a content loader and an image service.
 
 ## Methods
 

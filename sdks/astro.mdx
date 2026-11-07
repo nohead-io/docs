@@ -1,0 +1,67 @@
+---
+title: Astro
+icon: rocket
+description: "@nohead/astro: Nohead collections as Astro content collections, typed from their fields, and an image service for Nohead's images."
+---
+
+```bash
+npm install @nohead/astro
+```
+
+`@nohead/astro` brings Nohead into [Astro](https://astro.build) 5.9 or later: a content loader for content collections, and an image service that resizes Nohead's images through their URLs. It reads the API through the [TypeScript SDK](/sdks/typescript), which comes with it, and has releases of its own.
+
+## Content collections
+
+`noheadLoader` loads collections into Astro's content collections (Astro 5.9 or later), so pages read them with `getCollection`, `getEntry`, `reference()` and `render()`. Each published record becomes an entry whose `id` is the record ID and whose `data` is its fields, when the site builds and when `astro dev` starts:
+
+```ts
+// src/content.config.ts
+import { defineCollection, reference } from "astro:content"
+import { z } from "astro/zod"
+import { noheadLoader } from "@nohead/astro"
+
+// Astro reads .env into import.meta.env, not process.env.
+const apiKey = import.meta.env.NOHEAD_API_KEY
+
+export const collections = {
+  people: defineCollection({
+    loader: noheadLoader({ collection: "people", apiKey }),
+    schema: z.object({ name: z.string(), slug: z.string() }),
+  }),
+  posts: defineCollection({
+    loader: noheadLoader({ collection: "posts", expand: ["cover"], body: "body", apiKey }),
+    schema: z.object({
+      title: z.string(),
+      slug: z.string(),
+      date: z.coerce.date(),
+      summary: z.string().optional(),
+      authors: z.array(reference("people")),
+      cover: z
+        .object({
+          image_url: z.string(),
+          width: z.number(),
+          height: z.number(),
+          alt: z.string().optional(),
+        })
+        .optional(),
+    }),
+  }),
+}
+```
+
+- **Rich text** reads as HTML, for `<Fragment set:html={post.data.summary} />`. `body` names one rich text field that moves out of `data` for `render(entry)` to render as `<Content />`. With `richText: "markdown"`, rich text reads as Markdown and that field goes through Astro's own Markdown pipeline (your plugins, syntax highlighting, headings).
+- **Assets** named in `expand` replace their ID with the asset: its `image_url`, `width`, `height`, `alt` and the rest, ready for `<Image>` with the [image service](/guides/images#frameworks).
+- **Relations** stay record IDs, for `reference()` and `getEntry`, to the Astro collection named like the related one. If you load it under another name, say so: `references: { people: "authors" }`.
+- **The record's own times** are in `data` too: `published_at` (when it was published; publishing again moves it), `created_at` and `updated_at`, for feeds and a sitemap's `lastmod`. A date readers see, such as a post's, is better a date field of its own: [Content modelling](/guides/content-modelling) explains why.
+- **Empty fields** are left out of `data`, so `.optional()` fits them. Dates are strings: `z.coerce.date()` makes them `Date`s.
+- **Dates without a time** become `Date`s at midnight UTC, as Astro makes front-matter dates. Format them in UTC, `date.toLocaleDateString("en-GB", { timeZone: "UTC" })`, or west of Greenwich they show as the day before.
+- **Order:** Astro keeps no order for a collection, so sort entries in the page: `posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())`.
+- **Published records** are the ones that load, so a published-only key is enough. `filter` adds conditions, such as `{ featured: true }`, and `filter: { published_at: undefined }` loads every record, for a key that reads unpublished ones.
+
+The [README](https://github.com/nohead-io/nohead-astro) has a page that renders an entry and the loader's other options.
+
+On Astro 6 or later, the loader gives each collection its schema and TypeScript type from the collection's fields, so `schema` is only needed to change them. That needs a key with the `schema:read` scope.
+
+## Images
+
+Name the image service in astro.config, `image: { service: { entrypoint: "@nohead/astro/image-service" } }`, then `<Image src={asset.image_url} width={asset.width} height={asset.height} alt={asset.alt ?? ""} />`. [Images](/guides/images#frameworks) has the details.
