@@ -73,7 +73,7 @@ nohead records get [options] <id>
 
 ## `nohead records create`
 
-Create an unpublished record.
+Create a record, unpublished unless --publish.
 
 ```bash
 nohead records create [options] <collection>
@@ -85,6 +85,7 @@ nohead records create [options] <collection>
 
 | Option | |
 |---|---|
+| `--publish` | Create it published, in the same request. |
 | `--set <key=value>` | Set a field (key=text or key:=json); repeatable. |
 | `--data <json>` | Record data as a JSON object. |
 | `--data-file <path>` | Read record data from a JSON file (- for stdin) |
