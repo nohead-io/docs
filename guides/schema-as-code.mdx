@@ -95,7 +95,8 @@ The file describes each collection and field in full: a description or option yo
     renamed_from: heading
   ```
 
-- **Migrations need `--allow-migrations`.** A new type, `multiple` on or off, or a date's time on or off rewrites record values, so push refuses it unless you pass `--allow-migrations`. Push previews every migration before changing anything, and stops if any record can't convert, unless you pass `--clear-invalid` to clear those values. It runs migrations last, one at a time, and waits for each.
+- **Migrations need `--allow-migrations`.** A new type, `multiple` on or off, or a date's time on or off rewrites record values, so push refuses it unless you pass `--allow-migrations`. Push previews every migration before changing anything, and stops if any record can't convert, unless you pass `--clear-invalid` to clear those values. It runs migrations last, one at a time, and waits for each. A field that becomes a relation into a collection the same push creates can't be previewed, since that collection has no records yet: push creates the collection, then migrates the field, and needs `--clear-invalid`, because any value the field holds is cleared.
+- **New collections must fit the plan.** A plan's collection limit counts every project in the organization. Push checks that the file's new collections fit before creating any, and `schema diff` says how many the plan has left.
 - **Tighter rules are checked first.** Making a field required, or options such as a lower `max_length`, are checked against every record before anything changes. If records would break the rule, push stops and names the field. Fix those records, or migrate the field with a backfill: `nohead fields migrate blog-posts title --required --backfill Untitled`.
 
 Push applies changes one at a time through the API, so if one is refused partway (a new required field in a collection that already has records, say), the earlier ones stay. Fix the file and push again: it picks up from where the project is. Add a reason to the schema history with `--note`:
@@ -126,9 +127,9 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 26
-      - run: npx --yes nohead@0.5 schema diff
+      - run: npx --yes nohead@0.6 schema diff
       - if: github.event_name == 'push'
-        run: npx --yes nohead@0.5 schema push --yes
+        run: npx --yes nohead@0.6 schema push --yes
 ```
 
 <Note>
