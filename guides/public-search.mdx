@@ -72,6 +72,23 @@ Fields take part in searches by their [search settings](/guides/content-modellin
 
 Dates are Unix seconds here too: `'data.starts_on >= 1790812800'` finds records from 1 October 2026 (00:00 UTC) on.
 
+## Highlight
+
+To mark the words that matched, name fields by their path in `attributesToHighlight`, and shorten long text around them with `attributesToCrop`. The marked-up copy of the hit is its `_formatted`:
+
+```javascript
+{
+  indexUid: index,
+  q: "lentil",
+  attributesToHighlight: ["data.title"],
+  attributesToCrop: ["data.summary"],
+  cropLength: 20,
+}
+// hit._formatted.data.title: "<em>Lentil</em> soup"
+```
+
+`["*"]` highlights every field. The highlighted text comes from your content, so escape it before inserting it as HTML and turn only the `<em>` tags back into markup, or set your own tags with `highlightPreTag` and `highlightPostTag`.
+
 ## Facets
 
 Facets count the hits per value of a `filterable` field, for filter lists such as "French (12)". Ask for them with `facets`:
