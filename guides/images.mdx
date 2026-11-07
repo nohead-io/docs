@@ -4,7 +4,7 @@ icon: image
 description: Resize, crop and convert images by writing options into their URLs, with no API call per size, and play or download any other file as uploaded.
 ---
 
-Every image you upload has an `image_url`: the whole image, served from a CDN. Image URLs are open, so you make any size, crop or format of an image by writing [imgproxy](https://docs.imgproxy.net/usage/processing) processing options into its URL. There is no API call per rendition, and frameworks' image components can build their `srcset` themselves.
+Every image you upload has an `image_url`: the whole image, served from a CDN. Image URLs are open, so you make any size, crop or format of an image by writing [imgproxy](https://docs.imgproxy.net/usage/processing) processing options into its URL ([Supported options](#supported-options)). There is no API call per rendition, and frameworks' image components can build their `srcset` themselves.
 
 [Assets](/guides/assets) covers uploading files and managing them.
 
@@ -35,7 +35,21 @@ That is a 1200×630 crop, around the most interesting part of the image, as WebP
 | `@<format>` | `@avif` | The format: `webp`, `avif`, `jpeg` or `png`. |
 | `bl:<n>`, `sh:<n>`, `pix:<n>` | `bl:10` | Blur, sharpen, pixelate. |
 
-Options combine in any order: `rs:fill:400:400/g:sm/dpr:2/q:80`. imgproxy's [processing options](https://docs.imgproxy.net/usage/processing) list them all.
+Options combine in any order: `rs:fill:400:400/g:sm/dpr:2/q:80`.
+
+## Supported options
+
+Image URLs take imgproxy's open-source [processing options](https://docs.imgproxy.net/usage/processing), by their short or long names (`bl` or `blur`):
+
+| What | Options |
+|---|---|
+| Size and crop | `rs` (`resize`), `s` (`size`), `rt` (`resizing_type`), `w` (`width`), `h` (`height`), `mw` (`min-width`), `mh` (`min-height`), `z` (`zoom`), `dpr`, `el` (`enlarge`), `ex` (`extend`), `exar` (`extend_aspect_ratio`), `g` (`gravity`), `c` (`crop`), `t` (`trim`), `pd` (`padding`) |
+| Orientation | `ar` (`auto_rotate`), `rot` (`rotate`), `fl` (`flip`) |
+| Effects | `bg` (`background`), `bl` (`blur`), `sh` (`sharpen`), `pix` (`pixelate`) |
+| Output | `q` (`quality`), `fq` (`format_quality`), `f` (`format`, `ext`), `kcr` (`keep_copyright`), `scp` (`strip_color_profile`), `ph` (`preserve_hdr`), `eth` (`enforce_thumbnail`) |
+| Delivery | `cb` (`cachebuster`), `exp` (`expires`), `fn` (`filename`), `att` (`return_attachment`), `pr:preview` (`preset`: the 640×640 WebP of `preview_url`) |
+
+Any other option answers `404` with `Invalid URL`, without naming it. That includes imgproxy Pro's options, such as saturation (`sa`), monochrome (`mc`), brightness (`br`), contrast (`co`) and `adjust` (`ad`), watermarks (none is set up), and those in [Limits](#limits). For a black-and-white look, use a CSS filter such as `filter: grayscale(1)`.
 
 ## Frameworks
 
@@ -62,7 +76,7 @@ export default function noheadLoader({ src, width, quality }) {
 So that any URL stays cheap to serve ([Assets](/guides/assets#upload) has the upload limits):
 
 - Renditions are at most 4096 pixels a side, and originals at most 50 megapixels.
-- Options that would return a file as stored are refused: `raw`, `skip_processing` and `strip_metadata`. Renditions never carry a photo's metadata, such as its location.
+- Options that would return a file as stored are refused: `raw`, `skip_processing` and `strip_metadata`. Renditions never carry a photo's metadata, such as its location. `max_bytes` is refused too, since it re-encodes an image until it fits: use `q` for smaller files.
 - An SVG's `image_url` serves it as SVG with its scripts removed, and other options are ignored; add a format, such as `@webp`, for a raster image. Its `file_url` downloads it as uploaded.
 - Each rendition is cached for a year. Requests from one address are rate limited, generously enough for pages full of images.
 
