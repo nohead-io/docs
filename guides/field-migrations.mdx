@@ -25,6 +25,7 @@ An edit that would leave records invalid is refused with `requires_migration` (o
 - Numbers, booleans, dates and enum values convert to `text` and `long_text`.
 - `text` and `long_text` convert to each other, and to `integer`, `decimal`, `boolean` (`true` or `false`), `date` and `enum` when the value fits, and to `rich_text`, with a paragraph per block of text between blank lines.
 - `integer` converts to `decimal`, and `decimal` to `integer` when the value is a whole number.
+- `enum` converts to `relation`, to move a choice into a collection of its own. Values that are IDs of the target collection's records stay; others can't convert, so choose to clear them, then link each record to its record in the new collection.
 
 Other type changes are refused (`incompatible_type`). Turning `multiple` on makes each value a list of one. Turning it off keeps lists of one value; longer lists can't convert. Adding a date's time makes each date midnight in the field's time zone (UTC without one); removing it keeps the day each moment falls on, in the time zone you choose (by default the field's, else UTC).
 
