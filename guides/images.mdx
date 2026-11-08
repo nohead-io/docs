@@ -49,7 +49,7 @@ Image URLs take imgproxy's open-source [processing options](https://docs.imgprox
 | Output | `q` (`quality`), `fq` (`format_quality`), `f` (`format`, `ext`), `kcr` (`keep_copyright`), `scp` (`strip_color_profile`), `ph` (`preserve_hdr`), `eth` (`enforce_thumbnail`) |
 | Delivery | `cb` (`cachebuster`), `exp` (`expires`), `fn` (`filename`), `att` (`return_attachment`), `pr:preview` (`preset`: the 640×640 WebP of `preview_url`) |
 
-Any other option answers `404` with `Invalid URL`, without naming it. That includes imgproxy Pro's options, such as saturation (`sa`), monochrome (`mc`), brightness (`br`), contrast (`co`) and `adjust` (`ad`), watermarks (none is set up), and those in [Limits](#limits). For a black-and-white look, use a CSS filter such as `filter: grayscale(1)`.
+Any other option answers `404` with `Invalid URL`, without naming it, so the SDKs' image URL helpers refuse it, naming the option. That includes imgproxy Pro's options, such as saturation (`sa`), monochrome (`mc`), brightness (`br`), contrast (`co`) and `adjust` (`ad`), watermarks (none is set up), and those in [Limits](#limits). For a black-and-white look, use a CSS filter such as `filter: grayscale(1)`.
 
 ## Frameworks
 
