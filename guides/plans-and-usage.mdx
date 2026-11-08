@@ -4,14 +4,14 @@ icon: gauge
 description: See what your organization uses, what happens at a plan's limits, upgrade or cancel, and delete organizations, projects and your account.
 ---
 
-The plan belongs to the organization: its limits cover all of its projects and members. A new organization starts on Free. The [pricing page](https://nohead.io/pricing) lists each plan's limits and prices.
+The plan belongs to the organization: its limits cover all of its projects and members, except collections, which each project counts on its own. A new organization starts on Free. The [pricing page](https://nohead.io/pricing) lists each plan's limits and prices.
 
 ## The Usage page
 
 The organization's **Usage** page shows its plan and what it has used, for admins and owners. The month is the calendar month in UTC.
 
-- The plan's limits come first: **Records**, **API requests**, **Storage**, **Projects**, **Collections**, **Members** and **Webhooks**, each as how much of the limit is used, or as unlimited. A limit that is reached, or passed, shows in red.
-- **Also metered** lists the month's **Search requests**, **Uploads**, **Downloads**, **Webhook deliveries** and **Record revisions**. They have no limit.
+- The plan's limits come first: **Records**, **API requests**, **Storage**, **Projects**, **Most collections in a project**, **Members** and **Webhooks**, each as how much of the limit is used, or as unlimited. A limit that is reached, or passed, shows in red.
+- **Also metered** lists the organization's **Collections** and the month's **Search requests**, **Uploads**, **Downloads**, **Webhook deliveries** and **Record revisions**. They have no limit.
 
 API requests and everything under **Also metered** are the month's so far; the other limits count what the organization has now. Deleted records don't count toward **Records**, while a project scheduled for deletion keeps its files in **Storage** until it is purged. [API requests](/guides/api-requests) has what counts as one.
 
@@ -19,7 +19,7 @@ API requests and everything under **Also metered** are the month's so far; the o
 
 Plans limit:
 
-- the number of projects, collections, records, members and webhooks
+- the number of projects, collections in each project, records, members and webhooks
 - storage, and the size of each uploaded file
 - API requests a month, and API requests a minute for each key ([Rate limits](/guides/errors-and-retries#rate-limits))
 - how long record history and the activity log are kept ([How long history is kept](/guides/history#how-long-history-is-kept))
@@ -28,7 +28,7 @@ Most limits are **hard**: a change that would go over is refused. Some are **sof
 
 ### Hard limits
 
-Projects, collections, records, members and webhooks are hard limits on every plan, and so is storage on Free. The change that would go over is refused with `402 plan_limit_exceeded`. Its detail, code `plan_limit`, names the limit in `field` (such as `collections`), with the current `usage` and the `limit` ([Errors and retries](/guides/errors-and-retries#statuses-and-types)).
+Projects, collections per project, records, members and webhooks are hard limits on every plan, and so is storage on Free. The change that would go over is refused with `402 plan_limit_exceeded`. Its detail, code `plan_limit`, names the limit in `field` (such as `collections_per_project`), with the current `usage` and the `limit` ([Errors and retries](/guides/errors-and-retries#statuses-and-types)).
 
 - **Members** counts pending invitations, so inviting someone needs room too.
 - **Restoring** a deleted record or project needs room for what comes back.
