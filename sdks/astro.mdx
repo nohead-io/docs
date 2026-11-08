@@ -50,7 +50,7 @@ export const collections = {
 ```
 
 - **Rich text** reads as HTML, for `<Fragment set:html={post.data.summary} />`. `body` names one rich text field that moves out of `data` for `render(entry)` to render as `<Content />`. With `richText: "markdown"`, rich text reads as Markdown and that field goes through Astro's own Markdown pipeline (your plugins, syntax highlighting, headings).
-- **Assets** named in `expand` replace their ID with the asset: its `image_url`, `width`, `height`, `alt` and the rest, ready for `<Image>` with the [image service](/guides/images#frameworks).
+- **Assets** named in `expand` replace their ID with the asset: its `image_url`, `width`, `height`, `alt` and the rest, ready for `<Image src={imageMetadata(asset)} />` with the [image service](#images).
 - **Relations** stay record IDs, for `reference()` and `getEntry`, to the Astro collection named like the related one. If you load it under another name, say so: `references: { people: "authors" }`.
 - **The record's own times** are in `data` too: `published_at` (when it was published; publishing again moves it), `created_at` and `updated_at`, for feeds and a sitemap's `lastmod`. A date readers see, such as a post's, is better a date field of its own: [Content modelling](/guides/content-modelling) explains why.
 - **Empty fields** are left out of `data`, so `.optional()` fits them. Dates are strings: `z.coerce.date()` makes them `Date`s.
@@ -64,4 +64,16 @@ On Astro 6 or later, the loader gives each collection its schema and TypeScript 
 
 ## Images
 
-Name the image service in astro.config, `image: { service: { entrypoint: "@nohead/astro/image-service" } }`, then `<Image src={asset.image_url} width={asset.width} height={asset.height} alt={asset.alt ?? ""} />`. [Images](/guides/images#frameworks) has the details.
+Name the image service in astro.config, `image: { service: { entrypoint: "@nohead/astro/image-service" } }`. Astro's `<Image>`, `<Picture>` and `getImage` then write each size and format into a Nohead image's URL: the build never downloads or resizes it. Your site's own images go through Astro's sharp service, resized at build time as Astro does without it.
+
+```astro
+---
+import { Image } from "astro:assets"
+import { imageMetadata } from "@nohead/astro"
+
+const cover = imageMetadata(post.data.cover)
+---
+{cover && <Image src={cover} widths={[480, 960]} sizes="30rem" alt={post.data.cover?.alt ?? ""} />}
+```
+
+`imageMetadata` gives an image asset (an expanded one, or the SDK's `Asset`) with its original size, so `width` and `height` are optional and no `srcset` width is larger than the original. An `image_url` works too, with `width` and `height`. [Images](/guides/images#frameworks) has the details.
