@@ -50,7 +50,7 @@ export const collections = {
 ```
 
 - **Rich text** reads as HTML, for `<Fragment set:html={post.data.summary} />`. `body` names one rich text field that moves out of `data` for `render(entry)` to render as `<Content />`. With `richText: "markdown"`, rich text reads as Markdown and that field goes through Astro's own Markdown pipeline (your plugins, syntax highlighting, headings).
-- **Assets** named in `expand` replace their ID with the asset: its `image_url`, `width`, `height`, `alt` and the rest, ready for `<Image src={imageMetadata(asset)} />` with the [image service](#images).
+- **Assets** named in `expand` replace their ID with the asset: its `image_url`, `width`, `height`, `alt` and the rest, ready for `<Image>` through `imageMetadata` and the [image service](#images).
 - **Relations** stay record IDs, for `reference()` and `getEntry`, to the Astro collection named like the related one. If you load it under another name, say so: `references: { people: "authors" }`.
 - **The record's own times** are in `data` too: `published_at` (when it was published; publishing again moves it), `created_at` and `updated_at`, for feeds and a sitemap's `lastmod`. A date readers see, such as a post's, is better a date field of its own: [Content modelling](/guides/content-modelling) explains why.
 - **Empty fields** are left out of `data`, so `.optional()` fits them. Dates are strings: `z.coerce.date()` makes them `Date`s.
