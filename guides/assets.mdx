@@ -50,19 +50,19 @@ Without an SDK or the CLI, an upload takes three requests. The file goes straigh
 
 <Steps>
   <Step title="Start the upload">
-    Send the file's name, type and exact size in bytes, and its `alt` text if you have it (at most 1,000 characters; empty means none). `$PROJECT_ID` is your key's project (`prj_…`): `GET /v1/me` returns it as `api_key.project_id`.
+    Send the file's name and exact size in bytes, and its `alt` text if you have it (at most 1,000 characters; empty means none). Its `content_type` is optional: without it, the API types the file by its filename's extension (`cover.jpg` is `image/jpeg`, a file it doesn't know `application/octet-stream`). `$PROJECT_ID` is your key's project (`prj_…`): `GET /v1/me` returns it as `api_key.project_id`.
 
     ```bash
     curl -X POST "https://api.nohead.io/v1/projects/$PROJECT_ID/assets" \
       -H "Authorization: Bearer $NOHEAD_API_KEY" \
       -H "Content-Type: application/json" \
-      -d '{"filename": "cover.jpg", "content_type": "image/jpeg", "byte_size": 48213, "alt": "A red sky over the sea"}'
+      -d '{"filename": "cover.jpg", "byte_size": 48213, "alt": "A red sky over the sea"}'
     ```
 
     The response is the asset, `pending`, with an `upload`: the `method`, `url` and `headers` to send the file with, and when it `expires_at`.
   </Step>
   <Step title="Send the file">
-    Send the file's bytes to `upload.url` with `upload.method`, and every header in `upload.headers`, before `upload.expires_at`. No `Authorization` header: the URL carries its own.
+    Send the file's bytes to `upload.url` with `upload.method`, and every header in `upload.headers` (its `Content-Type` is the asset's type), before `upload.expires_at`. No `Authorization` header: the URL carries its own.
 
     ```bash
     curl -X PUT "$UPLOAD_URL" -H "Content-Type: image/jpeg" --data-binary @cover.jpg
