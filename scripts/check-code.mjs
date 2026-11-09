@@ -1,10 +1,11 @@
-// Checks the code blocks in the guides (quickstart.mdx, guides/*.mdx) against
-// the published SDKs, so an example never calls what an SDK doesn't have:
-// TypeScript blocks are type-checked with @nohead/sdk (tsc), Python blocks
-// with nohead (pyright), and Ruby blocks are syntax-checked (ruby -c). Each
-// block stands alone; the names the guides take as given (`nohead`, `id`…)
-// are declared in a prelude, and Astro's modules as `any`, so an Astro
-// example checks the SDK's calls without installing Astro.
+// Checks the code blocks in the guides (quickstart.mdx, guides/, sdks/ and
+// adapters/) against the published SDKs, so an example never calls what an
+// SDK doesn't have: TypeScript blocks are type-checked with @nohead/sdk
+// (tsc), Python blocks with nohead (pyright), and Ruby blocks are
+// syntax-checked (ruby -c). Each block stands alone; the names the guides
+// take as given (`nohead`, `id`…) are declared in a prelude, and Astro's
+// modules as `any`, so an Astro example checks the SDK's calls without
+// installing Astro.
 //
 //   npm run check:code   # needs Python 3.11+ (PYTHON, default python3) and Ruby
 //
@@ -18,7 +19,7 @@ import { basename, join } from "node:path"
 
 const FILES = [
   "quickstart.mdx",
-  ...["guides", "sdks"].flatMap((folder) =>
+  ...["guides", "sdks", "adapters"].flatMap((folder) =>
     readdirSync(folder)
       .filter((file) => file.endsWith(".mdx"))
       .map((file) => `${folder}/${file}`)
