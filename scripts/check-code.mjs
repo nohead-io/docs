@@ -2,7 +2,9 @@
 // adapters/) against the published SDKs, so an example never calls what an
 // SDK doesn't have: TypeScript blocks are type-checked with @nohead/sdk
 // (tsc), Python blocks with nohead (pyright), and Ruby blocks are
-// syntax-checked (ruby -c). Each block stands alone; the names the guides
+// syntax-checked (ruby -c). The CLI's lines in shell blocks (`nohead …`, in
+// those pages, index.mdx and cli/overview.mdx) must name its commands and
+// their options, as cli/commands.json lists them. Each block stands alone; the names the guides
 // take as given (`nohead`, `id`…) are declared in a prelude, and Astro's
 // modules as `any`, so an Astro example checks the SDK's calls without
 // installing Astro.
@@ -59,6 +61,68 @@ row: Any = None
 request: Any = None
 `,
 }
+
+// The CLI: each `nohead …` (or `npx nohead …`) in a shell block names a
+// command the CLI has, and only options that command or the CLI takes.
+const cli = JSON.parse(readFileSync("cli/commands.json", "utf8"))
+const SHELL = new Set(["bash", "sh", "shell"])
+const optionsOf = (command) =>
+  new Map(
+    [...(command.options ?? []), { flags: "-h, --help" }].flatMap(({ flags }) =>
+      flags.match(/--?[\w-]+/g).map((flag) => [flag, /[<[]/.test(flags)])
+    )
+  )
+const cliErrors = []
+let cliLines = 0
+function checkCli(words, where) {
+  cliLines++
+  let command = cli
+  const path = ["nohead"]
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i]
+    if (word.startsWith("#")) break
+    if (/^--?[a-zA-Z]/.test(word)) {
+      const [flag] = word.split("=")
+      const takesValue = optionsOf(command).get(flag) ?? optionsOf(cli).get(flag)
+      if (takesValue === undefined) cliErrors.push(`${where}: ${path.join(" ")} has no option ${flag}`)
+      else if (takesValue && !word.includes("=")) i++
+      continue
+    }
+    const sub = (command.commands ?? []).find((c) => c.name === word)
+    if (sub) {
+      command = sub
+      path.push(word)
+    } else if (command.commands?.length) {
+      cliErrors.push(`${where}: no command "${word}" in ${path.join(" ")}`)
+      return
+    }
+  }
+}
+for (const file of [...FILES, "index.mdx", "cli/overview.mdx"]) {
+  const lines = readFileSync(file, "utf8").split("\n")
+  let shell = false
+  for (let n = 0; n < lines.length; n++) {
+    const fence = lines[n].match(/^\s*```(\w*)/)
+    if (fence) {
+      shell = !shell && SHELL.has(fence[1])
+      continue
+    }
+    if (!shell) continue
+    let line = lines[n]
+    while (line.endsWith("\\") && n + 1 < lines.length) line = line.slice(0, -1) + lines[++n]
+    // Each command of a pipeline or list: `cat x | nohead …`, `… && nohead …`.
+    for (const part of line.split(/\s(?:\|\||&&|\||;)\s/)) {
+      const words = part.trim().match(/"[^"]*"|'[^']*'|\S+/g) ?? []
+      const start = words[0] === "npx" ? words.findIndex((w) => /^(nohead|@nohead\/cli)(@\S+)?$/.test(w)) : 0
+      if (start >= 0 && words[start]?.match(/^(nohead|@nohead\/cli)(@\S+)?$/))
+        checkCli(words.slice(start + 1), `${file}:${n + 1}`)
+    }
+  }
+}
+if (cliErrors.length) {
+  console.error(cliErrors.join("\n"))
+  process.exitCode = 1
+} else console.log(`CLI: ${cliLines} commands match cli/commands.json`)
 
 const dir = mkdtempSync(join(tmpdir(), "nohead-docs-code-"))
 const written = { ts: [], py: [], rb: [] }
@@ -147,5 +211,5 @@ if (run("npx", ["--yes", "pyright@1.1.414", "--pythonpath", "venv/bin/python", .
 if (written.rb.map((name) => run("ruby", ["-c", name], { quiet: true })).every(Boolean)) {
   console.log(`Ruby: ${written.rb.length} blocks are valid Ruby`)
 }
-if (failed) process.exit(1)
+if (failed || process.exitCode) process.exit(1)
 rmSync(dir, { recursive: true })
