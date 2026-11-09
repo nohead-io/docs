@@ -1,6 +1,6 @@
 ---
 title: Astro
-icon: rocket
+icon: /icons/astro.svg
 description: "@nohead/astro: Nohead collections as Astro content collections, typed from their fields, and an image service for Nohead's images."
 ---
 
@@ -95,3 +95,9 @@ const cover = imageMetadata(post.data.cover)
 ```
 
 `imageMetadata` gives an image asset (an expanded one, or the SDK's `Asset`) with its original size, so `width` and `height` are optional and no `srcset` width is larger than the original. An `image_url` works too, with `width` and `height`. [Images](/guides/images#frameworks) has the details.
+
+## Source
+
+The adapter is open source, under the MIT license. Report issues and follow releases on GitHub:
+
+<GitHub.Repo repo="nohead-io/nohead-astro" />
