@@ -273,12 +273,22 @@
       },
       {
         "tab": "SDKs",
-        "pages": [
-          "sdks/overview",
-          "sdks/typescript",
-          "sdks/astro",
-          "sdks/python",
-          "sdks/ruby"
+        "groups": [
+          {
+            "group": "SDKs",
+            "pages": [
+              "sdks/overview",
+              "sdks/typescript",
+              "sdks/python",
+              "sdks/ruby"
+            ]
+          },
+          {
+            "group": "Adapters",
+            "pages": [
+              "adapters/astro"
+            ]
+          }
         ]
       },
       {
@@ -340,6 +350,10 @@
     {
       "source": "/guides/sdks",
       "destination": "/sdks/overview"
+    },
+    {
+      "source": "/sdks/astro",
+      "destination": "/adapters/astro"
     }
   ]
 }
