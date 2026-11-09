@@ -12,12 +12,11 @@ npm install @nohead/astro
 
 ## Content collections
 
-`noheadLoader` loads collections into Astro's content collections (Astro 5.9 or later), so pages read them with `getCollection`, `getEntry`, `reference()` and `render()`. Each published record becomes an entry whose `id` is the record ID and whose `data` is its fields, when the site builds and when `astro dev` starts:
+`noheadLoader` loads collections into Astro's content collections, so pages read them with `getCollection`, `getEntry`, `reference()` and `render()`. Each published record becomes an entry whose `id` is the record ID and whose `data` is its fields, when the site builds and when `astro dev` starts. On Astro 6 or later, the loader also gives each collection its schema and TypeScript type from the collection's fields, so there is no schema to write:
 
 ```ts
 // src/content.config.ts
-import { defineCollection, reference } from "astro:content"
-import { z } from "astro/zod"
+import { defineCollection } from "astro:content"
 import { noheadLoader } from "@nohead/astro"
 
 // Astro reads .env into import.meta.env, not process.env.
@@ -26,41 +25,60 @@ const apiKey = import.meta.env.NOHEAD_API_KEY
 export const collections = {
   people: defineCollection({
     loader: noheadLoader({ collection: "people", apiKey }),
-    schema: z.object({ name: z.string(), slug: z.string() }),
   }),
   posts: defineCollection({
     loader: noheadLoader({ collection: "posts", expand: ["cover"], body: "body", apiKey }),
-    schema: z.object({
-      title: z.string(),
-      slug: z.string(),
-      date: z.coerce.date(),
-      summary: z.string().optional(),
-      authors: z.array(reference("people")),
-      cover: z
-        .object({
-          image_url: z.string(),
-          width: z.number(),
-          height: z.number(),
-          alt: z.string().optional(),
-        })
-        .optional(),
-    }),
   }),
 }
 ```
 
+`getCollection("posts")` is then typed from the posts collection's fields: `post.data.title` is a `string`, `post.data.date` a `Date`, `post.data.authors` references to `people`.
+
 - **Rich text** reads as HTML, for `<Fragment set:html={post.data.summary} />`. `body` names one rich text field that moves out of `data` for `render(entry)` to render as `<Content />`. With `richText: "markdown"`, rich text reads as Markdown and that field goes through Astro's own Markdown pipeline (your plugins, syntax highlighting, headings).
 - **Assets** named in `expand` replace their ID with the asset: its `image_url`, `width`, `height`, `alt` and the rest, ready for `<Image>` through `imageMetadata` and the [image service](#images).
-- **Relations** stay record IDs, for `reference()` and `getEntry`, to the Astro collection named like the related one. If you load it under another name, say so: `references: { people: "authors" }`.
+- **Relations** are references, for `getEntry`, to the Astro collection named like the related one, so define a collection for every one that relations point to. If you load it under another name, say so: `references: { people: "authors" }`.
 - **The record's own times** are in `data` too: `published_at` (when it was published; publishing again moves it), `created_at` and `updated_at`, for feeds and a sitemap's `lastmod`. A date readers see, such as a post's, is better a date field of its own: [Content modelling](/guides/content-modelling) explains why.
-- **Empty fields** are left out of `data`, so `.optional()` fits them. Dates are strings: `z.coerce.date()` makes them `Date`s.
+- **Empty fields** are left out of `data`, so they are optional.
 - **Dates without a time** become `Date`s at midnight UTC, as Astro makes front-matter dates. Format them in UTC, `date.toLocaleDateString("en-GB", { timeZone: "UTC" })`, or west of Greenwich they show as the day before.
 - **Order:** Astro keeps no order for a collection, so sort entries in the page: `posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())`.
 - **Published records** are the ones that load, so a published-only key is enough. `filter` adds conditions, such as `{ featured: true }`, and `filter: { published_at: undefined }` loads every record, for a key that reads unpublished ones.
 
 The [README](https://github.com/nohead-io/nohead-astro) has a page that renders an entry and the loader's other options.
 
-On Astro 6 or later, the loader gives each collection its schema and TypeScript type from the collection's fields, so `schema` is only needed to change them. That needs a key with the `schema:read` scope.
+## Schema and types
+
+The loader reads the collection's fields when Astro syncs (`astro dev`, `astro build`, `astro sync`), with the key's `schema:read` scope, which a published-only key can have (without it, the sync fails and says so):
+
+- Text and rich text fields are strings (with `richText: "document"`, rich text is the API's document object), numbers are numbers, dates are `Date`s, enums are their options, booleans are `boolean` (`false` when unset) and JSON is `unknown`. A multiple field is an array.
+- A required field is required and the others optional. An expanded asset or relation is always optional, since one deleted or unpublished since is left out.
+- A relation is a `reference()` to its collection, and an expanded one is `{ id, data }`. An asset that isn't expanded stays its ID.
+
+### From the schema file
+
+Reading the fields from the API takes a key, so without one `astro check` and `astro sync` fail before checking anything, in CI or in a fork's pull request. With `schemaFile`, the loader reads them from the schema file that [`nohead schema pull`](/guides/schema-as-code) writes (a path from the folder Astro runs in, usually the project's root), and the types are the same:
+
+```ts
+import { defineCollection } from "astro:content"
+import { noheadLoader } from "@nohead/astro"
+
+const posts = defineCollection({
+  loader: noheadLoader({
+    collection: "posts",
+    schemaFile: "nohead.schema.yaml",
+    apiKey: import.meta.env.NOHEAD_API_KEY,
+  }),
+})
+```
+
+Without a key, the collection then loads empty with a warning, so a check runs; a build still needs the key for its pages. If the site declares the key in `astro:env`, make it optional there (`envField.string({ context: "server", access: "secret", optional: true })`), or Astro stops before the loader runs. Commit the file, and pull it again when the fields change, then restart `astro dev`. `npx nohead schema diff --exit-code` fails while the file and the project differ, for a CI check.
+
+### Your own schema
+
+A `schema` given to `defineCollection` takes the loader's place, as with any Astro loader. Give one to transform values, or on Astro 5, which doesn't ask loaders for a schema: there, fields are as the API returns them, so dates and the record's times are strings (`z.coerce.date()` makes them `Date`s, a date without a time at midnight UTC) and relations are record IDs, for `reference()`.
+
+## Builds and changes
+
+The loader reads the API when the site builds and when `astro dev` starts, so pages show what was published then, including pages rendered on demand. To rebuild when published content changes, point a published-only webhook at your host's deploy hook: [Webhooks](/guides/webhooks#published-content-only) has an example.
 
 ## Images
 

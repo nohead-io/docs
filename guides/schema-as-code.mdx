@@ -142,6 +142,8 @@ Leave `--allow-migrations` out of CI, and run migrations by hand after reviewing
 
 A scheduled `nohead schema diff --exit-code` tells you when someone changed the schema in the web app without updating the file. Add `--json` for one JSON document on stdout instead of text.
 
+An Astro site can take its content collections' types from the same file, with no key: see [Astro](/adapters/astro#from-the-schema-file).
+
 ## Copy a project
 
 `nohead export` and `nohead import` move a whole project: its schema, records, drafts and assets. Export with `--include-files` to bring the files along; without them, asset values are left out of the imported records. Export needs a key with **Published records only** off and `schema:read` and `records:read`, plus `assets:read` for assets; import needs `schema:write`, `records:write` and `assets:write` as well.
