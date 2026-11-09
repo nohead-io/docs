@@ -98,24 +98,41 @@ function checkCli(words, where) {
     }
   }
 }
+const NOHEAD = /^(nohead|@nohead\/cli)(@\S+)?$/
 for (const file of [...FILES, "index.mdx", "cli/overview.mdx"]) {
   const lines = readFileSync(file, "utf8").split("\n")
+  // The open block's fence (its backticks) and whether it is a shell block.
+  let open = null
   let shell = false
   for (let n = 0; n < lines.length; n++) {
-    const fence = lines[n].match(/^\s*```(\w*)/)
-    if (fence) {
-      shell = !shell && SHELL.has(fence[1])
+    const fence = lines[n].match(/^\s*(`{3,})(\w*)/)
+    if (fence && !open) {
+      open = fence[1]
+      shell = SHELL.has(fence[2])
+      continue
+    }
+    if (fence && fence[1] === open && !fence[2]) {
+      open = null
+      shell = false
       continue
     }
     if (!shell) continue
     let line = lines[n]
-    while (line.endsWith("\\") && n + 1 < lines.length) line = line.slice(0, -1) + lines[++n]
-    // Each command of a pipeline or list: `cat x | nohead …`, `… && nohead …`.
-    for (const part of line.split(/\s(?:\|\||&&|\||;)\s/)) {
-      const words = part.trim().match(/"[^"]*"|'[^']*'|\S+/g) ?? []
-      const start = words[0] === "npx" ? words.findIndex((w) => /^(nohead|@nohead\/cli)(@\S+)?$/.test(w)) : 0
-      if (start >= 0 && words[start]?.match(/^(nohead|@nohead\/cli)(@\S+)?$/))
-        checkCli(words.slice(start + 1), `${file}:${n + 1}`)
+    while (line.endsWith("\\") && n + 1 < lines.length && !/^\s*`{3}/.test(lines[n + 1]))
+      line = line.slice(0, -1) + lines[++n]
+    // Each command of a pipeline or list (`cat x | nohead …`, `… && nohead …`),
+    // after any variables it sets (`NOHEAD_API_KEY=… nohead …`).
+    const words = line.trim().match(/"[^"]*"|'[^']*'|\S+/g) ?? []
+    let command = []
+    for (const word of [...words, ";"]) {
+      if (!["|", "||", "&&", ";"].includes(word)) {
+        command.push(word)
+        continue
+      }
+      while (/^[A-Za-z_]\w*=/.test(command[0] ?? "")) command.shift()
+      if (command[0] === "npx") command = command.slice(command.findIndex((w) => NOHEAD.test(w)))
+      if (NOHEAD.test(command[0] ?? "")) checkCli(command.slice(1), `${file}:${n + 1}`)
+      command = []
     }
   }
 }
