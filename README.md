@@ -36,4 +36,4 @@ The Mintlify CLI is pinned in `package.json` and run with `npx`, with telemetry 
 
 ## Deploying
 
-Mintlify deploys `main` through its GitHub app, set up in the Mintlify dashboard for this repository. The free plan has no preview deployments: preview locally.
+Mintlify deploys `main` through its GitHub app, set up in the Mintlify dashboard for this repository. Each pull request also gets a preview deployment, whose URL its "Mintlify Deployment" check gives; `npm run dev` previews locally.
