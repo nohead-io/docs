@@ -61,9 +61,11 @@ const { data, response, requestId } = await nohead.records.get(id).withResponse(
 console.log(data.id, requestId, response.headers.get("RateLimit-Remaining"))
 ```
 
-## Images in frameworks
+## Frameworks
 
-`@nohead/sdk/images` builds image URLs (`imageUrl`) and has loaders for Next.js and Nuxt Image, with no dependencies. See [Images](/guides/images#frameworks). For Astro, [`@nohead/astro`](/sdks/astro) has a content loader and an image service.
+`@nohead/sdk/images` builds image URLs (`imageUrl`) and has loaders for Next.js and Nuxt Image, with no dependencies. See [Images](/guides/images#frameworks).
+
+Framework adapters build on this SDK, as packages with releases of their own, and are listed under **Adapters**. [`@nohead/astro`](/adapters/astro) loads collections into Astro's content collections, typed from their fields, and has an image service for Nohead's images.
 
 ## Methods
 
