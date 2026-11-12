@@ -59,8 +59,29 @@ Hits look like records:
 
 - `id` (`rec_…`), and `published_at`, `created_at` and `updated_at` as Unix seconds; `published_at` can be filtered and sorted on, such as `filter: "published_at > 1767225600"` for posts published since 2026
 - field values under `data`, by field key: dates as Unix seconds, rich text as plain text, JSON as a string, assets and relations as IDs
+- `image_urls`: each asset field's [image URL](/guides/images), by field key, so a result shows its images without another request: a URL, or for a field holding a list, a list in the same order as its IDs, `null` where an asset isn't an image
 
 Several collections at once take one query each, or a federated search across them (`federation: {}` in the request).
+
+## Show related records
+
+A hit names its related records by ID. To show them, such as a post's authors, include their collection in public search too and look them up by `id` in its index, with the same token:
+
+```javascript
+const ids = hits.flatMap((hit) => hit.data.authors ?? [])
+const response = await fetch("https://search.nohead.io/multi-search", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    queries: [{ indexUid: peopleIndex, filter: `id IN [${ids.map((id) => JSON.stringify(id)).join(", ")}]`, limit: ids.length }],
+  }),
+})
+```
+
+The lookup finds what every search with the token finds: published records of collections in public search. A related record that isn't published, or whose collection isn't in public search, doesn't come back, so show the hit without it.
 
 ## Filter and sort
 
