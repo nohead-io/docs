@@ -12,12 +12,12 @@ You need three things: the search URL, a token, and the index name of each colle
 
 ## Include collections in public search
 
-Tokens find only collections included in public search. In the web app, open a collection's **Search** tab and turn on **Include in public search**, or turn it on when you create the collection. It is off by default, and it applies to every token of the project, so a collection you include later is searchable with the tokens you already have. Through the API, it is the collection's `public_search`.
+Tokens find only collections included in public search. In the web app, open a collection's **Search** tab and turn on **Public search**, or turn it on when you create the collection. It is off by default, and it applies to every token of the project, so a collection you include later is searchable with the tokens you already have. Through the API, it is the collection's `public_search`.
 
 A token finds only the **published** records of included collections. The search engine enforces that: other collections, other projects and unpublished records stay out of reach, whatever a request asks for. Including or removing a collection reaches every token within seconds.
 
 <Warning>
-A token is public: in a site, it goes in your page source. Every field of the published records it finds can be read with it, so keep private content out of public search.
+A token is public: in a site, it goes in your page source. Every field of the published records it finds can be read with it, so keep private content out of public search. That includes the fields a [relation field picks](#images-and-related-records) from another collection: they come along whether or not that collection is in public search.
 </Warning>
 
 ## Index names
@@ -59,12 +59,37 @@ Hits look like records:
 
 - `id` (`rec_…`), and `published_at`, `created_at` and `updated_at` as Unix seconds; `published_at` can be filtered and sorted on, such as `filter: "published_at > 1767225600"` for posts published since 2026
 - field values under `data`, by field key: dates as Unix seconds, rich text as plain text, JSON as a string, assets and relations as IDs
+- `expanded`: what asset and relation fields return of the assets and related records they point at ([below](#images-and-related-records))
+
+Hits hold the fields their collection includes, which is all of them unless you leave some out ([Included](/guides/content-modelling#search-options)).
 
 Several collections at once take one query each, or a federated search across them (`federation: {}` in the request).
 
+## Images and related records
+
+An asset or relation field holds IDs in `data`, and under `expanded` what its `expanded` setting lists, so a result can show its image and its author with no other request:
+
+- An **asset field** expands an image's `image_url`, `width` and `height` (**Dimensions**) and `alt` text, and any file's `file_url`, `filename` and `content_type`. By default it expands an image's URL and dimensions where the field takes images, and a file's URL and filename where it takes other files, both while it takes any file. `image_url` and the dimensions are `null` for a file that isn't an image; build resized versions from `image_url` as in [Images](/guides/images), and link `file_url` to download the file.
+- A **relation field** expands nothing by default: `data` holds the related records' IDs. Pick fields of the related collection, such as an author's name and portrait, and each published related record comes along with them, by their keys. The related collection doesn't need to be in public search.
+
+Pick them in the web app, on a collection's **Search** tab: the gear beside an asset or relation field opens its **Search options**, where **Included in public search results** lists its asset parts or related fields. With the API or a [schema file](/guides/schema-as-code), it's the field's `expanded` setting: a relation lists the related collection's fields by ID (`fld_…`) in the API, and by key in a schema file.
+
+`expanded` shapes public search hits only. API reads embed whole related records and assets with `?expand=`, at request time ([Reading content](/guides/reading-content)).
+
+```javascript
+// With Cover (URL and dimensions) and Authors (name) included:
+const hit = results[0].hits[0]
+hit.expanded.cover // { id: "ast_…", image_url: "https://images.nohead.io/plain/…", width: 2000, height: 1333 }
+hit.expanded.authors // [{ id: "rec_…", data: { name: "Leela Menon" } }]
+```
+
+A single value is the asset or record, or `null` once it's gone; a list holds those that still exist (at most 100 related records). When an expanded value changes, such as an author renamed or unpublished, the hits that expand it follow.
+
+What searches match of related records is chosen apart from what hits return: a searchable relation field matches the related text fields its `searched` setting lists (**Searchable** in the web app lists them), whether or not hits return them, so "Menon" finds Leela Menon's posts. A job search can match company names while its hits return each company's name and logo. A filterable relation field also filters and counts on the related fields of both lists, under `data` when hits return them and under `searched` when they don't: `filter: 'expanded.authors.data.name = "Leela Menon"'`, `facets: ["expanded.category.data.name"]` for a filter list by category name, or `facets: ["expanded.authors.searched.role"]` for a role hits don't show. A related field's path follows its list, so moving it between what searches match and what hits return moves its filters too. Names can repeat, so filter by ID (`data.category = "rec_…"`) to be exact.
+
 ## Filter and sort
 
-Fields take part in searches by their [search settings](/guides/content-modelling#search-options), as in every search: words match `searchable` fields, and `filterable` and `sortable` fields can be used in filters and sorts. Name them under `data`:
+Fields take part in searches by their [search settings](/guides/content-modelling#search-options), as in every search: words match `searchable` fields, and `filterable` and `sortable` fields can be used in filters and sorts, whether or not hits include them. Name them under `data`:
 
 ```javascript
 { indexUid: index, q: "soup", filter: 'data.cuisine = "french"', sort: ["published_at:desc"] }
@@ -87,7 +112,7 @@ To mark the words that matched, name fields by their path in `attributesToHighli
 // hit._formatted.data.title: "<em>Lentil</em> soup"
 ```
 
-`["*"]` highlights every field. The highlighted text comes from your content, so escape it before inserting it as HTML and turn only the `<em>` tags back into markup, or set your own tags with `highlightPreTag` and `highlightPostTag`.
+A related record's fields highlight as its whole `data`: `expanded.authors.data` marks the authors' names in `_formatted.expanded.authors`, while a path inside it, such as `expanded.authors.data.name`, marks nothing. `["*"]` highlights every field. The highlighted text comes from your content, so escape it before inserting it as HTML and turn only the `<em>` tags back into markup, or set your own tags with `highlightPreTag` and `highlightPostTag`.
 
 ## Facets
 
