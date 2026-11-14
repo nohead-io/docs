@@ -40,7 +40,7 @@ These field keys are reserved, for records' own attributes and a few kept for la
 | `relation` | A record ID (`rec_...`) in the target collection | `target_collection_id` (required) |
 | `json` | Any JSON value, up to 100,000 bytes and 32 levels of nesting. For data with a shape of its own, such as settings or another service's payload: model content as typed fields, and keep large data in an [asset](/guides/assets) | |
 
-Every type's configuration also takes a `description` (**Help text** in the web app, up to 500 characters) shown to editors, and the search options `searchable`, `filterable` and `sortable` ([Search options](#search-options)).
+Every type's configuration also takes a `description` (**Help text** in the web app, up to 500 characters) shown to editors, and the search options `searchable`, `filterable`, `sortable`, `included`, for asset and relation fields `expanded`, and for relation fields `searched` ([Search options](#search-options)).
 
 A collection has at most 100 fields, and a record holds at most 2,000,000 bytes of values, all its fields together (`too_large` on `data`). A collection that needs more is usually two: move a group of its fields into a collection of their own and point to it with a [relation](#relations-and-assets).
 
@@ -193,7 +193,9 @@ Records store only the IDs. [Reading content](/guides/reading-content#embed-rela
 
 To filter and sort records, see [Reading content](/guides/reading-content#filter).
 
-Every collection is indexed for full-text search. Members search in the web app, API keys with `search:read` through the [API](/guides/api-search), and sites and apps with a [search token](/guides/public-search), which searches only collections with **Include in public search** on. The `searchable`, `filterable` and `sortable` options choose how each field takes part, in every search: words match `searchable` fields, and filters and sorts need `filterable` and `sortable` ones. API searches take the same filter operators, and `filter[published_at][exists]` (`true` for published records, `false` for unpublished ones). `searchable` decides relevance, not privacy: whoever can search a collection can also read its records.
+Every collection is indexed for full-text search. Members search in the web app, API keys with `search:read` through the [API](/guides/api-search), and sites and apps with a [search token](/guides/public-search), which searches only collections with **Public search** on. The `searchable`, `filterable` and `sortable` options choose how each field takes part, in every search: words match `searchable` fields, and filters and sorts need `filterable` and `sortable` ones. API searches take the same filter operators, and `filter[published_at][exists]` (`true` for published records, `false` for unpublished ones). `searchable` decides relevance, not privacy: whoever can search a collection can also read its records.
+
+`included` decides whether [public search](/guides/public-search#images-and-related-records) hits contain a field: every field by default, `false` to leave one out. For asset and relation fields, `expanded` lists what comes along of the assets and related records they point at. A searchable relation field matches the related fields its `searched` setting lists, returned or not; asset, boolean and date fields can't be searchable. A field left out is still searched, filtered and sorted on, so its values can be found out: it isn't private. API keys and the web app always read whole records.
 
 ## Changing a collection
 

@@ -1381,12 +1381,7 @@
             "$ref": "#/components/parameters/IdempotencyKey"
           },
           {
-            "name": "dry_run",
-            "in": "query",
-            "schema": {
-              "type": "boolean",
-              "default": false
-            }
+            "$ref": "#/components/parameters/DryRun"
           },
           {
             "$ref": "#/components/parameters/IfMatch"
@@ -1542,7 +1537,7 @@
           {
             "lang": "typescript",
             "label": "TypeScript",
-            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.diff(\n  \"rec_01J9ZQ3F8X\",\n  { from: 1, to: 2 },\n  { richText: \"markdown\" }\n)\n"
+            "source": "import { Nohead } from \"@nohead/sdk\"\n\nconst nohead = new Nohead()\n\nconst result = await nohead.records.diff(\"rec_01J9ZQ3F8X\", {\n  from: 1,\n  to: 2,\n  rich_text: \"markdown\",\n})\n"
           },
           {
             "lang": "python",
@@ -3544,12 +3539,7 @@
             "$ref": "#/components/parameters/IdempotencyKey"
           },
           {
-            "name": "dry_run",
-            "in": "query",
-            "schema": {
-              "type": "boolean",
-              "default": false
-            }
+            "$ref": "#/components/parameters/DryRun"
           },
           {
             "$ref": "#/components/parameters/NoheadClient"
@@ -4409,12 +4399,7 @@
             "$ref": "#/components/parameters/RichText"
           },
           {
-            "name": "q",
-            "in": "query",
-            "description": "The words to search for; empty matches everything.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/SearchQuery"
           },
           {
             "$ref": "#/components/parameters/Limit"
@@ -4507,12 +4492,7 @@
             "$ref": "#/components/parameters/RichText"
           },
           {
-            "name": "q",
-            "in": "query",
-            "description": "The words to search for; empty matches everything.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/SearchQuery"
           },
           {
             "$ref": "#/components/parameters/Limit"
@@ -5969,6 +5949,7 @@
         "name": "project_id",
         "in": "path",
         "required": true,
+        "description": "The project's ID (`prj_…`).",
         "schema": {
           "type": "string"
         },
@@ -5978,7 +5959,7 @@
         "name": "collection_id",
         "in": "path",
         "required": true,
-        "description": "Collection ID, or the collection slug when authenticating with an API key.",
+        "description": "The collection's ID (`col_…`), or its slug, such as `posts`, when authenticating with an API key.",
         "schema": {
           "type": "string"
         },
@@ -5988,6 +5969,7 @@
         "name": "field_id",
         "in": "path",
         "required": true,
+        "description": "The field's ID (`fld_…`).",
         "schema": {
           "type": "string"
         },
@@ -5997,6 +5979,7 @@
         "name": "migration_id",
         "in": "path",
         "required": true,
+        "description": "The field migration's ID (`mig_…`).",
         "schema": {
           "type": "string",
           "examples": [
@@ -6008,6 +5991,7 @@
         "name": "asset_id",
         "in": "path",
         "required": true,
+        "description": "The asset's ID (`ast_…`).",
         "schema": {
           "type": "string"
         },
@@ -6017,6 +6001,7 @@
         "name": "secret_id",
         "in": "path",
         "required": true,
+        "description": "The webhook secret's ID (`whs_…`).",
         "schema": {
           "type": "string"
         },
@@ -6026,6 +6011,7 @@
         "name": "webhook_id",
         "in": "path",
         "required": true,
+        "description": "The webhook's ID (`wh_…`).",
         "schema": {
           "type": "string"
         },
@@ -6035,6 +6021,7 @@
         "name": "delivery_id",
         "in": "path",
         "required": true,
+        "description": "The delivery's ID (`whd_…`).",
         "schema": {
           "type": "string"
         },
@@ -6044,6 +6031,7 @@
         "name": "record_id",
         "in": "path",
         "required": true,
+        "description": "The record's ID (`rec_…`).",
         "schema": {
           "type": "string"
         },
@@ -6053,6 +6041,7 @@
         "name": "draft_id",
         "in": "path",
         "required": true,
+        "description": "The draft's ID (`drf_…`).",
         "schema": {
           "type": "string"
         },
@@ -6062,10 +6051,28 @@
         "name": "revision_id",
         "in": "path",
         "required": true,
+        "description": "The revision's ID (`rev_…`).",
         "schema": {
           "type": "string"
         },
         "example": "rev_01J9ZQ3F8X5W2K7M4N6P0R1S2T"
+      },
+      "DryRun": {
+        "name": "dry_run",
+        "in": "query",
+        "description": "`true` returns a preview of the change and changes nothing.",
+        "schema": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "SearchQuery": {
+        "name": "q",
+        "in": "query",
+        "description": "The words to search for; empty matches everything.",
+        "schema": {
+          "type": "string"
+        }
       },
       "RevisionNumber": {
         "name": "revision",
@@ -6964,6 +6971,10 @@
             "type": "boolean",
             "description": "API searches can sort on it (one value only). Default false."
           },
+          "included": {
+            "type": "boolean",
+            "description": "Public search hits (search tokens) include the field. Default true. A field not included can still be searched, filtered and sorted on."
+          },
           "min_length": {
             "type": "integer",
             "minimum": 0
@@ -7009,6 +7020,10 @@
             "type": "boolean",
             "description": "API searches can sort on it (one value only). Default false."
           },
+          "included": {
+            "type": "boolean",
+            "description": "Public search hits (search tokens) include the field. Default true. A field not included can still be searched, filtered and sorted on."
+          },
           "min_length": {
             "type": "integer",
             "minimum": 0
@@ -7040,6 +7055,10 @@
           "sortable": {
             "type": "boolean",
             "description": "API searches can sort on it (one value only). Default false."
+          },
+          "included": {
+            "type": "boolean",
+            "description": "Public search hits (search tokens) include the field. Default true. A field not included can still be searched, filtered and sorted on."
           }
         }
       },
@@ -7063,6 +7082,10 @@
           "sortable": {
             "type": "boolean",
             "description": "API searches can sort on it (one value only). Default false."
+          },
+          "included": {
+            "type": "boolean",
+            "description": "Public search hits (search tokens) include the field. Default true. A field not included can still be searched, filtered and sorted on."
           },
           "min": {
             "type": "integer"
@@ -7097,6 +7120,10 @@
             "type": "boolean",
             "description": "API searches can sort on it (one value only). Default false."
           },
+          "included": {
+            "type": "boolean",
+            "description": "Public search hits (search tokens) include the field. Default true. A field not included can still be searched, filtered and sorted on."
+          },
           "min": {
             "type": "number"
           },
@@ -7116,7 +7143,10 @@
           },
           "searchable": {
             "type": "boolean",
-            "description": "Search words match the field, in every search (API keys, search tokens, members). Default true for text, long_text, rich_text and enum."
+            "enum": [
+              false
+            ],
+            "description": "A date field has no words for searches to match, so it can't be searchable."
           },
           "filterable": {
             "type": "boolean",
@@ -7125,6 +7155,10 @@
           "sortable": {
             "type": "boolean",
             "description": "API searches can sort on it (one value only). Default false."
+          },
+          "included": {
+            "type": "boolean",
+            "description": "Public search hits (search tokens) include the field. Default true. A field not included can still be searched, filtered and sorted on."
           },
           "include_time": {
             "type": "boolean",
@@ -7147,7 +7181,10 @@
           },
           "searchable": {
             "type": "boolean",
-            "description": "Search words match the field, in every search (API keys, search tokens, members). Default true for text, long_text, rich_text and enum."
+            "enum": [
+              false
+            ],
+            "description": "A boolean field has no words for searches to match, so it can't be searchable."
           },
           "filterable": {
             "type": "boolean",
@@ -7156,6 +7193,10 @@
           "sortable": {
             "type": "boolean",
             "description": "API searches can sort on it (one value only). Default false."
+          },
+          "included": {
+            "type": "boolean",
+            "description": "Public search hits (search tokens) include the field. Default true. A field not included can still be searched, filtered and sorted on."
           }
         }
       },
@@ -7183,6 +7224,10 @@
             "type": "boolean",
             "description": "API searches can sort on it (one value only). Default false."
           },
+          "included": {
+            "type": "boolean",
+            "description": "Public search hits (search tokens) include the field. Default true. A field not included can still be searched, filtered and sorted on."
+          },
           "options": {
             "type": "array",
             "minItems": 1,
@@ -7207,7 +7252,10 @@
           },
           "searchable": {
             "type": "boolean",
-            "description": "Search words match the field, in every search (API keys, search tokens, members). Default true for text, long_text, rich_text and enum."
+            "enum": [
+              false
+            ],
+            "description": "An asset field is indexed as an asset ID, with no words for searches to match, so it can't be searchable."
           },
           "filterable": {
             "type": "boolean",
@@ -7216,6 +7264,26 @@
           "sortable": {
             "type": "boolean",
             "description": "API searches can sort on it (one value only). Default false."
+          },
+          "included": {
+            "type": "boolean",
+            "description": "Public search hits (search tokens) include the field. Default true. A field not included can still be searched, filtered and sorted on."
+          },
+          "expanded": {
+            "type": "array",
+            "uniqueItems": true,
+            "description": "What public search hits return of the field's assets under `expanded`, while it's included: any of an image's `image_url`, `dimensions` (as `width` and `height`) and `alt`, and any file's `file_url`, `filename` and `content_type`, as the API's assets have them. By default an image's URL and dimensions where the field takes images, and a file's URL and filename where it takes other files (`accepted_types`; both when it takes any file). API reads expand what `?expand=` asks for.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "image_url",
+                "dimensions",
+                "alt",
+                "file_url",
+                "filename",
+                "content_type"
+              ]
+            }
           },
           "accepted_types": {
             "type": "array",
@@ -7241,7 +7309,7 @@
           },
           "searchable": {
             "type": "boolean",
-            "description": "Search words match the field, in every search (API keys, search tokens, members). Default true for text, long_text, rich_text and enum."
+            "description": "Search words match the related fields `searched` lists, in every search (API keys, search tokens, members). Default false."
           },
           "filterable": {
             "type": "boolean",
@@ -7250,6 +7318,36 @@
           "sortable": {
             "type": "boolean",
             "description": "API searches can sort on it (one value only). Default false."
+          },
+          "included": {
+            "type": "boolean",
+            "description": "Public search hits (search tokens) include the field. Default true. A field not included can still be searched, filtered and sorted on."
+          },
+          "expanded": {
+            "type": "array",
+            "maxItems": 10,
+            "uniqueItems": true,
+            "description": "The related collection's fields, by ID (`fld_...`), that public search hits return of each published related record under `expanded`, while the field is included, by their current keys (a list holds the first 100 related records that exist). None by default: the IDs only, whether or not the related collection is in public search. A filterable relation field also filters on them. API reads expand what `?expand=` asks for.",
+            "items": {
+              "type": "string",
+              "pattern": "^fld_",
+              "examples": [
+                "fld_01J9ZQ3F8X5W2K7M4N6P0R1S2T"
+              ]
+            }
+          },
+          "searched": {
+            "type": "array",
+            "maxItems": 10,
+            "uniqueItems": true,
+            "description": "The related collection's fields, by ID (`fld_...`), whose words searches match in each published related record while the field is `searchable`, in every search, whether or not hits return them; only text, long text, rich text and enum fields are matched. None by default. A filterable relation field also filters on them: under `expanded.<key>.data.<field>` when hits return them, `expanded.<key>.searched.<field>` when they don't.",
+            "items": {
+              "type": "string",
+              "pattern": "^fld_",
+              "examples": [
+                "fld_01J9ZQ3F8X5W2K7M4N6P0R1S2T"
+              ]
+            }
           },
           "target_collection_id": {
             "type": "string",
@@ -7278,6 +7376,10 @@
           "sortable": {
             "type": "boolean",
             "description": "API searches can sort on it (one value only). Default false."
+          },
+          "included": {
+            "type": "boolean",
+            "description": "Public search hits (search tokens) include the field. Default true. A field not included can still be searched, filtered and sorted on."
           }
         }
       },
@@ -7713,6 +7815,36 @@
               "null"
             ]
           },
+          "included": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "expanded": {
+            "description": "For an asset field, parts of its assets (`image_url`, `dimensions`, `alt`, `file_url`, `filename`, `content_type`); for a relation field, field IDs of the related collection.",
+            "type": [
+              "array",
+              "null"
+            ],
+            "maxItems": 10,
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "searched": {
+            "description": "For a relation field, field IDs of the related collection whose words searches match.",
+            "type": [
+              "array",
+              "null"
+            ],
+            "maxItems": 10,
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
           "min_length": {
             "type": [
               "integer",
@@ -7876,7 +8008,7 @@
           },
           "public_search": {
             "type": "boolean",
-            "description": "Whether the project's search tokens (made in the web app) find\nits published records, from a browser or a backend. Off by\ndefault: every field of those records becomes readable by anyone\nwith a token, so turn it on only for collections whose published\nrecords are public. A change reaches search tokens within\nseconds.\n"
+            "description": "Whether the project's search tokens (made in the web app) find\nits published records, from a browser or a backend. Off by\ndefault: every field of those records becomes readable by anyone\nwith a token, so turn it on only for collections whose published\nrecords are public. A change reaches search tokens within\nseconds. Off, its fields can still come along with hits of\nanother collection that is on, through a relation field's\n`expanded` and `searched`.\n"
           },
           "fields": {
             "type": "array",
