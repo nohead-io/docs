@@ -164,6 +164,37 @@ instantsearch({ indexName: index, searchClient })
   .start()
 ```
 
+## Connect before the first search
+
+A browser's first search waits for a connection to `https://search.nohead.io`. A preconnect opens it ahead:
+
+```html
+<link rel="preconnect" href="https://search.nohead.io" crossorigin />
+```
+
+Keep `crossorigin`: searches send no cookies, and without it the browser opens a connection they can't use.
+
+Put it in the page's `<head>` where search starts right away, such as on a search page. On other pages it would usually go to waste, as browsers close a connection nothing uses (Chrome after about 10 seconds). There, add the link as the visitor reaches for search, such as when the pointer reaches the search box, the box gets focus, or a search dialog opens:
+
+```javascript
+const connect = () =>
+  document.head.append(
+    Object.assign(document.createElement("link"), {
+      rel: "preconnect",
+      href: "https://search.nohead.io",
+      crossOrigin: "",
+    })
+  )
+
+const box = document.querySelector("#search-box")
+box.addEventListener("pointerenter", connect, { once: true })
+box.addEventListener("focusin", connect, { once: true })
+```
+
+An InstantSearch page doesn't need the script unless its first results come from your server: InstantSearch searches as it starts, which opens the connection.
+
+A preconnect doesn't save the browser's CORS check, a request it makes before the first search. The browser remembers the answer for a while (Chrome for 2 hours), so later searches skip it.
+
 ## Rename or delete a token
 
 Rename a token or delete it from its menu on the **Search tokens** page. A renamed token stays the same. A deleted one fails at once, and your other tokens keep working. To stop searches of one collection, remove it from public search instead. While a project or organization is scheduled for deletion its tokens stop working, and they work again if it is restored.
