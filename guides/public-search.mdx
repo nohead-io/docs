@@ -166,7 +166,15 @@ instantsearch({ indexName: index, searchClient })
 
 ## Connect before the first search
 
-A browser's first search waits for a connection to `https://search.nohead.io`. To open it before the first word is typed, preconnect as the visitor reaches for search, such as when the pointer reaches the search box, the box gets focus, or a search dialog opens:
+A browser's first search waits for a connection to `https://search.nohead.io`. A preconnect opens it ahead:
+
+```html
+<link rel="preconnect" href="https://search.nohead.io" crossorigin />
+```
+
+Keep `crossorigin`: searches send no cookies, and without it the browser opens a connection they can't use.
+
+Put it in the page's `<head>` where search starts right away, such as on a search page. On other pages it would usually go to waste, as browsers close a connection nothing uses (Chrome after about 10 seconds). There, add the link as the visitor reaches for search, such as when the pointer reaches the search box, the box gets focus, or a search dialog opens:
 
 ```javascript
 let connected = false
@@ -185,16 +193,6 @@ const box = document.querySelector("#search")
 box.addEventListener("pointerenter", connectToSearch)
 box.addEventListener("focusin", connectToSearch)
 ```
-
-Keep `crossOrigin`: searches send no cookies, and without it the browser opens a connection they can't use.
-
-On a page where search starts right away, such as a search page, put the link in the page's `<head>` instead:
-
-```html
-<link rel="preconnect" href="https://search.nohead.io" crossorigin />
-```
-
-In the `<head>` of other pages it's usually wasted: browsers close a connection nothing uses, Chrome after about 10 seconds.
 
 A preconnect doesn't save the browser's CORS check, a request it makes before the first search. The browser remembers the answer for a while (Chrome for 2 hours), so later searches skip it.
 
