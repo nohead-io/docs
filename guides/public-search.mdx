@@ -177,22 +177,21 @@ Keep `crossorigin`: searches send no cookies, and without it the browser opens a
 Put it in the page's `<head>` where search starts right away, such as on a search page. On other pages it would usually go to waste, as browsers close a connection nothing uses (Chrome after about 10 seconds). There, add the link as the visitor reaches for search, such as when the pointer reaches the search box, the box gets focus, or a search dialog opens:
 
 ```javascript
-let connected = false
-function connectToSearch() {
-  if (connected) return
-  connected = true
-  const link = Object.assign(document.createElement("link"), {
-    rel: "preconnect",
-    href: "https://search.nohead.io",
-    crossOrigin: "",
-  })
-  document.head.append(link)
-}
+const connect = () =>
+  document.head.append(
+    Object.assign(document.createElement("link"), {
+      rel: "preconnect",
+      href: "https://search.nohead.io",
+      crossOrigin: "",
+    })
+  )
 
-const box = document.querySelector("#search")
-box.addEventListener("pointerenter", connectToSearch)
-box.addEventListener("focusin", connectToSearch)
+const box = document.querySelector("#search-box")
+box.addEventListener("pointerenter", connect, { once: true })
+box.addEventListener("focusin", connect, { once: true })
 ```
+
+An InstantSearch page doesn't need the script unless its first results come from your server: InstantSearch searches as it starts, which opens the connection.
 
 A preconnect doesn't save the browser's CORS check, a request it makes before the first search. The browser remembers the answer for a while (Chrome for 2 hours), so later searches skip it.
 
