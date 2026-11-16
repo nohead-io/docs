@@ -110,8 +110,6 @@ Agents read and write rich text as Markdown: tools that return records, `diff_re
 
 With `assets:read` and `assets:write`, an agent can find a project's [assets](/guides/assets), fix missing alt text, and upload an image to put on a record. Asset tools take no `note` or `expected_revision`, since assets have no history.
 
-Before deleting an asset, an agent with `records:read` too checks `get_asset_usage`: how many records use the asset in their content or pending draft (`records`), how many published ones show it (`published`), and the 10 most recently updated, with the fields that use it. Deleted records and record history don't count. An asset with `records` 0 is unused, so an agent asked to clean up unused images can tell which to delete.
-
 An upload takes [the same three requests as over HTTP](/guides/assets#over-http): two tools, with the agent sending the file itself in between.
 
 1. `start_upload` with the file's `filename`, `content_type` and exact `byte_size`. It returns the pending asset and its `upload`: a `method`, `url` and `headers`, and when it `expires_at`. A file larger than your plan allows, or on Free one that would go over the organization's storage, is refused with `402 plan_limit_exceeded`.
@@ -121,6 +119,8 @@ An upload takes [the same three requests as over HTTP](/guides/assets#over-http)
 The second step needs an agent that can make HTTP requests, such as a coding agent with a shell: an agent with only the MCP server's tools can't upload this way.
 
 A ready asset's `id` (`ast_…`) is then the value of an asset field, set with `update_record` (`"data": {"cover": "ast_…"}`, or a list of IDs with **multiple** on), or an image in rich text, `![alt](ast_…)`. `get_schema` shows which fields are asset fields and the types they accept.
+
+Before deleting an asset, an agent with `records:read` too checks [where it is used](/guides/assets#where-an-asset-is-used) with `get_asset_usage`: how many records use it in their content or pending draft (`records`), how many published ones show it (`published`), and the 10 most recently updated, with the fields that use it. Deleted records and record history don't count. An asset with `records` 0 is unused, so an agent asked to clean up unused images can tell which to delete.
 
 ## Guardrails
 
