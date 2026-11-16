@@ -94,12 +94,13 @@ Chat apps that only connect through a sign-in (OAuth), such as Claude.ai connect
 | `restore_record` | Bring back a deleted record | `records:write` |
 | `list_assets` | The project's images and files, with search and filters | `assets:read` |
 | `get_asset` | One asset, with its URLs | `assets:read` |
+| `get_asset_usage` | Which records use an asset | `assets:read`, `records:read` |
 | `update_asset` | Set an asset's alt text or filename | `assets:write` |
 | `delete_asset` | Delete an asset, restorable for 30 days | `assets:write` |
 | `start_upload` | Step 1 of an upload: where to send the file | `assets:write` |
 | `complete_upload` | Step 2 of an upload: make the asset ready | `assets:write` |
 
-An agent sees only the tools its key's scopes allow, and a published-only key reads published records only: its `list_revisions` and `diff_record` calls are refused (`403`), since history can hold unpublished content, and so are its `get_schedule` calls. Each tool's arguments carry the API reference's own descriptions. Schema changes aren't tools: make those as reviewed schema files with the CLI (`nohead schema pull`, `diff` and `push`).
+An agent sees only the tools its key's scopes allow, and a published-only key reads published records only: its `list_revisions` and `diff_record` calls are refused (`403`), since history can hold unpublished content, and so are its `get_schedule` and `get_asset_usage` calls. Each tool's arguments carry the API reference's own descriptions. Schema changes aren't tools: make those as reviewed schema files with the CLI (`nohead schema pull`, `diff` and `push`).
 
 `schedule_record` ([Schedule publishing](/guides/publishing#schedule-publishing)) takes `publish_at`, `unpublish_at` or both, as ISO 8601 times with a zone such as `2026-11-06T09:00:00Z`, and replaces the whole schedule: a time left out is cleared, so an agent adding an unpublish time passes the publish time again. A publish time needs an unpublished record, and an unpublish time a published one or a publish time before it. The change is made within a minute of its time, as its own revision; one that can't be made then (the record is live with a pending draft, say) is dropped, and `get_schedule` gives the reason in `last_error`. Scheduling makes no revision, so these tools take no `note` or `expected_revision`, and a schedule change can't be reverted: the last write wins, so read the schedule with `get_schedule` just before replacing it. Schedule changes are in the [activity log](/guides/history#activity-log).
 
@@ -118,6 +119,8 @@ An upload takes [the same three requests as over HTTP](/guides/assets#over-http)
 The second step needs an agent that can make HTTP requests, such as a coding agent with a shell: an agent with only the MCP server's tools can't upload this way.
 
 A ready asset's `id` (`ast_…`) is then the value of an asset field, set with `update_record` (`"data": {"cover": "ast_…"}`, or a list of IDs with **multiple** on), or an image in rich text, `![alt](ast_…)`. `get_schema` shows which fields are asset fields and the types they accept.
+
+Before deleting an asset, an agent with `records:read` too checks [where it is used](/guides/assets#where-an-asset-is-used) with `get_asset_usage`: how many records use it in their content or pending draft (`records`), how many published ones show it (`published`), and the 10 most recently updated, with the fields that use it. Deleted records and record history don't count. An asset with `records` 0 is unused, so an agent asked to clean up unused images can tell which to delete.
 
 ## Guardrails
 
