@@ -242,34 +242,41 @@ end
 
 Each error `type` of the API is an error class: `ValidationError` (422), `NotFoundError` (404), `RateLimitError` (429) and so on, all subclasses of `APIError`. They carry the `status`, `type`, `message`, the request ID and the field-level `details`.
 
+A form that writes a record shows a `ValidationError`'s field errors beside its fields: the first message for each field, by its key. `details` has every problem with its `code` (`required`, `taken`), for words of your own.
+
 <CodeGroup>
 
 ```ts TypeScript
 import { ValidationError } from "@nohead/sdk"
 
-try {
-  await nohead.records.create("posts", { data: {} })
-} catch (error) {
-  if (error instanceof ValidationError) console.log(error.details)
-  else throw error
+async function apply(name: string, email: string) {
+  try {
+    await nohead.records.create("applications", { data: { name, email } })
+    return { sent: true }
+  } catch (error) {
+    if (!(error instanceof ValidationError)) throw error
+    return { sent: false, errors: error.fieldErrors } // { email: "is required" }
+  }
 }
 ```
 
 ```python Python
 from nohead import ValidationError
 
-try:
-    nohead.records.create("posts", data={})
-except ValidationError as error:
-    for detail in error.details:
-        print(detail.field, detail.code, detail.message)
+def apply(name: str, email: str) -> dict[str, object]:
+    try:
+        nohead.records.create("applications", data={"name": name, "email": email})
+    except ValidationError as error:
+        return {"sent": False, "errors": error.field_errors}  # {"email": "is required"}
+    return {"sent": True}
 ```
 
 ```ruby Ruby
-begin
-  nohead.records.create("posts", data: {})
+def apply(name, email)
+  nohead.records.create("applications", data: { name: name, email: email })
+  { sent: true }
 rescue Nohead::ValidationError => e
-  e.details.each { |detail| puts "#{detail.field}: #{detail.message}" }
+  { sent: false, errors: e.field_errors } # { "email" => "is required" }
 end
 ```
 
