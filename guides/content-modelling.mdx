@@ -30,7 +30,7 @@ These field keys are reserved, for records' own attributes and a few kept for la
 | --- | --- | --- |
 | `text` | A string, up to 10,000 characters | `min_length`, `max_length`, `format`, `unique` (see [Formats and unique values](#formats-and-unique-values)) |
 | `long_text` | A string, up to 100,000 characters | `min_length`, `max_length` |
-| `rich_text` | A ProseMirror document, `{"type": "doc", "content": [...]}`, which can show [images](#images-in-rich-text) of the project's assets, up to 1,000,000 bytes. Write it as Markdown or as the document; read it as the document, HTML or Markdown ([Rich text](#rich-text)) | |
+| `rich_text` | A ProseMirror document, `{"type": "doc", "content": [...]}`, which can show [images](#images-in-rich-text) of the project's assets, up to 1,000,000 bytes. Write it as Markdown or as the document; read it as the document, HTML or Markdown ([Rich text](#rich-text)) | `min_length`, `max_length`, counted on its text ([Length limits](#length-limits)) |
 | `integer` | A whole number within ±9,007,199,254,740,991, which every JSON client represents exactly | `min`, `max`, `unique` |
 | `decimal` | A number | `min`, `max` |
 | `date` | A calendar date, `2026-10-09`, returned exactly as written. With `include_time`, a moment: ISO 8601 with an offset, stored in UTC | `include_time`, `time_zone` (see [Dates](#dates)) |
@@ -101,6 +101,10 @@ A document uses the web editor's nodes and marks, and nothing else, so whatever 
 - **Marks on text:** `bold`, `italic`, `strike`, `underline`, `code` (on its own) and `link` (`href`, and optionally `title`, `target`, `rel` and `class`, which Tiptap adds).
 
 Another editor's names are refused with `invalid_format`, naming ours where one fits: `contains an unknown mark "strong"; use "bold"`. These are Tiptap's names, so documents from a Tiptap editor with StarterKit and tables need no conversion.
+
+### Length limits
+
+A rich text field's `min_length` and `max_length` count its text as a reader reads it: its characters, and a line break between blocks and for each hard break. Markup, Markdown syntax and images don't count, so `**Hello** world` is 11 characters, however it's written. A value over the limit is refused with `too_long`, one under it with `too_short`; an empty value has no length to check, so make the field required to ask for one.
 
 ### Images in rich text
 
