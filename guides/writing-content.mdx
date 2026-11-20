@@ -38,7 +38,7 @@ The API answers `201` with the record, unpublished, at revision 1; [publish it](
 
 [Content modelling](/guides/content-modelling#field-types) has every type's value and rules. A required field needs a value: `null`, `""` and `[]` count as none. Relation and asset IDs are checked when they are newly written: the record must exist in the target collection and the asset must be uploaded and not deleted (`invalid_reference`). IDs a record already holds are left alone, so a record whose related record was deleted later can still be saved.
 
-A value that doesn't pass is a `422`, with a detail for each field, keyed by its `field`, such as `required`, `unknown_field` or `taken` (another record has this value in a unique field). See [Errors and retries](/guides/errors-and-retries#statuses-and-types).
+A value that doesn't pass is a `422`, with a detail for each field, keyed by its `field`, such as `required`, `unknown_field` or `taken` (another record has this value in a unique field). An invalid value in a required field is reported as invalid only, not also as `required`. See [Errors and retries](/guides/errors-and-retries#statuses-and-types).
 
 ## Update a record
 

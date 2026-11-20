@@ -178,7 +178,7 @@ Published-only API keys can't read history (`403`), since it holds unpublished c
 
 ## Activity log
 
-Revisions hold what a record's content was. The activity log holds everything else that changed in the organization, and who changed it, through what: every record, draft, schema, asset, webhook, API key and search token change in its projects, and changes to the projects, the organization, its members, invitations and plan. Each event names its type (such as `record.published` or `member.role_changed`), its actor and its `via`, with small references such as a `revision_id`, but never content. Reads aren't recorded.
+Revisions hold what a record's content was. The activity log holds everything else that changed in the organization, and who changed it, through what: every record, draft, schema, asset, webhook, API key and search token change in its projects, and changes to the projects, the organization, its members, invitations and plan. Each event names its type (such as `record.published` or `member.role_changed`), its actor and its `via`, with small references such as a `revision_id` (and a webhook's `url`), but never content. Record and schema events also carry the change's `note`, when it was made with one, a draft's merge included. Reads aren't recorded.
 
 Admins and owners read it on the organization's **Activity** page. Filter it by project, by what changed (**Show**: **Records**, **Drafts**, **Schema**, **Members** and so on) and by **Who**: a member, **All API keys** or **System**; choosing a name in the list shows only their activity. **Client** shows what each change came through: **Web app**, **API**, **CLI**, **SDK**, **MCP**, **System** or **Scheduler**. A record's or collection's event links to it.
 

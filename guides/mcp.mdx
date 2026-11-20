@@ -10,7 +10,7 @@ Coding agents and CI jobs with a shell are usually better served by the `nohead`
 
 ## Connect
 
-The server speaks Streamable HTTP at `https://mcp.nohead.io/mcp`. Authenticate with a project API key as the bearer token. Give the agent a key of its own, with only the scopes it needs, so its changes are attributed to it in history. New keys are published-only by default: an agent that changes content needs a key with **Published records only** off and `schema:read`, `records:read` and `records:write`, plus `search:read` to search, and `assets:read` and `assets:write` for images and files. The server offers only the tools a key's scopes allow, and an agent starts by reading the schema.
+The server speaks Streamable HTTP at `https://mcp.nohead.io/mcp`. It is stateless: it keeps no session between requests. Authenticate with a project API key as the bearer token. Give the agent a key of its own, with only the scopes it needs, so its changes are attributed to it in history. New keys are published-only by default: an agent that changes content needs a key with **Published records only** off and `schema:read`, `records:read` and `records:write`, plus `search:read` to search, and `assets:read` and `assets:write` for images and files. The server offers only the tools a key's scopes allow, and an agent starts by reading the schema.
 
 Codex and Cursor read the key from the `NOHEAD_API_KEY` environment variable, and VS Code asks for it once and stores it, so none of their config files holds the key itself, and a project's `.cursor/mcp.json` or `.vscode/mcp.json` can be committed. Claude Code saves the key in its own settings, outside the project, when you run its command: run it with `NOHEAD_API_KEY` set.
 
@@ -70,13 +70,13 @@ Chat apps that only connect through a sign-in (OAuth), such as Claude.ai connect
 
 | Tool | What it does | Scope |
 |---|---|---|
-| `list_collections` | The project's collections | `schema:read` |
+| `list_collections` | The project's collections: ID, name, slug, description, `public_search` and `schema_version` | `schema:read` |
 | `get_schema` | A collection's fields, types and validation | `schema:read` |
 | `search` | Full-text search across the project | `search:read` |
 | `search_collection` | Search one collection, with filters and sorting | `search:read` |
 | `list_records` | A collection's records, with filters, sorting and pages | `records:read` |
 | `get_record` | One record, with its current revision | `records:read` |
-| `create_record` | A new record, unpublished | `records:write` |
+| `create_record` | A new record, unpublished unless `publish: true` | `records:write` |
 | `update_record` | Change some of a record's field values | `records:write` |
 | `list_drafts` | A collection's drafts: changes waiting for review | `records:read` |
 | `get_draft` | A draft: the record as it reads once merged, and the fields it changes | `records:read` |
@@ -112,7 +112,7 @@ With `assets:read` and `assets:write`, an agent can find a project's [assets](/g
 
 An upload takes [the same three requests as over HTTP](/guides/assets#over-http): two tools, with the agent sending the file itself in between.
 
-1. `start_upload` with the file's `filename`, `content_type` and exact `byte_size`. It returns the pending asset and its `upload`: a `method`, `url` and `headers`, and when it `expires_at`. A file larger than your plan allows, or on Free one that would go over the organization's storage, is refused with `402 plan_limit_exceeded`.
+1. `start_upload` with the file's `filename`, `content_type` and exact `byte_size`, and optionally its `alt` text. It returns the pending asset and its `upload`: a `method`, `url` and `headers`, and when it `expires_at`. A file larger than your plan allows, or on Free one that would go over the organization's storage, is refused with `402 plan_limit_exceeded`.
 2. The agent sends the file's bytes to `upload.url` with `upload.method` and every header in `upload.headers`, before `upload.expires_at`: for example `curl -X PUT "$UPLOAD_URL" -H "Content-Type: image/png" --data-binary @cover.png`. The bytes go straight to storage, not through the MCP server.
 3. `complete_upload` checks the file and marks the asset `ready`.
 
@@ -129,7 +129,7 @@ The tools add guardrails for agents:
 - **A note on every change to a record.** Each one takes a required `note` saying why, up to 500 characters. It is stored in the record's history next to the key's name and the client, **MCP**.
 - **No overwriting.** Changes to an existing record take the `expected_revision` the agent read, and the server's instructions ask agents to pass it. If someone changed the record since, the change is refused with `precondition_failed`, and the agent should read it again. Without it, the last write wins.
 - **Safe retries.** Every write takes an optional `idempotency_key`. Retrying with the same key never applies a change twice.
-- **Review before it goes live.** A change to a published record shows on your sites at once, so the server's instructions ask agents to propose it as a draft instead, unless you asked for a direct edit. The draft waits until a person merges it in the editor (**Publish changes**) or with `nohead drafts merge`: no tool merges or schedules a draft. A record has at most one draft, and `create_draft` on a record that has one is refused with `draft_exists` and its `draft_id`, so the agent changes that one with `update_draft`, passing the draft's `revision` as `expected_revision`.
+- **Review before it goes live.** A change to a published record shows on your sites at once, so the server's instructions ask agents to propose it as a draft instead, unless you asked for a direct edit. The draft waits until a person merges it in the editor (**Publish changes**) or with `nohead drafts merge`: no tool merges or schedules a draft. A record has at most one draft, and `create_draft` on a record that has one is refused with `draft_exists` and its `draft_id`, so the agent changes that one with `update_draft`, passing the draft's `revision` as `expected_revision`. A draft changes no content until it is merged, so `create_draft` and `update_draft` take no `note`, and `create_draft` no `expected_revision`. Drafts are a convention the server's instructions ask for, not a limit on the key: with `records:write`, `update_record` and `publish_record` change a published record directly, and the same key can merge a draft through the API. No scope allows drafts only.
 - **Nothing irreversible.** Every record change is a revision you can revert, and `revert_record` previews with `dry_run: true`. New records start unpublished.
 
 Errors come back as tool errors with the API's error envelope, so an agent sees the same `type`, `message` and `details` (each with its `code`) the [API reference](/api-reference/overview) documents.
