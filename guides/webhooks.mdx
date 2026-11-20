@@ -201,7 +201,7 @@ Through the API, a webhook carries the same:
 
 - `last_attempt_at`, `last_status_code` and `last_error`: when the last attempt was made, the HTTP status it got, or why it got no response (such as a timeout).
 - `last_succeeded_at`: when an attempt last got a `2xx` response.
-- `failing_since`: when its attempts started failing; `null` while it works and before its first attempt. A success clears it, and so do changing the URL and disabling or enabling the webhook yourself; when Nohead disables a failing webhook, `failing_since` stays as it was.
+- `failing_since`: when its attempts started failing; `null` while it works and before its first attempt. A success clears it, and so do changing the URL, disabling or enabling the webhook yourself, and restoring it while it's enabled; when Nohead disables a failing webhook, `failing_since` stays as it was.
 
 Every attempt counts, retries and test events included. Changing a webhook's URL clears its health, since the new address hasn't been tried yet.
 
@@ -213,7 +213,7 @@ Nohead disables a webhook too, once its attempts have failed for 3 days, and set
 
 Once the endpoint is fixed, choose **Enable** from the webhook's menu (or set `enabled` to `true`), then send a test event. Enabling it clears `disabled_reason` and `failing_since`, and the warning and the 3 days count again from its next failure.
 
-**Delete** stops a webhook the same way as disabling it. A deleted webhook can be restored for 30 days, with its settings, secrets and delivery history (`POST /v1/webhooks/{webhook_id}/restore`).
+**Delete** stops a webhook the same way as disabling it. A deleted webhook can be restored for 30 days, with its settings, secrets and delivery history (`POST /v1/webhooks/{webhook_id}/restore`). Restoring an enabled webhook clears `failing_since`, so if it was failing, the warning and the 3 days count again from its next failure; a disabled one stays disabled, with its `disabled_reason`, until you enable it.
 
 ## Verify signatures
 
