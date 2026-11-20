@@ -203,13 +203,13 @@ Through the API, a webhook carries the same:
 - `last_succeeded_at`: when an attempt last got a `2xx` response.
 - `failing_since`: when its attempts started failing; `null` while it works and before its first attempt. A success clears it, and so do changing the URL, disabling or enabling the webhook yourself, and restoring it while it's enabled; when Nohead disables a failing webhook, `failing_since` stays as it was.
 
-Every attempt counts, retries and test events included. Changing a webhook's URL clears its health, since the new address hasn't been tried yet.
+Every attempt counts, retries and test events included. Changing a webhook's URL clears its health, since the new address hasn't been tried yet, and an attempt still on its way to the old URL doesn't count toward it.
 
 ## Disabling and deleting
 
 To pause a webhook, choose **Disable** from its menu (or set `enabled` to `false`). A disabled webhook gets no new events, events from while it was off are not sent later, and its pending retries fail.
 
-Nohead disables a webhook too, once its attempts have failed for 3 days, and sets its `disabled_reason` to `failing`. Your organization's owners and admins get an email after a day of failures (after an hour if no attempt has succeeded yet, or since its URL changed), and another when it's disabled. Each happens at the first failed attempt past its time, so a webhook with nothing to send is left as it is.
+Nohead disables a webhook too, once its attempts have failed for 3 days, and sets its `disabled_reason` to `failing`. Your organization's owners and admins get an email after a day of failures (after an hour if no attempt has succeeded yet, or since its URL changed), and another when it's disabled. Both name the webhook by its host and description, not its full URL. Each happens at the first failed attempt past its time, so a webhook with nothing to send is left as it is.
 
 Once the endpoint is fixed, choose **Enable** from the webhook's menu (or set `enabled` to `true`), then send a test event. Enabling it clears `disabled_reason` and `failing_since`, and the warning and the 3 days count again from its next failure.
 

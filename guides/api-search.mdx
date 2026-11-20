@@ -65,7 +65,7 @@ Filters work as in the records list, with the same operators (`eq`, `ne`, `gt`, 
 filter[price][lt]=50&filter[tags][in]=winter,beach
 ```
 
-`filter[published_at][exists]=true` finds published records, and `false` unpublished ones. That is the only filter on `published_at` in search: other timestamps, ranges of `published_at` and `deleted` are refused with `400`, as is a filter on a field that isn't `filterable`. The error's `details` name the parameter, such as `filter[title]`.
+`filter[published_at][exists]=true` finds published records, and `false` unpublished ones. `published_at` also takes ranges and a day, as in the records list (`filter[published_at][gte]=2026-10-01`). The other timestamps and `deleted` are refused with `400`, as is a filter on a field that isn't `filterable`. The error's `details` name the parameter, such as `filter[title]`.
 
 Without `sort`, results are in order of relevance. `sort` takes `created_at`, `updated_at`, `published_at` or a field marked `sortable`, with `-` for descending.
 

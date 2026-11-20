@@ -12,7 +12,7 @@ Requests go to `https://api.nohead.io`. Send `Authorization: Bearer <token>`. Se
 
 ## IDs
 
-Every object has an `object` type, and every resource with an identity of its own an opaque, prefixed `id` (`col_`, `fld_`, `rec_`, `ast_`, ...). With an API key, collections can also be addressed by slug: `/v1/collections/blog-posts/records` works like `/v1/collections/col_…/records`, since the key belongs to one project. Project endpoints take the key's project ID (`prj_…`): `GET /v1/me` returns it as `api_key.project_id`, and the project's **Settings** page shows it. Timestamps are ISO 8601 in UTC.
+Every object has an `object` type, and every resource with an identity of its own an opaque, prefixed `id` (`col_`, `fld_`, `rec_`, `ast_`, ...). With an API key, collections can also be addressed by slug: `/v1/collections/blog-posts/records` works like `/v1/collections/col_…/records`, since the key belongs to one project. Project endpoints take the key's project ID (`prj_…`): `GET /v1/me` returns it as `api_key.project_id`, and the project's **Settings** page shows it. Timestamps are ISO 8601 in UTC. Times you send, such as a schedule's or a filter's, need a time zone (`Z` or an offset such as `+02:00`) and a real date: `2026-10-09T09:00:00` and `2026-02-30T09:00:00Z` are refused, not guessed.
 
 ## Lists
 
@@ -33,7 +33,7 @@ Errors share one envelope:
 }
 ```
 
-Include the `request_id` when asking for support.
+Include the `request_id` when asking for support. Responses also have a `Server-Timing` header saying where the request's time went, in milliseconds: `db`, `search` when it searched, and `app` for the whole request.
 
 ## Safe retries and concurrent edits
 
@@ -52,3 +52,7 @@ Every authenticated response carries `RateLimit-Limit`, `RateLimit-Remaining` an
 A request that would go over a hard limit of the organization's plan, such as its number of records or collections (or file storage, on Free), is refused with `402 plan_limit_exceeded`. The error's detail names the limit in `field`, with the current `usage` and the `limit`. Over a soft limit, such as file storage on paid plans, uploads still succeed and carry a `Nohead-Usage-Warning` header: `asset_storage_bytes=53687091300/53687091200`.
 
 Monthly API requests are a hard limit on Free (`429` until the next month) and a soft one on paid plans: see [API requests](/guides/api-requests).
+
+## Deprecations
+
+A request to a deprecated operation, or with a deprecated parameter, gets three more headers: `Deprecation`, when it was deprecated (`@` and Unix seconds), `Sunset`, the date it is removed, once one is set, and `Link` with `rel="deprecation"`, the page that describes what replaces it. Responses about a collection carry them too while a renamed field's old key still works ([Changing a collection](/guides/content-modelling#changing-a-collection)). The SDKs warn when a response has them.
