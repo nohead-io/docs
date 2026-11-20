@@ -58,7 +58,9 @@ puts webhook.secret # whsec_..., shown only now
 
 The URL must be `https`, without a username or password, and on the public internet: addresses on private networks are refused. How many webhooks you can have depends on your organization's plan.
 
-To check your endpoint, use **Send test event** from the webhook's menu, or `POST /v1/webhooks/{webhook_id}/test`. It sends a `webhook.test` event to that webhook only.
+To check your endpoint, use **Send test event** from the webhook's menu, or `POST /v1/webhooks/{webhook_id}/test`. It sends a `webhook.test` event to that webhook only. The web app waits for the first attempt and says whether it was delivered, with the status your endpoint answered or that it didn't respond; if the attempt takes too long, find it under **Deliveries**. On a `401` or `403`, check that your endpoint verifies requests with this webhook's signing secret.
+
+The API answers at once with the queued delivery, whose attempts `GET /v1/webhook-deliveries/{delivery_id}` shows. A disabled webhook can't be tested: the API answers `409`.
 
 ## Event types
 
@@ -191,11 +193,27 @@ end
 
 </CodeGroup>
 
+## Health
+
+The **Webhooks** page's **Status** column shows how each webhook is doing: **Enabled**, **Failing** (its last attempt failed) or **Disabled**. Hover over the status for more: when an enabled webhook last delivered, the status code or error a failing one has been getting and since when, or that Nohead disabled it.
+
+Through the API, a webhook carries the same:
+
+- `last_attempt_at`, `last_status_code` and `last_error`: when the last attempt was made, the HTTP status it got, or why it got no response (such as a timeout).
+- `last_succeeded_at`: when an attempt last got a `2xx` response.
+- `failing_since`: when its attempts started failing; `null` while it works and before its first attempt. A success clears it, and so do changing the URL and disabling or enabling the webhook yourself; when Nohead disables a failing webhook, `failing_since` stays as it was.
+
+Every attempt counts, retries and test events included. Changing a webhook's URL clears its health, since the new address hasn't been tried yet.
+
 ## Disabling and deleting
 
-There is no automatic disabling: a failing endpoint keeps getting new events, and each one fails on its own after its retries. To pause a webhook, choose **Disable** from its menu (or set `enabled` to `false`). A disabled webhook gets no new events, events from while it was off are not sent later, and its pending retries fail.
+To pause a webhook, choose **Disable** from its menu (or set `enabled` to `false`). A disabled webhook gets no new events, events from while it was off are not sent later, and its pending retries fail.
 
-**Delete** stops a webhook the same way. A deleted webhook can be restored for 30 days, with its settings, secrets and delivery history (`POST /v1/webhooks/{webhook_id}/restore`).
+Nohead disables a webhook too, once its attempts have failed for 3 days, and sets its `disabled_reason` to `failing`. Your organization's owners and admins get an email after a day of failures (after an hour if no attempt has succeeded yet, or since its URL changed), and another when it's disabled. Each happens at the first failed attempt past its time, so a webhook with nothing to send is left as it is.
+
+Once the endpoint is fixed, choose **Enable** from the webhook's menu (or set `enabled` to `true`), then send a test event. Enabling it clears `disabled_reason` and `failing_since`, and the warning and the 3 days count again from its next failure.
+
+**Delete** stops a webhook the same way as disabling it. A deleted webhook can be restored for 30 days, with its settings, secrets and delivery history (`POST /v1/webhooks/{webhook_id}/restore`).
 
 ## Verify signatures
 
