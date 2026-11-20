@@ -12,8 +12,8 @@
 //   npm run check:code   # needs Python 3.11+ (PYTHON, default python3) and Ruby
 //
 // Each block is a file named after its guide and the line of its opening
-// fence: an error at line L of `sdks.mdx-71.ts` is at line 71 + L of
-// guides/sdks.mdx.
+// fence: an error at line L of `webhooks.mdx-30.ts` is at line 30 + L of
+// guides/webhooks.mdx.
 import { execFileSync } from "node:child_process"
 import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
@@ -34,6 +34,8 @@ const PRELUDES = {
   "globals.d.ts": `
 declare const nohead: import("@nohead/sdk").Nohead
 declare const id: string
+declare const token: string
+declare const index: string
 declare const title: string
 declare const data: { [apiKey: string]: unknown }
 declare const row: { id: string }

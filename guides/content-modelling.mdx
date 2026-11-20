@@ -203,11 +203,14 @@ Every collection is indexed for full-text search. Members search in the web app,
 
 ## Changing a collection
 
-You can change a collection's name and description at any time. Adding fields, renaming them and loosening their options is safe: record data is stored by field ID, so it never moves.
+You can change a collection's name and description at any time, and its slug with care (below). Adding fields, renaming them and loosening their options is safe: record data is stored by field ID, so it never moves.
 
-- **Renaming a field's key** keeps its values. Records come back under the new key, and requests that use the old key keep working for six months, so your code has time to switch.
+- **Renaming a field's key** keeps its values. Records come back under the new key, and requests that use the old key keep working for six months, so your code has time to switch. The field lists the old key in its `aliases`. Once your code has switched, you can stop accepting the old key sooner: **Stop accepting** under the field on the collection's **Schema** tab, `DELETE /v1/fields/{field_id}/aliases/{alias}`, or `removeAlias` in TypeScript (`remove_alias` in Python and Ruby). Requests that still use it fail from then on, and the activity log and webhooks get a `field.alias_removed` event.
+- **Changing a collection's slug** (its **Settings** in the web app, `nohead collections update --slug`, or `PATCH /v1/collections/{collection_id}`) keeps its records and fields. The old slug isn't kept as a field's old key is: requests that use it fail at once. Requests that name the collection by ID (`col_…`) keep working. A [schema file](/guides/schema-as-code) names collections by slug, relations' targets included, so pull it again after the change, or its next push creates a collection under the old slug.
 - **Changing a field's type, making it multiple, or adding or removing a date's time** rewrites stored values, so it runs as a [field migration](/guides/field-migrations). You can preview how many records convert cleanly before you start, and from the start the collection's fields can't change, and once it is running its records can't either.
 - **Tightening a field** (making it required, lowering a maximum, removing enum options) is refused while existing records would break the new rule. Fix those records first, or run a [field migration](/guides/field-migrations) that clears the values that break it or fills in records without a value.
 - **Deleting a field or collection** is a soft delete, and can be undone for 30 days (until its `purge_after`).
 
 Each schema change bumps the collection's schema version, and each record carries the `schema_version` it was last written with.
+
+To review schema changes as a diff and apply them from CI, keep the schema in your repository: see [Schema as code](/guides/schema-as-code).
