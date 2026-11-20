@@ -76,7 +76,7 @@ Chat apps that only connect through a sign-in (OAuth), such as Claude.ai connect
 | `search_collection` | Search one collection, with filters and sorting | `search:read` |
 | `list_records` | A collection's records, with filters, sorting and pages | `records:read` |
 | `get_record` | One record, with its current revision | `records:read` |
-| `create_record` | A new record, unpublished | `records:write` |
+| `create_record` | A new record, unpublished unless `publish: true` | `records:write` |
 | `update_record` | Change some of a record's field values | `records:write` |
 | `list_drafts` | A collection's drafts: changes waiting for review | `records:read` |
 | `get_draft` | A draft: the record as it reads once merged, and the fields it changes | `records:read` |
