@@ -156,7 +156,7 @@ The payload is rendered each time it is sent, so values redacted in the meantime
 
 Every request has `Content-Type: application/json` and three headers: `webhook-id` (the event's ID), `webhook-timestamp` and `webhook-signature`.
 
-- **Success** is any `2xx` response within 10 seconds. Any other status, a timeout or a connection error is a failed attempt. Redirects aren't followed, so a `3xx` fails too.
+- **Success** is any `2xx` response. Any other status, a timeout or a connection error is a failed attempt. Redirects aren't followed, so a `3xx` fails too. Respond within 10 seconds: an endpoint that is slow to connect or to answer fails the attempt.
 - **Retries** follow a failed attempt after 5 seconds, 5 minutes, 30 minutes, 2 hours, 5 hours, 10 hours and 10 hours. After 8 attempts, about a day, the delivery fails.
 - **At least once.** The same event can arrive more than once, for example when your endpoint was slow to answer. Deduplicate by `webhook-id`, which stays the same on every attempt.
 - **No ordering.** A retried event can arrive after later ones. Compare `created_at`, or a record's `revision`, to tell which change is newer.
