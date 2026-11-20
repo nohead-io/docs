@@ -52,6 +52,8 @@ await nohead.records.update<Post>(id, { data: { title: "Hello again" } })
 
 The type is a promise you make; nothing is checked at runtime. The record type itself is `Nohead.Record<Post>`, also exported as `NoheadRecord`. Field names stay as the API sends them (`published_at`, `data`), so the [API reference](/api-reference/overview) applies as it is.
 
+On a collection's **Schema** tab in the web app, the **Record shape** card's **TypeScript** tab shows its record data as an interface.
+
 ## Raw responses
 
 `withResponse()` gives the HTTP response with the result, for its headers:
@@ -64,6 +66,8 @@ console.log(data.id, requestId, response.headers.get("RateLimit-Remaining"))
 ## Frameworks
 
 `@nohead/sdk/images` builds image URLs (`imageUrl`) and has loaders for Next.js and Nuxt Image, with no dependencies. See [Images](/guides/images#frameworks).
+
+`@nohead/sdk/search` searches published records with a search token (`searchPublic`), with no dependencies, so it suits browser code. See [Public search](/guides/public-search#with-the-typescript-sdk).
 
 Framework adapters build on this SDK, as packages with releases of their own, and are listed under **Adapters**. [`@nohead/astro`](/adapters/astro) loads collections into Astro's content collections, typed from their fields, and has an image service for Nohead's images.
 

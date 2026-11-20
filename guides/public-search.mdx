@@ -38,7 +38,7 @@ In the web app, open your project's **Search tokens** page, choose **New search 
 
 ## Search
 
-Send searches to `https://search.nohead.io`, the search URL for every token (a token's `search_url` in the API). It lets searches through and nothing else, and limits how many requests one address can make:
+Send searches to `https://search.nohead.io`, the search URL for every token. It lets searches through and nothing else, and limits how many requests one address can make:
 
 ```javascript
 const response = await fetch("https://search.nohead.io/multi-search", {
@@ -64,6 +64,38 @@ Hits look like records:
 Hits hold the fields their collection includes, which is all of them unless you leave some out ([Included](/guides/content-modelling#search-options)).
 
 Several collections at once take one query each, or a federated search across them (`federation: {}` in the request).
+
+### With the TypeScript SDK
+
+`@nohead/sdk/search` sends these searches for you, with no dependencies and no API key, so it suits browser code. `searchPublic` searches one collection and returns each highlighted field as segments, which render as text with no HTML to escape; `snippet` cuts a long one down to the part around its first match:
+
+```ts
+import { searchPublic, snippet } from "@nohead/sdk/search"
+
+interface Post {
+  title: string
+  summary: string
+}
+
+const { hits, total } = await searchPublic<Post>({
+  token,
+  index,
+  q: "lentil",
+  highlight: ["title", "summary"],
+})
+console.log(`${total} posts`)
+
+// Segments: [{ text: "Red ", match: false }, { text: "lentil", match: true }, …]
+const marked = (segments: { text: string; match: boolean }[]) =>
+  segments.map((s) => (s.match ? `[${s.text}]` : s.text)).join("")
+
+for (const hit of hits) {
+  console.log(marked(hit.highlights.title ?? []))
+  console.log(marked(snippet(hit.highlights.summary ?? [], { length: 120 })))
+}
+```
+
+Render each segment as text, and the matched ones in a `<mark>`. `searchPublic` also takes `filter` and `sort`, written as in [Filter and sort](#filter-and-sort), `limit` and `offset`, and a `signal` to cancel a search. The [SDK's README](https://github.com/nohead-io/nohead-typescript#search) covers its errors and typing the fields hits expand.
 
 ## Images and related records
 

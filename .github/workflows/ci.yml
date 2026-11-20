@@ -48,3 +48,20 @@ jobs:
           package-manager-cache: false
       # Python 3 and Ruby come with the runner.
       - run: npm run check:code
+
+  secrets:
+    name: Secrets in the git history
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      # gitleaks' default rules and Nohead's own key shapes (.gitleaks.toml),
+      # over the whole history of the commit under test (not other branches):
+      # it takes seconds. The image is gitleaks 8.30.0.
+      - run: >-
+          docker run --rm -v "$PWD:/repo"
+          ghcr.io/gitleaks/gitleaks@sha256:691af3c7c5a48b16f187ce3446d5f194838f91238f27270ed36eef6359a574d9
+          git /repo --log-opts=HEAD --no-banner --redact --exit-code 1
