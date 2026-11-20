@@ -77,11 +77,21 @@ interface Post {
   summary: string
 }
 
-const { hits, total } = await searchPublic<Post>({ token, index, q: "lentil", highlight: ["title", "summary"] })
+const { hits, total } = await searchPublic<Post>({
+  token,
+  index,
+  q: "lentil",
+  highlight: ["title", "summary"],
+})
 console.log(`${total} posts`)
+
+// Segments: [{ text: "Red ", match: false }, { text: "lentil", match: true }, …]
+const marked = (segments: { text: string; match: boolean }[]) =>
+  segments.map((s) => (s.match ? `[${s.text}]` : s.text)).join("")
+
 for (const hit of hits) {
-  const title = hit.highlights.title ?? [] // [{ text: "Red ", match: false }, { text: "lentil", match: true }, …]
-  const summary = snippet(hit.highlights.summary ?? [], { length: 120 })
+  console.log(marked(hit.highlights.title ?? []))
+  console.log(marked(snippet(hit.highlights.summary ?? [], { length: 120 })))
 }
 ```
 

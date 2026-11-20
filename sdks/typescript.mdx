@@ -52,7 +52,7 @@ await nohead.records.update<Post>(id, { data: { title: "Hello again" } })
 
 The type is a promise you make; nothing is checked at runtime. The record type itself is `Nohead.Record<Post>`, also exported as `NoheadRecord`. Field names stay as the API sends them (`published_at`, `data`), so the [API reference](/api-reference/overview) applies as it is.
 
-On a collection's **Schema** tab in the web app, the **Record shape** card's **TypeScript** tab shows its record data as an interface to copy.
+On a collection's **Schema** tab in the web app, the **Record shape** card's **TypeScript** tab shows its record data as an interface.
 
 ## Raw responses
 
