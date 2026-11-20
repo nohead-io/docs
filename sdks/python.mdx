@@ -19,7 +19,7 @@ from nohead import Nohead
 
 nohead = Nohead(
     api_key=os.environ["NOHEAD_API_KEY"],  # the default
-    timeout=10.0,  # seconds per attempt
+    timeout=10.0,  # seconds without progress
     max_retries=3,
 )
 ```
@@ -30,12 +30,14 @@ nohead = Nohead(
 | `base_url` | `NOHEAD_API_URL`, else `https://api.nohead.io` | The API's address. The [CLI](/cli/overview) reads the same variable, so one environment points both at the same API. |
 | `project_id` | the key's project | Looked up once with `GET /v1/me` when omitted. |
 | `max_retries` | `2` | See [retries](/sdks/overview#retries-and-idempotency). |
-| `timeout` | `60.0` | Seconds per attempt. |
+| `timeout` | `60.0` | Seconds an attempt may go without progress: connecting, waiting for the response, or between parts of its body. |
 | `headers` | none | Added to every request. |
 | `warnings` | `True` | Warns (`NoheadWarning`) about deprecated operations and plan usage, once each. |
+| `on_retry` | none | Called with a `RetryEvent` (its attempt, delay, URL, status and error) before each retry. |
+| `rich_text` | `"document"` | How [rich text](/guides/content-modelling#rich-text) fields read in the records and drafts returned: `"document"`, `"html"` or `"markdown"`. A call's own `rich_text` overrides it. |
 | `http_client` | a new `httpx.Client` | Bring your own for proxies or custom transports. |
 
-Close the client when you're done with it, or use it as a context manager (`with Nohead() as nohead:`). `nohead.with_options(timeout=5, max_retries=0)` returns a client with other settings that shares the same connections.
+Close the client when you're done with it, or use it as a context manager (`with Nohead() as nohead:`). `nohead.with_options(timeout=5, max_retries=0)` returns a client with another `timeout`, `max_retries`, `on_retry` or `rich_text`, or more `headers` (added to the client's), that shares the same connections and project.
 
 ## Async
 
