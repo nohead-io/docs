@@ -48,7 +48,9 @@ nohead fields add [options] <collection> <name>
 | `--multiple` | Store a list of values. |
 | `--options <list>` | Enum options, comma-separated. |
 | `--target <collection>` | Relation target collection (slug or ID) |
-| `--max-length <n>` | Maximum length for plain text fields. |
+| `--min-length <n>` | Minimum length for text, long text and rich text fields. |
+| `--max-length <n>` | Maximum length for text, long text and rich text fields. |
+| `--accepted-types <list>` | Asset fields: MIME types or type/* wildcards new values must have, comma-separated. |
 | `--min <n>` | Minimum for number fields. |
 | `--max <n>` | Maximum for number fields. |
 | `--description <text>` | Help text shown to editors. |
@@ -65,6 +67,10 @@ nohead fields add [options] <collection> <name>
 | `--no-filterable` | Disallow filtering in search. |
 | `--sortable` | Allow sorting search results by this field. |
 | `--no-sortable` | Disallow sorting search results. |
+| `--included` | Return this field in public search hits. |
+| `--no-included` | Leave this field out of public search hits. |
+| `--expanded <list>` | What public search hits return of what the field points at, comma-separated: an asset's parts (image_url, dimensions, alt, file_url, filename, content_type) or the related collection's field keys. |
+| `--searched <list>` | Relation fields: the related collection's field keys searches match, comma-separated. |
 
 ## `nohead fields update`
 
@@ -87,7 +93,9 @@ nohead fields update [options] <collection> <field>
 | `--optional` | Make the field optional. |
 | `--options <list>` | Enum options, comma-separated. |
 | `--target <collection>` | Relation target collection (slug or ID) |
-| `--max-length <n>` | Maximum length for plain text fields. |
+| `--min-length <n>` | Minimum length for text, long text and rich text fields. |
+| `--max-length <n>` | Maximum length for text, long text and rich text fields. |
+| `--accepted-types <list>` | Asset fields: MIME types or type/* wildcards new values must have, comma-separated. |
 | `--min <n>` | Minimum for number fields. |
 | `--max <n>` | Maximum for number fields. |
 | `--description <text>` | Help text shown to editors. |
@@ -104,6 +112,10 @@ nohead fields update [options] <collection> <field>
 | `--no-filterable` | Disallow filtering in search. |
 | `--sortable` | Allow sorting search results by this field. |
 | `--no-sortable` | Disallow sorting search results. |
+| `--included` | Return this field in public search hits. |
+| `--no-included` | Leave this field out of public search hits. |
+| `--expanded <list>` | What public search hits return of what the field points at, comma-separated: an asset's parts (image_url, dimensions, alt, file_url, filename, content_type) or the related collection's field keys. |
+| `--searched <list>` | Relation fields: the related collection's field keys searches match, comma-separated. |
 
 ## `nohead fields delete`
 
@@ -159,7 +171,9 @@ nohead fields migrate [options] <collection> <field>
 | `--no-wait` | Return once the migration is accepted. |
 | `--options <list>` | Enum options, comma-separated. |
 | `--target <collection>` | Relation target collection (slug or ID) |
-| `--max-length <n>` | Maximum length for plain text fields. |
+| `--min-length <n>` | Minimum length for text, long text and rich text fields. |
+| `--max-length <n>` | Maximum length for text, long text and rich text fields. |
+| `--accepted-types <list>` | Asset fields: MIME types or type/* wildcards new values must have, comma-separated. |
 | `--min <n>` | Minimum for number fields. |
 | `--max <n>` | Maximum for number fields. |
 | `--description <text>` | Help text shown to editors. |
@@ -176,3 +190,7 @@ nohead fields migrate [options] <collection> <field>
 | `--no-filterable` | Disallow filtering in search. |
 | `--sortable` | Allow sorting search results by this field. |
 | `--no-sortable` | Disallow sorting search results. |
+| `--included` | Return this field in public search hits. |
+| `--no-included` | Leave this field out of public search hits. |
+| `--expanded <list>` | What public search hits return of what the field points at, comma-separated: an asset's parts (image_url, dimensions, alt, file_url, filename, content_type) or the related collection's field keys. |
+| `--searched <list>` | Relation fields: the related collection's field keys searches match, comma-separated. |
