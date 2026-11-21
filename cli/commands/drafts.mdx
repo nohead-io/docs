@@ -10,19 +10,19 @@ Every command also takes the [global options](/cli/commands/global-options), suc
 
 ## `nohead drafts list`
 
-List a collection's drafts, most recently changed first.
+List a collection's drafts, or a record's, most recently changed first.
 
 ```bash
-nohead drafts list [options] <collection>
+nohead drafts list [options] [collection]
 ```
 
 | Argument | |
 |---|---|
-| `<collection>` | Collection slug or ID. |
+| `[collection]` | Collection slug or ID (or --record) |
 
 | Option | |
 |---|---|
-| `--record <id>` | This record's draft instead, whatever its collection. |
+| `--record <id>` | This record's draft instead of a collection's. |
 | `--limit <n>` | Page size (1-100, default 100) |
 | `--cursor <cursor>` | Continue from a previous page's next_cursor. |
 | `--all` | Follow cursors and return every draft. |

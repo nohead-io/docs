@@ -14,4 +14,4 @@ Every command takes these, for example `nohead --json records list posts`. The [
 | `--json` | Print machine-readable JSON on stdout. |
 | `--project <id>` | Project to work in, and so its saved API key (default: $NOHEAD_PROJECT, then the nearest nohead.json, then the only saved key) |
 | `--note <text>` | Reason for the change, kept in the history of records and the schema. |
-| `--idempotency-key <key>` | Makes retrying a mutation safe: the same key and request return the first result. |
+| `--idempotency-key <key>` | Makes retrying a mutation safe: the same key and request return the first result (import &lt;dir> and schema push ignore it) |

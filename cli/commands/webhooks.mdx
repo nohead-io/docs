@@ -37,6 +37,40 @@ nohead webhooks create [options]
 | `--description <text>` | What it is for. |
 | `--published-only` | Send only changes to published content: no drafts, schedules or edits to unpublished records. |
 
+## `nohead webhooks get`
+
+Show a webhook and how its deliveries are doing.
+
+```bash
+nohead webhooks get [options] <id>
+```
+
+| Argument | |
+|---|---|
+| `<id>` | Webhook ID (wh_...) |
+
+## `nohead webhooks update`
+
+Change a webhook, or turn it on again after Nohead disabled it.
+
+```bash
+nohead webhooks update [options] <id>
+```
+
+| Argument | |
+|---|---|
+| `<id>` | Webhook ID (wh_...) |
+
+| Option | |
+|---|---|
+| `--enable` | Send it events again. |
+| `--disable` | Stop sending it events. |
+| `--url <url>` | Https URL to send events to. |
+| `--events <types>` | comma-separated event types, or * for all. |
+| `--description <text>` | What it is for ("" clears it) |
+| `--published-only` | Send only changes to published content: no drafts, schedules or edits to unpublished records. |
+| `--no-published-only` | Send changes to all content. |
+
 ## `nohead webhooks delete`
 
 Delete a webhook.
