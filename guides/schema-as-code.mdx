@@ -68,7 +68,8 @@ collections:
       tags:
         type: text
         multiple: true
-        filterable: true
+        search:
+          filterable: true
       cover:
         type: asset
         name: Cover image
@@ -76,10 +77,10 @@ collections:
 ```
 
 - Collections are keyed by slug and fields by key, with fields in the order editors see them. A field that is only a type can be written as one: `bio: long_text`.
-- A field takes `type`, `name`, `required`, `multiple` and its type's [configuration](/guides/content-modelling#field-types) as plain keys: `min_length`, `max_length`, `min`, `max`, `options`, `format`, `unique`, `include_time`, `time_zone`, `accepted_types`, `description`, and the [search options](/guides/content-modelling#search-options) `searchable`, `filterable`, `sortable`, `included`, `expanded` and `searched`.
-- A relation names its target collection by slug: `collection: authors`, and the related fields its `expanded` and `searched` list by key: `expanded: [name, portrait]`.
+- A field takes `type`, `name`, `required`, `multiple` and its type's [configuration](/guides/content-modelling#field-types) as plain keys: `min_length`, `max_length`, `min`, `max`, `options`, `format`, `unique`, `include_time`, `time_zone`, `accepted_types`, `description`, and its [search settings](/guides/content-modelling#search-options) under `search`: `searchable`, `filterable`, `sortable` and `returned`.
+- A relation names its target collection by slug: `collection: authors`, and the related fields its `searchable` and `returned` list by key: `search: { searchable: [name], returned: [name, portrait] }`.
 - `public_search: true` includes a collection in [public search](/guides/public-search).
-- A collection takes `name` and `description`. Names left out are the key's default: `blog-posts` is "Blog Posts" and `cover_image` "Cover Image". `schema pull` writes a name only when it differs, and leaves out `unique` on slugs, which are always unique.
+- A collection takes `name` and `description`. Names left out are the key's default: `blog-posts` is "Blog Posts" and `cover_image` "Cover Image". `schema pull` writes a name only when it differs, and leaves out `unique` on slugs, which are always unique, and `returned: true`, the default.
 
 The file describes each collection and field in full: a description or option you remove from it is removed from the project on the next push, and a name you remove goes back to the key's default.
 
