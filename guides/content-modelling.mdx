@@ -203,7 +203,7 @@ Every collection is indexed for full-text search. Members search in the web app,
 |---|---|---|---|
 | `searchable` | `true` or `false`: words match the field. On by default for text, long text, rich text and enum fields. | `false`, or the related collection's fields whose words searches match | Not available: an asset holds no words |
 | `filterable` | `true` or `false`: searches can filter and count on it | Also on the related fields it lists | On its asset IDs |
-| `sortable` | `true` or `false`: searches can sort on it (one value only) | | |
+| `sortable` | `true` or `false`: searches can sort on it (one value only) | Not available | Not available |
 | `returned` | `true` (the default) or `false`: public search hits return the field | `true` (the related records' IDs), `false`, or the related fields to return with each | `true` (its default parts), `false`, or the parts to return |
 
 ```json
