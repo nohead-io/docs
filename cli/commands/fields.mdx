@@ -61,16 +61,14 @@ nohead fields add [options] <collection> <name>
 | `--no-format` | Text fields: plain text. |
 | `--unique` | No two records share a value (text, integer) |
 | `--no-unique` | Let records share a value. |
-| `--searchable` | Match search words in this field. |
-| `--no-searchable` | Leave this field out of search matching. |
-| `--filterable` | Allow filter[&lt;field>] in search. |
-| `--no-filterable` | Disallow filtering in search. |
-| `--sortable` | Allow sorting search results by this field. |
-| `--no-sortable` | Disallow sorting search results. |
-| `--included` | Return this field in public search hits. |
-| `--no-included` | Leave this field out of public search hits. |
-| `--expanded <list>` | What public search hits return of what the field points at, comma-separated: an asset's parts (image_url, dimensions, alt, file_url, filename, content_type) or the related collection's field keys. |
-| `--searched <list>` | Relation fields: the related collection's field keys searches match, comma-separated. |
+| `--searchable [fields]` | Searches match this field's words; relation fields: the related collection's field keys to match, comma-separated. |
+| `--no-searchable` | Searches don't match this field's words. |
+| `--filterable` | Searches can filter on this field. |
+| `--no-filterable` | Searches can't filter on this field. |
+| `--sortable` | Searches can sort on this field. |
+| `--no-sortable` | Searches can't sort on this field. |
+| `--returned [list]` | Public search hits return this field; or, comma-separated, an asset's parts (image_url, dimensions, alt, file_url, filename, content_type) or the related collection's field keys. |
+| `--no-returned` | Public search hits leave this field out. |
 
 ## `nohead fields update`
 
@@ -106,16 +104,14 @@ nohead fields update [options] <collection> <field>
 | `--no-format` | Text fields: plain text. |
 | `--unique` | No two records share a value (text, integer) |
 | `--no-unique` | Let records share a value. |
-| `--searchable` | Match search words in this field. |
-| `--no-searchable` | Leave this field out of search matching. |
-| `--filterable` | Allow filter[&lt;field>] in search. |
-| `--no-filterable` | Disallow filtering in search. |
-| `--sortable` | Allow sorting search results by this field. |
-| `--no-sortable` | Disallow sorting search results. |
-| `--included` | Return this field in public search hits. |
-| `--no-included` | Leave this field out of public search hits. |
-| `--expanded <list>` | What public search hits return of what the field points at, comma-separated: an asset's parts (image_url, dimensions, alt, file_url, filename, content_type) or the related collection's field keys. |
-| `--searched <list>` | Relation fields: the related collection's field keys searches match, comma-separated. |
+| `--searchable [fields]` | Searches match this field's words; relation fields: the related collection's field keys to match, comma-separated. |
+| `--no-searchable` | Searches don't match this field's words. |
+| `--filterable` | Searches can filter on this field. |
+| `--no-filterable` | Searches can't filter on this field. |
+| `--sortable` | Searches can sort on this field. |
+| `--no-sortable` | Searches can't sort on this field. |
+| `--returned [list]` | Public search hits return this field; or, comma-separated, an asset's parts (image_url, dimensions, alt, file_url, filename, content_type) or the related collection's field keys. |
+| `--no-returned` | Public search hits leave this field out. |
 
 ## `nohead fields delete`
 
@@ -184,13 +180,11 @@ nohead fields migrate [options] <collection> <field>
 | `--no-format` | Text fields: plain text. |
 | `--unique` | No two records share a value (text, integer) |
 | `--no-unique` | Let records share a value. |
-| `--searchable` | Match search words in this field. |
-| `--no-searchable` | Leave this field out of search matching. |
-| `--filterable` | Allow filter[&lt;field>] in search. |
-| `--no-filterable` | Disallow filtering in search. |
-| `--sortable` | Allow sorting search results by this field. |
-| `--no-sortable` | Disallow sorting search results. |
-| `--included` | Return this field in public search hits. |
-| `--no-included` | Leave this field out of public search hits. |
-| `--expanded <list>` | What public search hits return of what the field points at, comma-separated: an asset's parts (image_url, dimensions, alt, file_url, filename, content_type) or the related collection's field keys. |
-| `--searched <list>` | Relation fields: the related collection's field keys searches match, comma-separated. |
+| `--searchable [fields]` | Searches match this field's words; relation fields: the related collection's field keys to match, comma-separated. |
+| `--no-searchable` | Searches don't match this field's words. |
+| `--filterable` | Searches can filter on this field. |
+| `--no-filterable` | Searches can't filter on this field. |
+| `--sortable` | Searches can sort on this field. |
+| `--no-sortable` | Searches can't sort on this field. |
+| `--returned [list]` | Public search hits return this field; or, comma-separated, an asset's parts (image_url, dimensions, alt, file_url, filename, content_type) or the related collection's field keys. |
+| `--no-returned` | Public search hits leave this field out. |
