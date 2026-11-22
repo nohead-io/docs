@@ -98,7 +98,7 @@ A document uses the web editor's nodes and marks, and nothing else, so whatever 
 
 - **Blocks:** `paragraph`, `heading` (`level` 1 to 3), `blockquote`, `bulletList` and `orderedList` (`start`, `type`) of `listItem` (each starting with a paragraph), `codeBlock` (`language`), `horizontalRule`, `table` of `tableRow` of `tableHeader` and `tableCell` (`colspan`, `rowspan`, `colwidth`, `align`), and [images](#images-in-rich-text). Any block can have a `dir` (`auto`, `ltr` or `rtl`).
 - **Inline:** `text` and `hardBreak`.
-- **Marks on text:** `bold`, `italic`, `strike`, `underline`, `code` (on its own) and `link` (`href`, and optionally `title`, `target`, `rel` and `class`, which Tiptap adds).
+- **Marks on text:** `bold`, `italic`, `strike`, `underline`, `code` (with a link at most, as in ``[`expand`](https://…)``) and `link` (`href`, and optionally `title`, `target`, `rel` and `class`, which Tiptap adds).
 
 Another editor's names are refused with `invalid_format`, naming ours where one fits: `contains an unknown mark "strong"; use "bold"`. These are Tiptap's names, so documents from a Tiptap editor with StarterKit and tables need no conversion.
 
