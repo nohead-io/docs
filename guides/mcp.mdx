@@ -78,11 +78,14 @@ Chat apps that only connect through a sign-in (OAuth), such as Claude.ai connect
 | `get_record` | One record, with its current revision | `records:read` |
 | `create_record` | A new record, unpublished unless `publish: true` | `records:write` |
 | `update_record` | Change some of a record's field values | `records:write` |
+| `delete_record` | Delete a record, restorable until its `purge_after` | `records:write` |
 | `list_drafts` | A collection's drafts: changes waiting for review | `records:read` |
 | `get_draft` | A draft: the record as it reads once merged, and the fields it changes | `records:read` |
 | `create_draft` | Propose changes to a record, for a person to review | `records:write` |
 | `update_draft` | Change some of a draft's values | `records:write` |
 | `merge_draft` | Apply a draft to its record, when you ask the agent to | `records:write` |
+| `schedule_draft` | Merge a draft at a set time | `records:write` |
+| `unschedule_draft` | Cancel a draft's scheduled merge | `records:write` |
 | `discard_draft` | Discard a draft; the record is unchanged | `records:write` |
 | `publish_record` | Publish a record's current revision | `records:write` |
 | `unpublish_record` | Take a record off sites and apps | `records:write` |
@@ -98,12 +101,15 @@ Chat apps that only connect through a sign-in (OAuth), such as Claude.ai connect
 | `get_asset_usage` | Which records use an asset | `assets:read`, `records:read` |
 | `update_asset` | Set an asset's alt text or filename | `assets:write` |
 | `delete_asset` | Delete an asset, restorable for 30 days | `assets:write` |
+| `restore_asset` | Bring back a deleted asset | `assets:write` |
 | `start_upload` | Step 1 of an upload: where to send the file | `assets:write` |
 | `complete_upload` | Step 2 of an upload: make the asset ready | `assets:write` |
 
 An agent sees only the tools its key's scopes allow, and a published-only key reads published records only: its `list_revisions` and `diff_record` calls are refused (`403`), since history can hold unpublished content, and so are its `get_schedule` and `get_asset_usage` calls. Each tool's arguments carry the API reference's own descriptions. Schema changes aren't tools: make those as reviewed schema files with the CLI (`nohead schema pull`, `diff` and `push`).
 
 `schedule_record` ([Schedule publishing](/guides/publishing#schedule-publishing)) takes `publish_at`, `unpublish_at` or both, as ISO 8601 times with a zone such as `2026-11-06T09:00:00Z`, and replaces the whole schedule: a time left out is cleared, so an agent adding an unpublish time passes the publish time again. A publish time needs an unpublished record, and an unpublish time a published one or a publish time before it. The change is made within a minute of its time, as its own revision; one that can't be made then (the record is live with a pending draft, say) is dropped, and `get_schedule` gives the reason in `last_error`. Scheduling makes no revision, so these tools take no `note` or `expected_revision`, and a schedule change can't be reverted: the last write wins, so read the schedule with `get_schedule` just before replacing it. Schedule changes are in the [activity log](/guides/history#activity-log).
+
+`schedule_draft` ([Schedule a draft](/guides/publishing#schedule-a-draft)) merges a draft on its own at `merge_at`, within a minute of it, as the draft reads then, so it takes no `note` or `expected_revision` either. A new time replaces the old one, and `unschedule_draft` cancels it. A merge that can't be made when it is due leaves the draft as it is, and `get_draft` gives the reason in `schedule.last_error`.
 
 Agents read and write rich text as Markdown: tools that return records, `diff_record` and `revert_record` (its changes too, with `dry_run`) give rich text fields as Markdown unless the agent asks for `rich_text: "html"` or `"document"`, and `create_record`, `update_record`, `create_draft` and `update_draft` take Markdown ([Rich text](/guides/content-modelling#rich-text)).
 
@@ -130,7 +136,7 @@ The tools add guardrails for agents:
 - **A note on every change to a record.** Each one takes a required `note` saying why, up to 500 characters. It is stored in the record's history next to the key's name and the client, **MCP**.
 - **No overwriting.** Changes to an existing record take the `expected_revision` the agent read, and the server's instructions ask agents to pass it. If someone changed the record since, the change is refused with `precondition_failed`, and the agent should read it again. Without it, the last write wins.
 - **Safe retries.** Every write takes an optional `idempotency_key`. Retrying with the same key never applies a change twice.
-- **Review before it goes live.** A change to a published record shows on your sites at once, so the server's instructions ask agents to propose it as a draft instead, unless you asked for a direct edit. The draft waits until it is merged: by a person in the editor (**Publish changes**) or with `nohead drafts merge`, or by the agent with `merge_draft` once you ask it to, which makes one revision with the agent's `note` that names the draft. No tool schedules a merge. A record has at most one draft, and `create_draft` on a record that has one is refused with `draft_exists` and its `draft_id`, so the agent changes that one with `update_draft`, passing the draft's `revision` as `expected_revision`. A draft changes no content until it is merged, so `create_draft` and `update_draft` take no `note`, and `create_draft` no `expected_revision`; `merge_draft` takes the draft's `revision` as `expected_revision`. Drafts are a convention the server's instructions ask for, not a limit on the key: with `records:write`, `update_record` and `publish_record` change a published record directly, and the same key can merge a draft. No scope allows drafts only.
-- **Nothing irreversible.** Every record change is a revision you can revert, and `revert_record` previews with `dry_run: true`. New records start unpublished.
+- **Review before it goes live.** A change to a published record shows on your sites at once, so the server's instructions ask agents to propose it as a draft instead, unless you asked for a direct edit. The draft waits until it is merged: by a person in the editor (**Publish changes**) or with `nohead drafts merge`, or by the agent with `merge_draft` once you ask it to, which makes one revision with the agent's `note` that names the draft. `schedule_draft` merges it at a set time instead, when you ask for that. A record has at most one draft, and `create_draft` on a record that has one is refused with `draft_exists` and its `draft_id`, so the agent changes that one with `update_draft`, passing the draft's `revision` as `expected_revision`. A draft changes no content until it is merged, so `create_draft` and `update_draft` take no `note`, and `create_draft` no `expected_revision`; `merge_draft` takes the draft's `revision` as `expected_revision`. Drafts are a convention the server's instructions ask for, not a limit on the key: with `records:write`, `update_record` and `publish_record` change a published record directly, and the same key can merge a draft. No scope allows drafts only.
+- **Nothing irreversible.** Every record change is a revision you can revert, and `revert_record` previews with `dry_run: true`. A deleted record or asset can be brought back with `restore_record` or `restore_asset` until its `purge_after`. New records start unpublished.
 
 Errors come back as tool errors with the API's error envelope, so an agent sees the same `type`, `message` and `details` (each with its `code`) the [API reference](/api-reference/overview) documents.
