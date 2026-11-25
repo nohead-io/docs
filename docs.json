@@ -35,6 +35,7 @@
             "pages": [
               "index",
               "quickstart",
+              "starters",
               "guides/api-keys"
             ]
           },
