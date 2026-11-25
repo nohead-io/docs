@@ -35,8 +35,15 @@
             "pages": [
               "index",
               "quickstart",
-              "starters",
               "guides/api-keys"
+            ]
+          },
+          {
+            "group": "Starters",
+            "pages": [
+              "starters",
+              "starters/portfolio",
+              "starters/job-board"
             ]
           },
           {
