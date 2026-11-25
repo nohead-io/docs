@@ -106,7 +106,7 @@ nohead.drafts.merge(draft.id, change_note: "Spring update")
 </CodeGroup>
 
 - **One draft per record.** Starting a second is `409` with detail code `draft_exists` and the existing `draft_id`.
-- **Previews.** A draft's `data` is the record as it would read after the merge, and `GET /v1/drafts/{draft_id}` takes `expand`, so a preview route on your site can render it. `changed_fields` lists what it changes.
+- **Previews.** A draft's `data` is the record as it would read after the merge, and `GET /v1/drafts/{draft_id}` takes `expand`, so a preview route on your site can render it. `changed_fields` lists what it changes, and `editor_url` is the record's page in the web app, where your team reviews the draft.
 - **Merging changes content only.** A live record stays live and keeps its `published_at`; an unpublished one stays unpublished. The merge is one `merge` revision that names the draft and everyone who edited it. Webhooks get `record.updated` with the `draft_id`.
 - **Publishing never merges.** Publishing a live record that has a draft is `409` with detail code `draft_pending`. Publishing an unpublished record makes its current content live and keeps the draft.
 - **Edits made since win.** Fields the record changed after the draft started keep their values at the merge, unless the draft changes them too. The merge is validated again, unique values included (`422`).
