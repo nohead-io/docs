@@ -55,6 +55,25 @@ await nohead.records.update<Post>(id, { data: { title: "Hello again" } })
 
 The type is a promise you make; nothing is checked at runtime. The record type itself is `Nohead.Record<Post>`, also exported as `NoheadRecord`. Field names stay as the API sends them (`published_at`, `data`), so the [API reference](/api-reference/overview) applies as it is.
 
+What `expand` embeds takes a second type parameter, a related record being a `NoheadRecord` with its own for a [dotted key](/guides/reading-content#embed-related-records-and-assets):
+
+```ts
+import type { Asset, NoheadRecord } from "@nohead/sdk"
+
+interface Agent {
+  name: string
+  photo: string | null
+}
+
+const listing = await nohead.records.get<
+  { title: string; agent: string | null },
+  { agent: NoheadRecord<Agent, { photo: Asset | null }> | null }
+>(id, { expand: ["agent.photo"] })
+listing.expanded.agent?.expanded.photo?.image_url // string | null | undefined
+```
+
+`records.list`, `records.search` and `drafts.get` take it too. Without it, `expanded` is optional and each value could be a record, an asset or a list.
+
 On a collection's **Schema** tab in the web app, the **Record shape** card's **TypeScript** tab shows its record data as an interface.
 
 ## Raw responses
