@@ -78,6 +78,30 @@ curl "https://api.nohead.io/v1/collections/blog-posts/records?expand=author,cove
 
 Each record then has an `expanded` object keyed by field key. A related record or asset that no longer exists is `null` for a single-value field and left out of the list for a multiple one. With a published-only key, related unpublished records are left out too. To get rich text as HTML or Markdown, with its images, pass `rich_text` ([Read HTML or Markdown](/guides/content-modelling#read-html-or-markdown)).
 
+A dotted key reaches one relation further, such as an author's portrait with each post. `author.portrait` embeds the author, and the portrait under the author's own `expanded`:
+
+```bash
+curl "https://api.nohead.io/v1/collections/blog-posts/records?expand=author.portrait,cover_image" \
+  -H "Authorization: Bearer $NOHEAD_API_KEY"
+```
+
+```json
+{
+  "data": { "title": "Hello", "author": "rec_01J9...", "cover_image": "ast_01J9..." },
+  "expanded": {
+    "author": {
+      "id": "rec_01J9...",
+      "object": "record",
+      "data": { "name": "Ada", "portrait": "ast_01J9..." },
+      "expanded": { "portrait": { "id": "ast_01J9...", "object": "asset", "image_url": "https://images.nohead.io/..." } }
+    },
+    "cover_image": { "id": "ast_01J9...", "object": "asset", "image_url": "https://images.nohead.io/..." }
+  }
+}
+```
+
+A dotted key goes no deeper than that, and counts the relation it goes through toward the five: `author.portrait,cover_image` counts three. Each level follows the same rules, so the key needs `records:read` for the author and `assets:read` for the portrait, and a published-only key gets `null` for an unpublished author, with nothing under it. Drafts take dotted keys too, for previews.
+
 ## Count
 
 `GET /v1/collections/{collection_id}/records/count` answers how many records match, with the same filters as the list, without fetching them:
