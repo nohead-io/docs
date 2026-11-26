@@ -57,6 +57,25 @@ The type is a promise you make; nothing is checked at runtime. The record type i
 
 On a collection's **Schema** tab in the web app, the **Record shape** card's **TypeScript** tab shows its record data as an interface.
 
+What `expand` embeds takes a second type parameter. A related record is a `NoheadRecord`, whose own second type parameter types what a [dotted key](/guides/reading-content#embed-related-records-and-assets) embeds under it:
+
+```ts
+import type { Asset, NoheadRecord } from "@nohead/sdk"
+
+interface Agent {
+  name: string
+  photo: string | null
+}
+
+const listing = await nohead.records.get<
+  { title: string; agent: string | null },
+  { agent: NoheadRecord<Agent, { photo: Asset | null }> | null }
+>(id, { expand: ["agent.photo"] })
+listing.expanded.agent?.expanded.photo?.image_url // string | null | undefined
+```
+
+`records.list`, `records.search` and `drafts.get` take it too. Without it, `expanded` is optional and each value could be a record, an asset or a list.
+
 ## Raw responses
 
 `withResponse()` gives the HTTP response with the result, for its headers:
